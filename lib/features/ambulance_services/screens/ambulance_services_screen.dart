@@ -109,26 +109,23 @@ class AmbulanceServicesScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Response Status
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: const Border(
-                  left: BorderSide(color: Color(0xFF004ac6), width: 4), // primary
-                  top: BorderSide(color: Color(0xFFE2E8F0)),
-                  right: BorderSide(color: Color(0xFFE2E8F0)),
-                  bottom: BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0C000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
+            Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0C000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
+                  child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
@@ -205,9 +202,26 @@ class AmbulanceServicesScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFF004ac6),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
 
-            // Location Map
+        // Location Map
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,

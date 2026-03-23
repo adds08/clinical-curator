@@ -28,36 +28,30 @@ class RecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border(
-          top: BorderSide(color: const Color(0xFFE2E8F0)), // slate-200
-          right: BorderSide(color: const Color(0xFFE2E8F0)),
-          bottom: BorderSide(color: const Color(0xFFE2E8F0)),
-          left: BorderSide(
-            color: isHighlighted ? const Color(0xFF004ac6) : const Color(0xFFE2E8F0),
-            width: isHighlighted ? 4 : 1,
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)), // uniform border
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0C000000), // ~0.05 opacity black
+                blurRadius: 6,
+                offset: Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Color(0x07000000), // ~0.03 opacity black
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0C000000), // ~0.05 opacity black
-            blurRadius: 6,
-            offset: Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Color(0x07000000), // ~0.03 opacity black
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -183,6 +177,24 @@ class RecordCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
+    if (isHighlighted)
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFF004ac6),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
