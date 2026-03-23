@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -22,10 +22,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuDt8e4tLhRqd72HgSy9rM8KzJJyZLKJSYLv4bQsaNstesjVmZGDGhUgJ1EdcHJXYhrr-KbsFs2HPNxsqHPLaXhCdG2P_x4By12--D0tFfMfX7gvKJ3LzhxVIPEyNjhwQEUkSeVYK06oZXXZwMBEVrqh32Hpn2AOgLO_KZog3sUNgFYPWzCA3TqT3w-PfuzEEyBsmzp4RnTHsr3XEhnaqvclI2o-JAF76QqmF3KErXRogueisYU0r9KvNX7lq5AIIEUS-Kk8aHx4BeZW',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 3, // Profile
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -251,7 +247,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        context.push('/dashboard/doctor-schedule');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF004ac6), // primary
                         foregroundColor: Colors.white,

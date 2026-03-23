@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SecureLoginScreen extends StatelessWidget {
   const SecureLoginScreen({super.key});
@@ -236,7 +237,9 @@ class SecureLoginScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              context.go('/dashboard');
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF004ac6), // primary
                               foregroundColor: Colors.white,
@@ -260,8 +263,8 @@ class SecureLoginScreen extends StatelessWidget {
                     // Actions
                     Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
                           children: [
                             const Text(
                               'Need a patient account? ',
@@ -313,7 +316,9 @@ class SecureLoginScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 64,
                           child: OutlinedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              context.push('/register');
+                            },
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF004ac6), // primary
                               side: const BorderSide(color: Color(0x33004ac6), width: 2), // primary/20
@@ -368,10 +373,13 @@ class SecureLoginScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 24,
+                          runSpacing: 12,
                           children: [
                             Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: const [
                                 Icon(Icons.verified_user, color: Color(0xFF004ac6), size: 18),
                                 SizedBox(width: 8),
@@ -385,8 +393,8 @@ class SecureLoginScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(width: 24),
                             Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: const [
                                 Icon(Icons.lock, color: Color(0xFF004ac6), size: 18),
                                 SizedBox(width: 8),

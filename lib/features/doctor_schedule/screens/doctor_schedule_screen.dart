@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class DoctorScheduleScreen extends StatelessWidget {
   const DoctorScheduleScreen({super.key});
@@ -13,10 +12,6 @@ class DoctorScheduleScreen extends StatelessWidget {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuBCtrc2tvwoixeOByWaCxuAcd3rzqdQwkoau7rHvV7L0eOaHeRBWyDWd6B8sBt7xe9mYJogW_snpRORW4BtUss7hoKE5HvzHjmFHP_hXGjkyZp3UrGUinGnfZUnc0edBCuS-etitsbZqF14o8IUtpfGLBSTJis5Dp4CxOilX6uH6mRClbkbHlQKF79lFjoNbuAUWtI0V0C3z56lUzqx7gV70guteAT11CZ3JgZIyBWlpacJBPkGom46u02aHxSWM6tnOykevJxmYsCG',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {},
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class AddClinicalReportScreen extends StatelessWidget {
   const AddClinicalReportScreen({super.key});
@@ -13,10 +12,6 @@ class AddClinicalReportScreen extends StatelessWidget {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuBzd0eoXP_2XRy3WJm-LNWcvjIfX6T9XO2RSS4yRlWAZMbVg0Htv4lSp6TIkDJ-LEk4wJNR2NxKrZKR5eDW4goJTcvPZ6moCGj4qVb6fNazX0LT3i2VE1JeQVbPuNxNVbr1KmR6in9uh530xQS6cnrT_ewUORwHXc4_q3D_ZrhTc1JjLqDmMf5CB5yYyiyO9yE98aH7TAUyWwseq9F927oyzW-omAc3Lh-TwelUheCQbHRf8lv7ajAvkdW0v48JT_AmCH93Og4Js0sD',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 1, // Records is highlighted in the mock
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

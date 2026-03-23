@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/models/mock_data.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class PatientDashboardScreen extends StatelessWidget {
   const PatientDashboardScreen({super.key});
@@ -18,10 +17,6 @@ class PatientDashboardScreen extends StatelessWidget {
         subtitle: 'HEALTH PORTAL',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuAb2fq17D5HH1Nt8UJr8AkFCeY75munbs2FLnD_L6Ov_E6v-V5tw_gjOl3JLFnfjoEM_LhHUGKxkq5eidPhb1FAKxZLVr7x24gHDJKTw95n9QYPib_Bb4FtaM-N6QqbaJkzxs28YFTHf3ME-oDpL8rChKY8qUB5HXamZngdybU26bKX0WRVHaILVqkNJ-0Ok_IqS3oPfaffn9Piq2eXTpkb3E_ApfuAMf650H6lCgkB8nySyDJvaljF69GFf8tcAb9ClUvenEUaxbAP',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

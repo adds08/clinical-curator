@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 import '../../shared/widgets/record_card.dart';
 
 class MedicalRecordsScreen extends StatelessWidget {
@@ -14,10 +13,6 @@ class MedicalRecordsScreen extends StatelessWidget {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuDJEQ4GHuX3OUt5xkumU67umXB0X1HhHsYAxq2yFVBGHa_In585LU-cDLJTZARn0koOK5A5z13x0g5pWVZUjypF7f9tQ3-V98qfaMbSshsVZY_nY-L7sDJOB15DR-L_kniJoTbge5UVKUV_w0CywE0DC5ao7ooCAfxW6Y0Aapx3EsYd8sKXRUUs9DsKMSllE6D0duczWuVKN97QRDou3hXdtnDGEQPuKaBctPdzd0sqA_bjIAEXekeszw0Gu-9OfGkVpbgDQfi1zK6I',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 1,
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
