@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class AmbulanceServicesScreen extends StatelessWidget {
   const AmbulanceServicesScreen({super.key});
@@ -13,10 +12,6 @@ class AmbulanceServicesScreen extends StatelessWidget {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuCz-ayE5vcxhVJBeZYkDcmLWMHI6KPKuMNt7F5PsRnZiKEnXdQcXHlg5IRy8KDqdJny8iWWoLLsoswJL1i13j5cjwA-du5kOHTiVkzcG9kCjbsVo7RB40lCAqaOFHgsBM2nHAw0lZoCVZ6aHtzx2pt62RIIlHSXV368gvQye7MbU2Gv9HoiLvo-_hW_oX5jntNOYKfy5B83x_ubGbTRt_D9vg8dW3KDud5l8s9g5RbjjdfrcKfaWrEBoEJsHQQP8mIzH-gxUfxSg8lJ',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 2, // Services
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -109,26 +104,23 @@ class AmbulanceServicesScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Response Status
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: const Border(
-                  left: BorderSide(color: Color(0xFF004ac6), width: 4), // primary
-                  top: BorderSide(color: Color(0xFFE2E8F0)),
-                  right: BorderSide(color: Color(0xFFE2E8F0)),
-                  bottom: BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0C000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
+            Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0C000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
+                  child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
@@ -205,9 +197,26 @@ class AmbulanceServicesScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFF004ac6),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
 
-            // Location Map
+        // Location Map
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,

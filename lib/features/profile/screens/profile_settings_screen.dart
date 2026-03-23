@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -22,10 +22,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuDt8e4tLhRqd72HgSy9rM8KzJJyZLKJSYLv4bQsaNstesjVmZGDGhUgJ1EdcHJXYhrr-KbsFs2HPNxsqHPLaXhCdG2P_x4By12--D0tFfMfX7gvKJ3LzhxVIPEyNjhwQEUkSeVYK06oZXXZwMBEVrqh32Hpn2AOgLO_KZog3sUNgFYPWzCA3TqT3w-PfuzEEyBsmzp4RnTHsr3XEhnaqvclI2o-JAF76QqmF3KErXRogueisYU0r9KvNX7lq5AIIEUS-Kk8aHx4BeZW',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 3, // Profile
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -158,27 +154,24 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             const SizedBox(height: 32),
 
             // Active Workspace
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: const Border(
-                  left: BorderSide(color: Color(0xFF004ac6), width: 4), // primary
-                  top: BorderSide(color: Color(0xFFE2E8F0)),
-                  right: BorderSide(color: Color(0xFFE2E8F0)),
-                  bottom: BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0C000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 4),
+            Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0C000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
+                  child: Column(
+                    children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +247,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        context.push('/dashboard/doctor-schedule');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF004ac6), // primary
                         foregroundColor: Colors.white,
@@ -270,9 +265,26 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ),
                       ),
                     ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 4,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF004ac6),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomLeft: Radius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
 

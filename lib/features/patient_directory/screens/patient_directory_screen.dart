@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 
 class PatientDirectoryScreen extends StatelessWidget {
   const PatientDirectoryScreen({super.key});
@@ -13,10 +12,6 @@ class PatientDirectoryScreen extends StatelessWidget {
         title: 'The Clinical Curator',
         profileImageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuB8sXWfxUOTe6r1bg1QE8me0Oe6-4uSxL24u6_3BywEct0FOKJn8SAeKt4yNBXSTW7UuDSBIC1hQC-1K1xh8dJVJMGVOOqqZMrDU472Y8_o2aSkaYrY_qFYn7ZXUSHJkPf7WPcNY_0dbj6uV_4_UDVzqXmD5ateGIVQdMaR64TmsaUQVnUZ89Jr2HoIykSN6DSQ2c8S1aZJXEkLrMRk2H5DM2k80dGdNdbXdYQ7fgFp6PNH7J9J0BEo2ksuh7bHq8DP9YkFJDsttSmH',
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -276,29 +271,23 @@ class PatientDirectoryScreen extends StatelessWidget {
     required String status,
     required bool isCritical,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border(
-          top: const BorderSide(color: Color(0xFFE2E8F0)),
-          right: const BorderSide(color: Color(0xFFE2E8F0)),
-          bottom: const BorderSide(color: Color(0xFFE2E8F0)),
-          left: BorderSide(
-            color: isCritical ? const Color(0xFF004ac6) : const Color(0xFFE2E8F0),
-            width: isCritical ? 4 : 1,
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0C000000),
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0C000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
+          child: Column(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +474,25 @@ class PatientDirectoryScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+    if (isCritical)
+      Positioned(
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: 4,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF004ac6),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              bottomLeft: Radius.circular(8),
+            ),
+          ),
+        ),
+      ),
+  ],
+);
   }
 
   Widget _buildOccupancyStat() {

@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 
-// Screens
-import 'features/patient_dashboard/screens/patient_dashboard_screen.dart';
-import 'features/medical_records/screens/medical_records_screen.dart';
-import 'features/doctor_schedule/screens/doctor_schedule_screen.dart';
-import 'features/patient_directory/screens/patient_directory_screen.dart';
-import 'features/clinical_report/screens/add_clinical_report_screen.dart';
-import 'features/ambulance_services/screens/ambulance_services_screen.dart';
-import 'features/profile/screens/profile_settings_screen.dart';
-import 'features/registration/screens/practitioner_registration_screen.dart';
-import 'features/auth/screens/secure_login_screen.dart';
+import 'router.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +12,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return shadcn.ShadcnApp(
+    return shadcn.ShadcnApp.router(
       title: 'The Clinical Curator',
       theme: shadcn.ThemeData(
         colorScheme: shadcn.ColorScheme(
@@ -53,50 +44,7 @@ class MyApp extends StatelessWidget {
         ),
         radius: 0.5,
       ),
-      home: const MenuScreen(),
-    );
-  }
-}
-
-class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final screens = [
-      {'name': 'Secure Login', 'screen': const SecureLoginScreen()},
-      {'name': 'Practitioner Registration', 'screen': const PractitionerRegistrationScreen()},
-      {'name': 'Patient Dashboard', 'screen': const PatientDashboardScreen()},
-      {'name': 'Medical Records', 'screen': const MedicalRecordsScreen()},
-      {'name': 'Doctor Schedule', 'screen': const DoctorScheduleScreen()},
-      {'name': 'Patient Directory', 'screen': const PatientDirectoryScreen()},
-      {'name': 'Add Clinical Report', 'screen': const AddClinicalReportScreen()},
-      {'name': 'Ambulance Services', 'screen': const AmbulanceServicesScreen()},
-      {'name': 'Profile Settings', 'screen': const ProfileSettingsScreen()},
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('The Clinical Curator - Screens'),
-        backgroundColor: const Color(0xFF004ac6),
-        foregroundColor: Colors.white,
-      ),
-      body: ListView.builder(
-        itemCount: screens.length,
-        itemBuilder: (context, index) {
-          final item = screens[index];
-          return ListTile(
-            title: Text(item['name'] as String),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => item['screen'] as Widget),
-              );
-            },
-          );
-        },
-      ),
+      routerConfig: goRouter,
     );
   }
 }
