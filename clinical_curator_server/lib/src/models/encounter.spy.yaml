@@ -1,0 +1,31 @@
+### Clinical encounter (visit, admission, or emergency).
+class: Encounter
+table: encounters
+fields:
+  fhirId: String?
+  patientRef: String
+  practitionerRef: String
+  status: String
+  classCode: String
+  startDate: DateTime
+  endDate: DateTime?
+  organizationRef: String?
+  reasonJson: String?
+  serviceType: String?
+  notes: String?
+  patientName: String?
+  practitionerName: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  encounter_patient_idx:
+    fields: patientRef
+  encounter_practitioner_idx:
+    fields: practitionerRef
+  encounter_status_idx:
+    fields: status
+  encounter_start_idx:
+    fields: startDate
+  encounter_org_idx:
+    fields: organizationRef

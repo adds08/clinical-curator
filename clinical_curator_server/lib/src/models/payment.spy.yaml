@@ -1,0 +1,24 @@
+### Payment record for medical services.
+class: Payment
+table: payments
+fields:
+  fhirId: String?
+  patientRef: String
+  amount: double
+  currency: String
+  status: String
+  method: String
+  gateway: String?
+  transactionId: String?
+  appointmentRef: String?
+  description: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  payment_patient_idx:
+    fields: patientRef
+  payment_status_idx:
+    fields: status
+  payment_transaction_idx:
+    fields: transactionId

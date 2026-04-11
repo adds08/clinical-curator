@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: clinical_curator
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-SddxDlOPHETpUN2o3_h5Ok9SOU9Z7mZU}"
+    volumes:
+      - clinical_curator_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.2.6
+    ports:
+      - "8091:6379"
+    command: redis-server --requirepass "${REDIS_PASSWORD:-RgqfHWoIcGb2g5aCns7WWz3CJAhS7EX7}"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+  postgres_test:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: clinical_curator_test
+      POSTGRES_PASSWORD: "${DB_TEST_PASSWORD:-4Owe4mZco8rOGR0qYtr51mhvIZai1T_B}"
+    volumes:
+      - clinical_curator_test_data:/var/lib/postgresql/data
+    profiles:
+      - test
+
+  redis_test:
+    image: redis:6.2.6
+    ports:
+      - "9091:6379"
+    command: redis-server --requirepass "${REDIS_TEST_PASSWORD:--QsrkbBye3kMefgHcTrb1sLG0UtMrSGf}"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    profiles:
+      - test
+
+volumes:
+  clinical_curator_data:
+  clinical_curator_test_data:

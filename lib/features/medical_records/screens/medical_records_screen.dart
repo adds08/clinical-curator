@@ -1,479 +1,854 @@
-import 'package:flutter/material.dart';
-import '../../shared/widgets/top_app_bar.dart';
-import '../../shared/widgets/record_card.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MedicalRecordsScreen extends StatelessWidget {
+import 'package:fhir/r4.dart' as fhir;
+
+import '../../../core/theme/clinical_colors.dart';
+import '../../../domain/providers/auth_provider.dart';
+import '../../../domain/providers/patient_data_provider.dart';
+
+// ---------------------------------------------------------------------------
+// Data model for a unified timeline entry
+// ---------------------------------------------------------------------------
+
+enum ClinicalCategory {
+  lab,
+  medication,
+  vital,
+  immunization,
+  allergy,
+  diagnosis,
+  note,
+}
+
+class _TimelineEntry {
+  final String title;
+  final String subtitle;
+  final String detail;
+  final String dateLabel;
+  final DateTime sortDate;
+  final ClinicalCategory category;
+  final bool isCritical;
+  final List<String> subItems;
+
+  const _TimelineEntry({
+    required this.title,
+    required this.subtitle,
+    required this.detail,
+    required this.dateLabel,
+    required this.sortDate,
+    required this.category,
+    this.isCritical = false,
+    this.subItems = const [],
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Screen
+// ---------------------------------------------------------------------------
+
+class MedicalRecordsScreen extends ConsumerStatefulWidget {
   const MedicalRecordsScreen({super.key});
 
   @override
+  ConsumerState<MedicalRecordsScreen> createState() =>
+      _MedicalRecordsScreenState();
+}
+
+class _MedicalRecordsScreenState extends ConsumerState<MedicalRecordsScreen> {
+  String _activeFilter = 'All';
+  final TextEditingController _searchController = TextEditingController();
+
+  static const _filters = [
+    'All',
+    'Labs',
+    'Medications',
+    'Vitals',
+    'Immunizations',
+    'Allergies',
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // -------------------------------------------------------------------------
+  // Build
+  // -------------------------------------------------------------------------
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFf8fafc),
-      appBar: const TopAppBar(
-        title: 'The Clinical Curator',
-        profileImageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDJEQ4GHuX3OUt5xkumU67umXB0X1HhHsYAxq2yFVBGHa_In585LU-cDLJTZARn0koOK5A5z13x0g5pWVZUjypF7f9tQ3-V98qfaMbSshsVZY_nY-L7sDJOB15DR-L_kniJoTbge5UVKUV_w0CywE0DC5ao7ooCAfxW6Y0Aapx3EsYd8sKXRUUs9DsKMSllE6D0duczWuVKN97QRDou3hXdtnDGEQPuKaBctPdzd0sqA_bjIAEXekeszw0Gu-9OfGkVpbgDQfi1zK6I',
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+    final colors = Theme.of(context).colorScheme;
+    final authState = ref.watch(authProvider);
+    final rawId = authState.user?.fhirPatientId ?? '';
+    final patientRef = rawId.isNotEmpty ? 'Patient/$rawId' : '';
+
+    final entries = _buildEntries(patientRef, colors);
+    final filtered = _applyFilters(entries);
+    final grouped = _groupByMonth(filtered);
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            const Text(
+            Text(
               'Medical Records',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF191c1e), // on-surface
-                letterSpacing: -0.5,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: colors.foreground, letterSpacing: -0.3),
             ),
-            const SizedBox(height: 6),
-            const Text(
-              'Comprehensive access to your clinical diagnostic history and medication documentation.',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF64748B), // slate-500
-                height: 1.4,
-              ),
+            const SizedBox(height: 4),
+            Text(
+              'Your clinical timeline organized by date',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.mutedForeground),
             ),
+
             const SizedBox(height: 20),
 
-            // Search & Filter Shell
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search records, doctors, or results...',
-                        hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                        prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.tune, color: Color(0xFF475569), size: 22), // slate-600
-                    onPressed: () {},
-                  ),
-                ),
-              ],
+            // Search
+            TextField(
+              controller: _searchController,
+              placeholder: const Text('Search records...'),
+              onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 20),
 
-            // Tab Navigation
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xCCF1F5F9), // slate-100/80
-                borderRadius: BorderRadius.circular(12),
-              ),
+            const SizedBox(height: 14),
+
+            // Filter chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0C000000),
-                            blurRadius: 2,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'ALL',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF004ac6), // primary
-                            letterSpacing: 0.5,
+                children: _filters.map((label) {
+                  final isActive = _activeFilter == label;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _activeFilter = label),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isActive ? colors.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isActive ? colors.primary : colors.border,
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        'PRESCRIPTIONS',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF64748B), // slate-500
-                          letterSpacing: 0.5,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (label != 'All') ...[
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isActive
+                                      ? Colors.white.withValues(alpha: 0.9)
+                                      : _categoryColor(_filterToCategory(label) ?? ClinicalCategory.note, colors),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isActive ? Colors.white : colors.foreground,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        'LABS',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF64748B), // slate-500
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
+
             const SizedBox(height: 24),
 
-            // Vertical List Layout
-            Column(
-              children: [
-                _buildLipidPanelCard(),
-                const SizedBox(height: 16),
-                _buildPrescriptionCard(),
-                const SizedBox(height: 16),
-                _buildRadiologyCard(),
-                const SizedBox(height: 16),
-                _buildVaccinationCard(),
-              ],
-            ),
+            // Timeline
+            if (filtered.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 48),
+                  child: Column(
+                    children: [
+                      Icon(Icons.search_off_rounded, size: 40, color: colors.mutedForeground.withValues(alpha: 0.4)),
+                      const SizedBox(height: 12),
+                      Text('No records match your filters', style: TextStyle(fontSize: 14, color: colors.mutedForeground)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...grouped.entries.map((group) => _MonthGroup(
+                    monthLabel: group.key,
+                    entries: group.value,
+                    categoryColor: _categoryColor,
+                    categoryIcon: _categoryIcon,
+                    categoryLabel: _categoryLabel,
+                    colors: colors,
+                  )),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLipidPanelCard() {
-    return RecordCard(
-      icon: Icons.biotech_outlined,
-      title: 'Full Lipid Panel',
-      subtitle: 'Dr. Aris Thorne',
-      tagLabel: 'Lab Report',
-      dateString: 'Oct 24, 2023',
-      primaryButtonLabel: 'View Results',
-      onPrimaryTap: () {},
-      onDownloadTap: () {},
-      content: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0x80F8FAFC), // slate-50/50
-          border: Border.all(color: const Color(0xFFF1F5F9)), // slate-100
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'LDL CHOLESTEROL',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF94A3B8), // slate-400
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: const [
-                        Text(
-                          '142',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFba1a1a), // error
-                            height: 1,
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          'mg/dL',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF94A3B8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0x1Aba1a1a), // error/10
-                    border: Border.all(color: const Color(0x1Aba1a1a)),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: const Text(
-                    'HIGH',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFba1a1a), // error
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0), // slate-200
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 75,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFba1a1a), // error
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ),
-                  const Expanded(flex: 25, child: SizedBox()),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF94A3B8), // slate-400
-                  fontFamily: 'Plus Jakarta Sans',
-                ),
-                children: [
-                  TextSpan(text: 'Reference Range: '),
-                  TextSpan(
-                    text: '<100',
-                    style: TextStyle(
-                      color: Color(0xFF334155), // slate-700
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  // -------------------------------------------------------------------------
+  // Build unified entry list from providers + mock fallback
+  // -------------------------------------------------------------------------
+
+  List<_TimelineEntry> _buildEntries(String patientRef, ColorScheme colors) {
+    final entries = <_TimelineEntry>[];
+
+    if (patientRef.isNotEmpty) {
+      _addLabEntries(ref.watch(patientLabsProvider(patientRef)), entries);
+      _addMedicationEntries(
+          ref.watch(patientMedicationsProvider(patientRef)), entries);
+      _addVitalEntries(ref.watch(patientVitalsProvider(patientRef)), entries);
+      _addImmunizationEntries(
+          ref.watch(patientImmunizationsProvider(patientRef)), entries);
+      _addAllergyEntries(
+          ref.watch(patientAllergiesProvider(patientRef)), entries);
+    }
+
+    if (entries.isEmpty) {
+      entries.addAll(_mockEntries());
+    }
+
+    entries.sort((a, b) => b.sortDate.compareTo(a.sortDate));
+    return entries;
   }
 
-  Widget _buildPrescriptionCard() {
-    return RecordCard(
-      icon: Icons.medication_outlined,
-      title: 'Amoxicillin',
-      subtitle: 'City General Clinic',
-      tagLabel: 'Active',
-      dateString: 'Nov 12, 2023',
-      primaryButtonLabel: 'Pharmacy Details',
-      onPrimaryTap: () {},
-      onDownloadTap: () {},
-      isHighlighted: true,
-      content: Row(
+  void _addLabEntries(
+      List<fhir.DiagnosticReport> reports, List<_TimelineEntry> out) {
+    for (final r in reports) {
+      final title = r.code.text ?? 'Lab Result';
+      final date = r.effectiveDateTime?.value;
+      final conclusion = r.conclusion ?? 'See full report';
+      final performer = r.performer?.isNotEmpty == true
+          ? r.performer!.first.display ?? ''
+          : '';
+      final isAbnormal =
+          conclusion.toLowerCase().contains('high') ||
+          conclusion.toLowerCase().contains('abnormal');
+
+      out.add(_TimelineEntry(
+        title: title,
+        subtitle: performer.isNotEmpty ? 'Ordered by $performer' : 'Lab',
+        detail: conclusion,
+        dateLabel: _formatDate(date),
+        sortDate: date ?? DateTime(2000),
+        category: ClinicalCategory.lab,
+        isCritical: isAbnormal,
+      ));
+    }
+  }
+
+  void _addMedicationEntries(
+      List<fhir.MedicationRequest> meds, List<_TimelineEntry> out) {
+    for (final m in meds) {
+      final name = m.medicationCodeableConcept?.text ?? 'Unknown Medication';
+      final dosage = m.dosageInstruction?.isNotEmpty == true
+          ? m.dosageInstruction!.first.text ?? ''
+          : '';
+      final prescriber = m.requester?.display ?? '';
+      final isActive = m.status?.toString().contains('active') == true;
+
+      out.add(_TimelineEntry(
+        title: name,
+        subtitle: dosage.isNotEmpty ? dosage : 'Prescription',
+        detail: prescriber.isNotEmpty
+            ? 'Prescriber: $prescriber${isActive ? " | ACTIVE" : ""}'
+            : (isActive ? 'Status: Active' : 'Prescription'),
+        dateLabel: _formatDate(m.authoredOn?.value),
+        sortDate: m.authoredOn?.value ?? DateTime(2000),
+        category: ClinicalCategory.medication,
+      ));
+    }
+  }
+
+  void _addVitalEntries(
+      List<fhir.Observation> obs, List<_TimelineEntry> out) {
+    for (final o in obs) {
+      final name = o.code.text ?? o.code.coding?.first.display ?? 'Vital Sign';
+      final value = o.valueQuantity?.value?.value;
+      final unit = o.valueQuantity?.unit ?? '';
+      final date = o.effectiveDateTime?.value;
+
+      String detail;
+      if (value != null) {
+        final v =
+            value == value.roundToDouble() ? value.toInt().toString() : '$value';
+        detail = '$v $unit';
+      } else if (o.component != null && o.component!.isNotEmpty) {
+        final parts = o.component!.map((c) {
+          final cv = c.valueQuantity?.value?.value;
+          final cu = c.valueQuantity?.unit ?? '';
+          return cv != null ? '${cv.toInt()} $cu' : '';
+        }).where((s) => s.isNotEmpty);
+        detail = parts.join(' / ');
+      } else {
+        detail = 'Recorded';
+      }
+
+      out.add(_TimelineEntry(
+        title: name,
+        subtitle: 'Vital Signs',
+        detail: detail,
+        dateLabel: _formatDate(date),
+        sortDate: date ?? DateTime(2000),
+        category: ClinicalCategory.vital,
+      ));
+    }
+  }
+
+  void _addImmunizationEntries(
+      List<fhir.Immunization> imms, List<_TimelineEntry> out) {
+    for (final i in imms) {
+      final name = i.vaccineCode.text ?? 'Vaccine';
+      final date = i.occurrenceDateTime?.value;
+      final location = i.location?.display ?? '';
+
+      out.add(_TimelineEntry(
+        title: name,
+        subtitle: location.isNotEmpty ? location : 'Immunization',
+        detail: 'Administered${location.isNotEmpty ? " at $location" : ""}',
+        dateLabel: _formatDate(date),
+        sortDate: date ?? DateTime(2000),
+        category: ClinicalCategory.immunization,
+      ));
+    }
+  }
+
+  void _addAllergyEntries(
+      List<fhir.AllergyIntolerance> allergies, List<_TimelineEntry> out) {
+    for (final a in allergies) {
+      final name = a.code?.text ?? 'Allergy';
+      final severity = a.reaction?.isNotEmpty == true
+          ? a.reaction!.first.severity?.toString().split('.').last ?? ''
+          : '';
+      final manifestation = a.reaction?.isNotEmpty == true &&
+              a.reaction!.first.manifestation.isNotEmpty
+          ? a.reaction!.first.manifestation.first.text ?? ''
+          : '';
+      final date = a.recordedDate?.value;
+
+      out.add(_TimelineEntry(
+        title: name,
+        subtitle: severity.isNotEmpty ? 'Severity: $severity' : 'Allergy',
+        detail: manifestation.isNotEmpty
+            ? 'Reaction: $manifestation'
+            : 'Allergy recorded',
+        dateLabel: _formatDate(date),
+        sortDate: date ?? DateTime(2000),
+        category: ClinicalCategory.allergy,
+        isCritical: true,
+      ));
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Mock fallback entries
+  // -------------------------------------------------------------------------
+
+  List<_TimelineEntry> _mockEntries() {
+    return [
+      _TimelineEntry(
+        title: 'Full Lipid Panel',
+        subtitle: 'Dr. Elena Vance, Metabolic Health Center',
+        detail: 'LDL 142 mg/dL — HIGH',
+        dateLabel: 'Oct 12',
+        sortDate: DateTime(2025, 10, 12),
+        category: ClinicalCategory.lab,
+        isCritical: true,
+        subItems: [
+          'Total Cholesterol: 238 mg/dL',
+          'HDL: 52 mg/dL',
+          'Triglycerides: 165 mg/dL',
+        ],
+      ),
+      _TimelineEntry(
+        title: 'Blood Pressure',
+        subtitle: 'Vital Signs',
+        detail: '138/88 mmHg — elevated',
+        dateLabel: 'Oct 10',
+        sortDate: DateTime(2025, 10, 10),
+        category: ClinicalCategory.vital,
+      ),
+      _TimelineEntry(
+        title: 'Amoxicillin 500mg',
+        subtitle: 'Take 1 capsule 3x daily',
+        detail: 'Prescriber: Dr. Marcus Thorne | ACTIVE',
+        dateLabel: 'Oct 8',
+        sortDate: DateTime(2025, 10, 8),
+        category: ClinicalCategory.medication,
+      ),
+      _TimelineEntry(
+        title: 'Penicillin Allergy',
+        subtitle: 'Severity: severe',
+        detail: 'Reaction: Anaphylaxis',
+        dateLabel: 'Sep 20',
+        sortDate: DateTime(2025, 9, 20),
+        category: ClinicalCategory.allergy,
+        isCritical: true,
+      ),
+      _TimelineEntry(
+        title: 'Influenza Vaccine',
+        subtitle: 'CVS Pharmacy, Kathmandu',
+        detail: 'Administered at CVS Pharmacy',
+        dateLabel: 'Sep 15',
+        sortDate: DateTime(2025, 9, 15),
+        category: ClinicalCategory.immunization,
+      ),
+      _TimelineEntry(
+        title: 'Heart Rate',
+        subtitle: 'Vital Signs',
+        detail: '78 bpm — normal',
+        dateLabel: 'Sep 12',
+        sortDate: DateTime(2025, 9, 12),
+        category: ClinicalCategory.vital,
+      ),
+      _TimelineEntry(
+        title: 'Complete Blood Count',
+        subtitle: 'Dr. Elena Vance',
+        detail: 'All values within normal range',
+        dateLabel: 'Sep 5',
+        sortDate: DateTime(2025, 9, 5),
+        category: ClinicalCategory.lab,
+      ),
+      _TimelineEntry(
+        title: 'Metformin 500mg',
+        subtitle: 'Take 1 tablet twice daily with meals',
+        detail: 'Prescriber: Dr. S. Patel | ACTIVE',
+        dateLabel: 'Aug 28',
+        sortDate: DateTime(2025, 8, 28),
+        category: ClinicalCategory.medication,
+      ),
+      _TimelineEntry(
+        title: 'Sulfa Drug Allergy',
+        subtitle: 'Severity: moderate',
+        detail: 'Reaction: Skin rash',
+        dateLabel: 'Aug 15',
+        sortDate: DateTime(2025, 8, 15),
+        category: ClinicalCategory.allergy,
+        isCritical: true,
+      ),
+      _TimelineEntry(
+        title: 'COVID-19 Booster',
+        subtitle: 'City Hospital',
+        detail: 'Administered at City Hospital',
+        dateLabel: 'Aug 1',
+        sortDate: DateTime(2025, 8, 1),
+        category: ClinicalCategory.immunization,
+      ),
+    ];
+  }
+
+  // -------------------------------------------------------------------------
+  // Filter + search
+  // -------------------------------------------------------------------------
+
+  List<_TimelineEntry> _applyFilters(List<_TimelineEntry> entries) {
+    var result = entries;
+
+    if (_activeFilter != 'All') {
+      final cat = _filterToCategory(_activeFilter);
+      if (cat != null) {
+        result = result.where((e) => e.category == cat).toList();
+      }
+    }
+
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      result = result.where((e) {
+        return e.title.toLowerCase().contains(query) ||
+            e.subtitle.toLowerCase().contains(query) ||
+            e.detail.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    return result;
+  }
+
+  ClinicalCategory? _filterToCategory(String label) {
+    switch (label) {
+      case 'Labs':
+        return ClinicalCategory.lab;
+      case 'Medications':
+        return ClinicalCategory.medication;
+      case 'Vitals':
+        return ClinicalCategory.vital;
+      case 'Immunizations':
+        return ClinicalCategory.immunization;
+      case 'Allergies':
+        return ClinicalCategory.allergy;
+      default:
+        return null;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Group entries by month
+  // -------------------------------------------------------------------------
+
+  Map<String, List<_TimelineEntry>> _groupByMonth(List<_TimelineEntry> entries) {
+    final grouped = <String, List<_TimelineEntry>>{};
+    for (final entry in entries) {
+      final key = '${_monthsFull[entry.sortDate.month - 1]} ${entry.sortDate.year}';
+      grouped.putIfAbsent(key, () => []).add(entry);
+    }
+    return grouped;
+  }
+
+  // -------------------------------------------------------------------------
+  // Category visuals
+  // -------------------------------------------------------------------------
+
+  Color _categoryColor(ClinicalCategory cat, ColorScheme colors) {
+    switch (cat) {
+      case ClinicalCategory.lab:
+        return colors.primary;
+      case ClinicalCategory.medication:
+        return colors.success;
+      case ClinicalCategory.vital:
+        return colors.oxygenSat;
+      case ClinicalCategory.immunization:
+        return colors.warning;
+      case ClinicalCategory.allergy:
+        return colors.destructive;
+      case ClinicalCategory.diagnosis:
+        return colors.destructive;
+      case ClinicalCategory.note:
+        return colors.mutedForeground;
+    }
+  }
+
+  IconData _categoryIcon(ClinicalCategory cat) {
+    switch (cat) {
+      case ClinicalCategory.lab:
+        return Icons.biotech_rounded;
+      case ClinicalCategory.medication:
+        return Icons.medication_rounded;
+      case ClinicalCategory.vital:
+        return Icons.monitor_heart_rounded;
+      case ClinicalCategory.immunization:
+        return Icons.vaccines_rounded;
+      case ClinicalCategory.allergy:
+        return Icons.warning_amber_rounded;
+      case ClinicalCategory.diagnosis:
+        return Icons.medical_information_rounded;
+      case ClinicalCategory.note:
+        return Icons.note_rounded;
+    }
+  }
+
+  String _categoryLabel(ClinicalCategory cat) {
+    switch (cat) {
+      case ClinicalCategory.lab:
+        return 'Lab';
+      case ClinicalCategory.medication:
+        return 'Rx';
+      case ClinicalCategory.vital:
+        return 'Vital';
+      case ClinicalCategory.immunization:
+        return 'Vaccine';
+      case ClinicalCategory.allergy:
+        return 'Allergy';
+      case ClinicalCategory.diagnosis:
+        return 'Dx';
+      case ClinicalCategory.note:
+        return 'Note';
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
+
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  static const _monthsFull = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return '---';
+    return '${_months[date.month - 1]} ${date.day}';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Month Group — groups entries under a month header
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _MonthGroup extends StatelessWidget {
+  final String monthLabel;
+  final List<_TimelineEntry> entries;
+  final Color Function(ClinicalCategory, ColorScheme) categoryColor;
+  final IconData Function(ClinicalCategory) categoryIcon;
+  final String Function(ClinicalCategory) categoryLabel;
+  final ColorScheme colors;
+
+  const _MonthGroup({
+    required this.monthLabel,
+    required this.entries,
+    required this.categoryColor,
+    required this.categoryIcon,
+    required this.categoryLabel,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0x80F8FAFC), // slate-50/50
-                border: Border.all(color: const Color(0xFFF1F5F9)), // slate-100
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'DOSAGE',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF94A3B8), // slate-400
-                      letterSpacing: 1,
+          // Month header
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, top: 4),
+            child: Row(
+              children: [
+                Text(
+                  monthLabel,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.mutedForeground, letterSpacing: 0.3),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(height: 1, color: colors.border.withValues(alpha: 0.5)),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '${entries.length}',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                ),
+              ],
+            ),
+          ),
+
+          // Timeline entries
+          ...entries.asMap().entries.map((mapEntry) {
+            final index = mapEntry.key;
+            final entry = mapEntry.value;
+            final isLast = index == entries.length - 1;
+
+            return _TimelineEntryCard(
+              entry: entry,
+              isLast: isLast,
+              color: categoryColor(entry.category, colors),
+              icon: categoryIcon(entry.category),
+              label: categoryLabel(entry.category),
+              colors: colors,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Timeline Entry Card — single record in the timeline
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TimelineEntryCard extends StatelessWidget {
+  final _TimelineEntry entry;
+  final bool isLast;
+  final Color color;
+  final IconData icon;
+  final String label;
+  final ColorScheme colors;
+
+  const _TimelineEntryCard({
+    required this.entry,
+    required this.isLast,
+    required this.color,
+    required this.icon,
+    required this.label,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Timeline rail ──
+          SizedBox(
+            width: 40,
+            child: Column(
+              children: [
+                // Icon circle
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 16, color: color),
+                ),
+                // Connecting line
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colors.border.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    '500mg • 3x Day',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A), // slate-900
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
           ),
           const SizedBox(width: 12),
+
+          // ── Content card ──
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(12),
+              margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0x80F8FAFC), // slate-50/50
-                border: Border.all(color: const Color(0xFFF1F5F9)), // slate-100
-                borderRadius: BorderRadius.circular(12),
+                color: colors.card,
+                borderRadius: BorderRadius.circular(14),
+                border: entry.isCritical
+                    ? Border.all(color: colors.destructive.withValues(alpha: 0.2))
+                    : null,
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Top row: category tag + date
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                        ),
+                      ),
+                      Text(
+                        entry.dateLabel,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.mutedForeground),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Title
                   Text(
-                    'DURATION',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF94A3B8), // slate-400
-                      letterSpacing: 1,
+                    entry.title,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.foreground, height: 1.2),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Subtitle
+                  Text(
+                    entry.subtitle,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.mutedForeground, height: 1.3),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Detail value
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: entry.isCritical
+                          ? colors.destructive.withValues(alpha: 0.06)
+                          : colors.muted.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      entry.detail,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: entry.isCritical ? colors.destructive : colors.foreground,
+                        height: 1.4,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    '10 Days Total',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A), // slate-900
+
+                  // Sub-items
+                  if (entry.subItems.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ...entry.subItems.map((item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 4,
+                                margin: const EdgeInsets.only(top: 6, right: 8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: colors.mutedForeground.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  item,
+                                  style: TextStyle(fontSize: 12, color: colors.mutedForeground, height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+
+                  // Allergy warning banner
+                  if (entry.category == ClinicalCategory.allergy) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: colors.warningBackground,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.warning_amber_rounded, size: 14, color: colors.warning),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Check drug interactions',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.warning),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildRadiologyCard() {
-    return RecordCard(
-      icon: Icons.visibility_outlined,
-      title: 'Chest X-Ray',
-      subtitle: "St. Mary's Radiology",
-      tagLabel: 'Imaging',
-      dateString: 'Sep 30, 2023',
-      primaryButtonLabel: 'View Report',
-      onPrimaryTap: () {},
-      onDownloadTap: () {},
-      content: Container(
-        height: 96,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9), // slate-100
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)), // slate-200
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.6,
-                child: ColorFiltered(
-                  colorFilter: const ColorFilter.mode(
-                    Colors.grey,
-                    BlendMode.saturation,
-                  ),
-                  child: Image.network(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuC5LTfgy543n8mKqD_ganYSDBpD06GgcRgA5p8R8JzsuHw4Az-745fV6civupT-B1F42hEuC8F0Nu-VKVL1YyczciKVqwK95FSTUJYhg4papvJPf24NcdG4WUXVDT4bzeKN00LukdhkpRAOnOVTqM_I1YBCNOh8CnF4-a41GL0YAoWKsB7iJfct1TIPHkbJ2MARHa6J6Rv5e9OC3e90FuGOAi7VodfrIjoLMfCwHNo5Nl4xRGiTmL1s5b02pMRXjGABR-p02Ii7wvLE',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: Container(color: Colors.black.withValues(alpha: 0.1)),
-            ),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0x1A004ac6)), // primary/10
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x0C000000),
-                      blurRadius: 2,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  'VIEW SCAN',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF004ac6), // primary
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVaccinationCard() {
-    return RecordCard(
-      icon: Icons.vaccines_outlined,
-      title: 'Influenza Vaccine',
-      subtitle: 'CVS Pharmacy',
-      tagLabel: 'Immunization',
-      dateString: 'Oct 05, 2023',
-      primaryButtonLabel: 'View Certificate',
-      onPrimaryTap: () {},
-      onDownloadTap: () {},
-      content: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0x80F8FAFC), // slate-50/50
-          border: Border.all(color: const Color(0xFFF1F5F9)), // slate-100
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Text(
-          'Annual quadrivalent flu shot administered. Patient observed for 15 minutes; no adverse reactions recorded.',
-          style: TextStyle(
-            fontSize: 12,
-            color: Color(0xFF475569), // slate-600
-            height: 1.6,
-          ),
-        ),
       ),
     );
   }

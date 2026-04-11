@@ -1,0 +1,24 @@
+### Doctor availability schedule slot.
+class: ScheduleSlot
+table: schedule_slots
+fields:
+  practitionerRef: String
+  date: DateTime
+  startTime: String
+  endTime: String
+  slotDurationMinutes: int
+  maxPatients: int
+  bookedCount: int
+  facilityName: String?
+  isEmergencyOverride: bool
+  isTelehealth: bool
+  status: String
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  slot_practitioner_idx:
+    fields: practitionerRef
+  slot_date_idx:
+    fields: date
+  slot_status_idx:
+    fields: status

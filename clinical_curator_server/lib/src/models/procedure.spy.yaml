@@ -1,0 +1,25 @@
+### Clinical procedure performed on a patient.
+class: Procedure
+table: procedures
+fields:
+  fhirId: String?
+  patientRef: String
+  encounterRef: String?
+  code: String
+  displayName: String
+  status: String
+  performedDate: DateTime?
+  performerRef: String?
+  performerName: String?
+  bodySite: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  procedure_patient_idx:
+    fields: patientRef
+  procedure_encounter_idx:
+    fields: encounterRef
+  procedure_status_idx:
+    fields: status

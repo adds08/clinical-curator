@@ -1,0 +1,26 @@
+### Medical appointment (telemedicine or in-person).
+class: Appointment
+table: appointments
+fields:
+  fhirId: String?
+  patientRef: String
+  practitionerRef: String
+  practitionerName: String
+  patientName: String
+  appointmentType: String
+  status: String
+  scheduledAt: DateTime
+  durationMinutes: int
+  specialty: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  appointment_patient_idx:
+    fields: patientRef
+  appointment_practitioner_idx:
+    fields: practitionerRef
+  appointment_scheduled_idx:
+    fields: scheduledAt
+  appointment_status_idx:
+    fields: status

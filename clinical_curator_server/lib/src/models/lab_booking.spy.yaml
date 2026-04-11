@@ -1,0 +1,18 @@
+### Lab test booking order.
+class: LabBooking
+table: lab_bookings
+fields:
+  patientRef: String
+  testsJson: String
+  status: String
+  totalPrice: double
+  scheduledAt: DateTime?
+  labName: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  lab_booking_patient_idx:
+    fields: patientRef
+  lab_booking_status_idx:
+    fields: status

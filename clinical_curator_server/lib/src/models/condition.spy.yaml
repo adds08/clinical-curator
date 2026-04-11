@@ -1,0 +1,30 @@
+### Clinical condition or diagnosis.
+class: Condition
+table: conditions
+fields:
+  fhirId: String?
+  patientRef: String
+  code: String
+  displayName: String
+  clinicalStatus: String
+  verificationStatus: String
+  onsetDate: DateTime?
+  abatementDate: DateTime?
+  recordedDate: DateTime
+  severity: String?
+  bodySite: String?
+  encounterRef: String?
+  recorderRef: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  condition_patient_idx:
+    fields: patientRef
+  condition_status_idx:
+    fields: clinicalStatus
+  condition_code_idx:
+    fields: code
+  condition_encounter_idx:
+    fields: encounterRef

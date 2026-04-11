@@ -1,0 +1,20 @@
+### Health tip / article for patient education.
+class: HealthTip
+table: health_tips
+fields:
+  title: String
+  summary: String
+  content: String
+  category: String
+  imageUrl: String?
+  author: String
+  isActive: bool
+  publishedAt: DateTime
+  createdAt: DateTime
+indexes:
+  health_tip_category_idx:
+    fields: category
+  health_tip_active_idx:
+    fields: isActive
+  health_tip_published_idx:
+    fields: publishedAt

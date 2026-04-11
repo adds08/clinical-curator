@@ -1,0 +1,23 @@
+### Hospital, pharmacy, or facility (maps to FHIR Organization/Location).
+class: Organization
+table: organizations
+fields:
+  fhirId: String?
+  name: String
+  type: String
+  address: String
+  phone: String?
+  latitude: double?
+  longitude: double?
+  openHours: String?
+  rating: double?
+  hasEmergency: bool
+  isOpen24Hours: bool
+  departmentsJson: String?
+  servicesJson: String?
+  createdAt: DateTime
+indexes:
+  organization_type_idx:
+    fields: type
+  organization_name_idx:
+    fields: name

@@ -1,0 +1,27 @@
+### Stores FHIR R4 resources as JSON with denormalized index fields.
+class: FhirResourceRecord
+table: fhir_resources
+fields:
+  fhirId: String
+  resourceType: String
+  jsonData: String
+  patientReference: String?
+  practitionerReference: String?
+  category: String?
+  syncVersion: int
+  lastUpdated: DateTime
+  createdAt: DateTime
+indexes:
+  fhir_resource_fhir_id_type_idx:
+    fields: fhirId, resourceType
+    unique: true
+  fhir_resource_type_idx:
+    fields: resourceType
+  fhir_resource_patient_idx:
+    fields: patientReference
+  fhir_resource_practitioner_idx:
+    fields: practitionerReference
+  fhir_resource_category_idx:
+    fields: category
+  fhir_resource_updated_idx:
+    fields: lastUpdated

@@ -1,0 +1,31 @@
+### Clinical service request (lab order, imaging, referral).
+class: ServiceRequest
+table: service_requests
+fields:
+  fhirId: String?
+  patientRef: String
+  requesterRef: String
+  requesterName: String?
+  code: String
+  displayName: String
+  status: String
+  intent: String
+  priority: String
+  category: String?
+  encounterRef: String?
+  occurrenceDate: DateTime?
+  performerRef: String?
+  reasonJson: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  service_request_patient_idx:
+    fields: patientRef
+  service_request_requester_idx:
+    fields: requesterRef
+  service_request_status_idx:
+    fields: status
+  service_request_category_idx:
+    fields: category

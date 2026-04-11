@@ -1,0 +1,90 @@
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+admin:
+  - listPendingVerifications:
+  - approvePractitioner:
+  - rejectPractitioner:
+  - getDashboardStats:
+  - listVerifiedPractitioners:
+ambulance:
+  - request:
+  - updateStatus:
+  - cancelWithReason:
+  - completeWithRating:
+  - getById:
+  - listForPatient:
+  - listActive:
+appointment:
+  - book:
+  - cancel:
+  - complete:
+  - listForPatient:
+  - listForPractitioner:
+  - listTodayForPractitioner:
+  - getById:
+auth:
+  - login:
+  - signup:
+  - registerPractitioner:
+  - getByEmail:
+  - getById:
+  - updateProfile:
+fhirResource:
+  - create:
+  - read:
+  - update:
+  - deleteById:
+  - searchByType:
+  - searchByPatient:
+  - searchByPractitioner:
+  - getChangesSince:
+healthTip:
+  - listAll:
+  - listByCategory:
+  - getById:
+  - create:
+insurance:
+  - submitClaim:
+  - listClaims:
+  - updateStatus:
+  - getById:
+labBooking:
+  - create:
+  - listForPatient:
+  - updateStatus:
+  - getById:
+notification:
+  - create:
+  - listForUser:
+  - markAsRead:
+  - markAllAsRead:
+  - getUnreadCount:
+organization:
+  - listHospitals:
+  - listPharmacies:
+  - search:
+  - getById:
+  - create:
+pharmacy:
+  - createOrder:
+  - listOrders:
+  - updateStatus:
+  - getById:
+schedule:
+  - createSlot:
+  - updateSlot:
+  - deleteSlot:
+  - listSlots:
+  - listAvailableSlots:
+  - bookSlot:
+greeting:
+  - hello:

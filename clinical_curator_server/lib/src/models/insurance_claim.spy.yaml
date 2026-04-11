@@ -1,0 +1,19 @@
+### Insurance claim submission.
+class: InsuranceClaim
+table: insurance_claims
+fields:
+  patientRef: String
+  claimType: String
+  provider: String
+  policyNumber: String
+  amount: double
+  status: String
+  description: String?
+  documentsJson: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  insurance_claim_patient_idx:
+    fields: patientRef
+  insurance_claim_status_idx:
+    fields: status

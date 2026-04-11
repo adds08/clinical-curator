@@ -1,0 +1,25 @@
+### Physical location within a facility.
+class: Location
+table: locations
+fields:
+  fhirId: String?
+  name: String
+  type: String
+  description: String?
+  address: String?
+  latitude: double?
+  longitude: double?
+  organizationRef: String?
+  partOfRef: String?
+  status: String
+  physicalType: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  location_org_idx:
+    fields: organizationRef
+  location_type_idx:
+    fields: type
+  location_status_idx:
+    fields: status

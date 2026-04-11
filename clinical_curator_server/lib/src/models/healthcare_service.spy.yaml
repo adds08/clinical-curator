@@ -1,0 +1,24 @@
+### Healthcare service offered by an organization.
+class: HealthcareService
+table: healthcare_services
+fields:
+  fhirId: String?
+  organizationRef: String
+  name: String
+  type: String
+  specialty: String?
+  availableTimeJson: String?
+  locationRef: String?
+  active: bool
+  comment: String?
+  telecom: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  healthcare_service_org_idx:
+    fields: organizationRef
+  healthcare_service_type_idx:
+    fields: type
+  healthcare_service_active_idx:
+    fields: active

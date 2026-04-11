@@ -1,0 +1,18 @@
+### Role-based access control permission entry.
+class: RbacPermission
+table: rbac_permissions
+fields:
+  roleId: String
+  roleName: String
+  resource: String
+  action: String
+  isAllowed: bool
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  rbac_role_idx:
+    fields: roleId
+  rbac_resource_idx:
+    fields: resource
+  rbac_role_resource_idx:
+    fields: roleId, resource

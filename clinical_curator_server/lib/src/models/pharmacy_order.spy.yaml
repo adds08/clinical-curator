@@ -1,0 +1,18 @@
+### Pharmacy medicine order.
+class: PharmacyOrder
+table: pharmacy_orders
+fields:
+  patientRef: String
+  pharmacyName: String
+  itemsJson: String
+  status: String
+  totalPrice: double
+  deliveryAddress: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  pharmacy_order_patient_idx:
+    fields: patientRef
+  pharmacy_order_status_idx:
+    fields: status

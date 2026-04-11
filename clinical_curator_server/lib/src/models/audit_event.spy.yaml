@@ -1,0 +1,27 @@
+### Audit trail event for compliance tracking.
+class: AuditEvent
+table: audit_events
+fields:
+  fhirId: String?
+  type: String
+  action: String
+  recorded: DateTime
+  agentRef: String
+  agentName: String
+  entityRef: String?
+  entityType: String?
+  outcome: String
+  detail: String?
+  createdAt: DateTime
+  syncVersion: int
+indexes:
+  audit_event_type_idx:
+    fields: type
+  audit_event_action_idx:
+    fields: action
+  audit_event_agent_idx:
+    fields: agentRef
+  audit_event_recorded_idx:
+    fields: recorded
+  audit_event_entity_idx:
+    fields: entityRef

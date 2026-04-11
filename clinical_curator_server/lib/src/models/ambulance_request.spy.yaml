@@ -1,0 +1,29 @@
+### Ambulance dispatch request with tracking status.
+class: AmbulanceRequest
+table: ambulance_requests
+fields:
+  patientRef: String
+  patientName: String
+  contactNumber: String
+  emergencyType: String
+  pickupLocation: String
+  status: String
+  latitude: double?
+  longitude: double?
+  assignedDriverName: String?
+  assignedVehicleNumber: String?
+  estimatedArrivalMinutes: int?
+  notes: String?
+  cancellationReason: String?
+  timelinessRating: String?
+  helpfulnessRating: int?
+  feedbackNotes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  ambulance_patient_idx:
+    fields: patientRef
+  ambulance_status_idx:
+    fields: status
+  ambulance_created_idx:
+    fields: createdAt

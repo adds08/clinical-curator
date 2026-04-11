@@ -1,0 +1,25 @@
+### Patient care plan with activities and goals.
+class: CarePlan
+table: care_plans
+fields:
+  fhirId: String?
+  patientRef: String
+  status: String
+  intent: String
+  title: String
+  category: String?
+  periodStart: DateTime?
+  periodEnd: DateTime?
+  activitiesJson: String?
+  goalsJson: String?
+  authorRef: String?
+  encounterRef: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  care_plan_patient_idx:
+    fields: patientRef
+  care_plan_status_idx:
+    fields: status

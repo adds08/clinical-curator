@@ -1,0 +1,19 @@
+### In-app notification record.
+class: NotificationRecord
+table: notification_records
+fields:
+  userEmail: String
+  title: String
+  body: String
+  type: String
+  isRead: bool
+  relatedResourceId: String?
+  relatedRoute: String?
+  createdAt: DateTime
+indexes:
+  notification_user_idx:
+    fields: userEmail
+  notification_read_idx:
+    fields: userEmail, isRead
+  notification_created_idx:
+    fields: createdAt

@@ -1,0 +1,26 @@
+### Bookable time slot for appointments.
+class: Slot
+table: slots
+fields:
+  fhirId: String?
+  scheduleRef: String
+  status: String
+  startTime: DateTime
+  endTime: DateTime
+  serviceType: String?
+  practitionerRef: String?
+  organizationRef: String?
+  maxPatients: int?
+  bookedCount: int?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  slot_schedule_idx:
+    fields: scheduleRef
+  slot_practitioner_idx:
+    fields: practitionerRef
+  slot_status_idx:
+    fields: status
+  slot_start_idx:
+    fields: startTime

@@ -1,0 +1,26 @@
+### Medication prescription.
+class: MedicationRequest
+table: medication_requests
+fields:
+  fhirId: String?
+  patientRef: String
+  requesterRef: String
+  requesterName: String?
+  medicationCode: String
+  medicationName: String
+  status: String
+  dosageJson: String?
+  dispenseJson: String?
+  encounterRef: String?
+  reasonJson: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  med_request_patient_idx:
+    fields: patientRef
+  med_request_requester_idx:
+    fields: requesterRef
+  med_request_status_idx:
+    fields: status

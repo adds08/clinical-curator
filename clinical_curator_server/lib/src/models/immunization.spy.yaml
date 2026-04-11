@@ -1,0 +1,26 @@
+### Patient immunization record.
+class: Immunization
+table: immunizations
+fields:
+  fhirId: String?
+  patientRef: String
+  vaccineCode: String
+  vaccineName: String
+  occurrenceDate: DateTime
+  status: String
+  lotNumber: String?
+  site: String?
+  routeOfAdmin: String?
+  doseQuantity: String?
+  performerRef: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  immunization_patient_idx:
+    fields: patientRef
+  immunization_vaccine_idx:
+    fields: vaccineCode
+  immunization_date_idx:
+    fields: occurrenceDate

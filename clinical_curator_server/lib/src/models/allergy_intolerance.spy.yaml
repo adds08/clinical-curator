@@ -1,0 +1,27 @@
+### Patient allergy or intolerance record.
+class: AllergyIntolerance
+table: allergy_intolerances
+fields:
+  fhirId: String?
+  patientRef: String
+  code: String
+  displayName: String
+  clinicalStatus: String
+  verificationStatus: String
+  type: String
+  category: String
+  criticality: String
+  onsetDate: DateTime?
+  reactionJson: String?
+  recorderRef: String?
+  notes: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  allergy_patient_idx:
+    fields: patientRef
+  allergy_status_idx:
+    fields: clinicalStatus
+  allergy_criticality_idx:
+    fields: criticality

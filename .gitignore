@@ -25,15 +25,20 @@ gen/
 .pub-cache/
 .pub/
 /build/
-/android/
-/ios/
-/macos/
-/windows/
-/linux/
-/web/
 
-# Web
-.dart_tool/
-.pub/
-build/
-web/
+# Serverpod
+clinical_curator_server/config/passwords.yaml
+clinical_curator_server/web/app/
+clinical_curator_server/.dart_tool/
+clinical_curator_client/.dart_tool/
+
+# Docker
+docker-compose.override.yaml
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db

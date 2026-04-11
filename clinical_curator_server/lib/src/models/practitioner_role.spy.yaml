@@ -1,0 +1,26 @@
+### Practitioner assignment to an organization with specialty.
+class: PractitionerRole
+table: practitioner_roles
+fields:
+  fhirId: String?
+  practitionerRef: String
+  organizationRef: String
+  code: String
+  specialty: String?
+  locationRefsJson: String?
+  availableTimeJson: String?
+  active: bool
+  practitionerName: String?
+  organizationName: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncVersion: int
+indexes:
+  pract_role_practitioner_idx:
+    fields: practitionerRef
+  pract_role_org_idx:
+    fields: organizationRef
+  pract_role_specialty_idx:
+    fields: specialty
+  pract_role_active_idx:
+    fields: active

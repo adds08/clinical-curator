@@ -1,0 +1,25 @@
+### User account for authentication and profile management.
+class: UserAccount
+table: user_accounts
+fields:
+  email: String
+  passwordHash: String
+  displayName: String
+  fhirPatientId: String?
+  fhirPractitionerId: String?
+  isPractitioner: bool
+  isVerified: bool
+  practitionerType: String?
+  accountType: String
+  avatarUrl: String?
+  healthId: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+indexes:
+  user_account_email_idx:
+    fields: email
+    unique: true
+  user_account_type_idx:
+    fields: accountType
+  user_account_practitioner_idx:
+    fields: isPractitioner, isVerified
