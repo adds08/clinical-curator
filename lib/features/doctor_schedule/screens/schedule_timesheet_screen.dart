@@ -85,9 +85,18 @@ class _ScheduleTimesheetScreenState
                       ),
                       const SizedBox(height: 2),
                       Text(
+                        'Manage your availability & view today\'s patients',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.mutedForeground,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
                         DateFormat('EEEE, MMM d').format(DateTime.now()),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: colors.mutedForeground,
                         ),
                       ),

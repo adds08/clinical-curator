@@ -2,13 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fhir/r4.dart' as fhir;
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/database/isar_service.dart';
+import '../../../core/router/route_names.dart';
 import '../../../core/theme/surface_theme.dart';
+import '../../../data/collections/appointment_collection.dart';
 import '../../../data/collections/fhir_resource_collection.dart';
+import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/patient_data_provider.dart';
 import '../../shared/widgets/sub_page_scaffold.dart';
 import '../../../core/theme/clinical_colors.dart';
@@ -35,27 +40,30 @@ class PatientDetailScreen extends ConsumerWidget {
     // ignore: unused_local_variable
     final patientAllergies = ref.watch(patientAllergiesProvider(patientRef));
 
-    // Resolve patient name from FHIR resource
+    // Resolve patient from FHIR provider
+    final fhirPatient = ref.watch(patientFhirProvider(patientRef));
     String patientName = 'Patient';
     String patientInitials = 'P';
-    final fhirBox = DatabaseService.fhirResources;
-    for (final r in fhirBox.values) {
-      if (r.resourceType == 'Patient' && r.fhirId == patientId) {
-        try {
-          final resource = fhir.Resource.fromJson(jsonDecode(r.jsonData) as Map<String, dynamic>);
-          if (resource is fhir.Patient) {
-            patientName = resource.name?.firstOrNull?.text ??
-                '${resource.name?.firstOrNull?.given?.join(' ') ?? ''} ${resource.name?.firstOrNull?.family ?? ''}'.trim();
-            if (patientName.isEmpty) patientName = 'Patient';
-            final parts = patientName.split(' ').where((p) => p.isNotEmpty).toList();
-            patientInitials = parts.length >= 2
-                ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-                : (parts.isNotEmpty ? parts[0][0].toUpperCase() : 'P');
-          }
-        } catch (_) {}
-        break;
-      }
+    if (fhirPatient != null) {
+      patientName = fhirPatient.name?.firstOrNull?.text ??
+          '${fhirPatient.name?.firstOrNull?.given?.join(' ') ?? ''} ${fhirPatient.name?.firstOrNull?.family ?? ''}'.trim();
+      if (patientName.isEmpty) patientName = 'Patient';
+      final parts = patientName.split(' ').where((p) => p.isNotEmpty).toList();
+      patientInitials = parts.length >= 2
+          ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+          : (parts.isNotEmpty ? parts[0][0].toUpperCase() : 'P');
     }
+
+    // Real appointment data
+    final nextAppt = ref.watch(patientNextAppointmentProvider(patientRef));
+    final upcomingAppts = ref.watch(patientUpcomingAppointmentsProvider(patientRef));
+    final pastAppts = ref.watch(patientPastAppointmentsProvider(patientRef));
+
+    // Registration date & practitioner name
+    final registrationDate = ref.watch(patientRegistrationDateProvider(patientRef));
+    final user = ref.watch(authProvider).user;
+    final practitionerName = user?.displayName ?? 'Unassigned';
+
     return SubPageScaffold(
       title: 'Patient Detail',
       child: SingleChildScrollView(
@@ -64,7 +72,14 @@ class PatientDetailScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Profile
-                    _buildProfileSection(context, patientName, patientInitials),
+                    _buildProfileSection(
+                      context,
+                      patientName,
+                      patientInitials,
+                      registrationDate: registrationDate,
+                      nextAppointment: nextAppt,
+                      practitionerName: practitionerName,
+                    ),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Allergy Alert
@@ -84,7 +99,7 @@ class PatientDetailScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Visit Timeline
-                    _buildVisitTimeline(context),
+                    _buildVisitTimeline(context, upcomingAppts, pastAppts),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Clinical Actions
@@ -99,8 +114,22 @@ class PatientDetailScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   // Profile Section
   // ---------------------------------------------------------------------------
-  Widget _buildProfileSection(BuildContext context, String name, String initials) {
-      final colors = Theme.of(context).colorScheme;
+  Widget _buildProfileSection(
+    BuildContext context,
+    String name,
+    String initials, {
+    DateTime? registrationDate,
+    AppointmentLocal? nextAppointment,
+    String? practitionerName,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final regText = registrationDate != null
+        ? DateFormat('MMM d, yyyy').format(registrationDate)
+        : 'Unknown';
+    final nextText = nextAppointment != null
+        ? DateFormat('MMM d, yyyy  •  hh:mm a').format(nextAppointment.scheduledAt)
+        : null;
+
     return Card(
       padding: const EdgeInsets.all(AppSpacing.xl),
       fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
@@ -131,29 +160,50 @@ class PatientDetailScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.medical_services_outlined,
-                      size: 14,
-                      color: colors.mutedForeground,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Dr. Alexander Thorne',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: colors.mutedForeground,
-                      ),
-                    ),
-                  ],
+                _buildProfileInfoRow(
+                  context,
+                  Icons.calendar_today,
+                  'Registered: $regText',
+                ),
+                const SizedBox(height: 4),
+                _buildProfileInfoRow(
+                  context,
+                  Icons.event,
+                  nextText != null ? 'Next visit: $nextText' : 'No upcoming visits',
+                  highlight: nextText != null,
+                ),
+                const SizedBox(height: 4),
+                _buildProfileInfoRow(
+                  context,
+                  Icons.medical_services_outlined,
+                  practitionerName ?? 'Unassigned',
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProfileInfoRow(BuildContext context, IconData icon, String text, {bool highlight = false}) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: highlight ? colors.primary : colors.mutedForeground),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: highlight ? colors.primary : colors.mutedForeground,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
@@ -610,8 +660,17 @@ class PatientDetailScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   // Visit Timeline
   // ---------------------------------------------------------------------------
-  Widget _buildVisitTimeline(BuildContext context) {
+  Widget _buildVisitTimeline(
+    BuildContext context,
+    List<AppointmentLocal> upcoming,
+    List<AppointmentLocal> past,
+  ) {
     final colors = Theme.of(context).colorScheme;
+    final hasAny = upcoming.isNotEmpty || past.isNotEmpty;
+
+    // Build merged list: up to 1 upcoming + up to 3 past
+    final nextAppt = upcoming.isNotEmpty ? upcoming.first : null;
+    final recentPast = past.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -627,61 +686,105 @@ class PatientDetailScreen extends ConsumerWidget {
                 color: colors.foreground,
               ),
             ),
-            GhostButton(
-              density: ButtonDensity.compact,
-              onPressed: () {
-                showToast(
-                  context: context,
-                  builder: (ctx, overlay) => SurfaceCard(
-                    child: Basic(
-                      title: const Text('Loading visit history...'),
+            if (hasAny)
+              GhostButton(
+                density: ButtonDensity.compact,
+                onPressed: () {
+                  showToast(
+                    context: context,
+                    builder: (ctx, overlay) => SurfaceCard(
+                      child: Basic(
+                        title: const Text('Loading visit history...'),
+                      ),
                     ),
+                    location: ToastLocation.bottomRight,
+                  );
+                },
+                child: Text(
+                  'View Full History',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: colors.primary,
                   ),
-                  location: ToastLocation.bottomRight,
-                );
-              },
-              child: Text(
-                'View Full History',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: colors.primary,
                 ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        _buildTimelineEntry(
-          context: context,
-          isNext: true,
-          icon: Icons.event_rounded,
-          iconColor: colors.primary,
-          title: 'Follow-up Consultation',
-          date: 'Aug 24, 2023  •  10:30 AM',
-          description: null,
-          badge: 'Cardiology',
-        ),
-        _buildTimelineEntry(
-          context: context,
-          icon: Icons.health_and_safety_rounded,
-          iconColor: colors.success,
-          title: 'Annual Wellness Exam',
-          date: 'Jun 12, 2023',
-          description:
-              'Patient reporting mild fatigue and occasional headaches. Vitals within normal limits.',
-        ),
-        _buildTimelineEntry(
-          context: context,
-          icon: Icons.medication_rounded,
-          iconColor: colors.mutedForeground,
-          title: 'Prescription Renewal',
-          date: 'May 15, 2023',
-          description: 'Lisinopril 10mg renewed for 90-day supply.',
-          isLast: true,
-        ),
+        if (!hasAny)
+          Card(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+            borderRadius: AppRadius.cardRadius,
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.event_busy, size: 32, color: colors.mutedForeground.withValues(alpha: 0.5)),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'No visit history yet',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else ...[
+          if (nextAppt != null)
+            _buildTimelineEntry(
+              context: context,
+              isNext: true,
+              icon: _appointmentIcon(nextAppt.appointmentType),
+              iconColor: colors.primary,
+              title: nextAppt.specialty?.isNotEmpty == true
+                  ? nextAppt.specialty!
+                  : _appointmentLabel(nextAppt.appointmentType),
+              date: DateFormat('MMM d, yyyy  •  hh:mm a').format(nextAppt.scheduledAt),
+              description: nextAppt.notes,
+              badge: nextAppt.appointmentType.toUpperCase(),
+              isLast: recentPast.isEmpty,
+            ),
+          for (int i = 0; i < recentPast.length; i++)
+            _buildTimelineEntry(
+              context: context,
+              icon: _appointmentIcon(recentPast[i].appointmentType),
+              iconColor: recentPast[i].status == 'completed'
+                  ? colors.success
+                  : colors.mutedForeground,
+              title: recentPast[i].specialty?.isNotEmpty == true
+                  ? recentPast[i].specialty!
+                  : _appointmentLabel(recentPast[i].appointmentType),
+              date: DateFormat('MMM d, yyyy').format(recentPast[i].scheduledAt),
+              description: recentPast[i].notes,
+              badge: recentPast[i].status == 'completed' ? 'COMPLETED' : null,
+              isLast: i == recentPast.length - 1,
+            ),
+        ],
       ],
     );
+  }
+
+  IconData _appointmentIcon(String type) {
+    switch (type) {
+      case 'opd':
+        return Icons.person_rounded;
+      case 'telemedicine':
+        return Icons.videocam_rounded;
+      default:
+        return Icons.local_hospital_rounded;
+    }
+  }
+
+  String _appointmentLabel(String type) {
+    switch (type) {
+      case 'opd':
+        return 'OPD Consultation';
+      case 'telemedicine':
+        return 'Telemedicine Visit';
+      default:
+        return 'Appointment';
+    }
   }
 
   Widget _buildTimelineEntry({
@@ -830,63 +933,160 @@ class PatientDetailScreen extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
                 color: colors.foreground)),
         const SizedBox(height: AppSpacing.lg),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 2.6,
+
+        // Primary action — Start Checkup
+        SizedBox(
+          width: double.infinity,
+          child: PrimaryButton(
+            density: ButtonDensity.normal,
+            onPressed: () => _openCheckupSheet(context, patientRef, patientName),
+            leading: const Icon(Icons.medical_services, size: 20),
+            child: const Text('Start Checkup',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // Secondary actions — responsive Wrap
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final tileWidth = (constraints.maxWidth - 10) / 2;
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _ActionTile(
+                  icon: Icons.science_outlined,
+                  label: 'Lab Report',
+                  color: colors.primary,
+                  width: tileWidth,
+                  onTap: () => _openLabReportDrawer(context, patientRef, patientName),
+                ),
+                _ActionTile(
+                  icon: Icons.assignment_outlined,
+                  label: 'Diagnosis',
+                  color: colors.warning,
+                  width: tileWidth,
+                  onTap: () => _openDiagnosisDrawer(context, patientRef, patientName),
+                ),
+                _ActionTile(
+                  icon: Icons.medication_outlined,
+                  label: 'Prescription',
+                  color: colors.success,
+                  width: tileWidth,
+                  onTap: () => _openPrescriptionDrawer(context, patientRef, patientName),
+                ),
+                _ActionTile(
+                  icon: Icons.monitor_heart_outlined,
+                  label: 'Vitals',
+                  color: colors.destructive,
+                  width: tileWidth,
+                  onTap: () => _openVitalsDrawer(context, patientRef, patientName),
+                ),
+                _ActionTile(
+                  icon: Icons.note_add_outlined,
+                  label: 'Clinical Note',
+                  color: const Color(0xFF7C3AED),
+                  width: tileWidth,
+                  onTap: () => _openClinicalNoteDrawer(context, patientRef, patientName),
+                ),
+                _ActionTile(
+                  icon: Icons.picture_as_pdf_outlined,
+                  label: 'Export PDF',
+                  color: colors.mutedForeground,
+                  width: tileWidth,
+                  onTap: () {
+                    showToast(
+                      context: context,
+                      builder: (ctx, overlay) => SurfaceCard(
+                        child: Basic(
+                          title: const Text('Exporting PDF report...'),
+                          leading: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _openCheckupSheet(BuildContext context, String patientRef, String patientName) {
+    final colors = Theme.of(context).colorScheme;
+    openDrawer(
+      context: context,
+      position: OverlayPosition.bottom,
+      showDragHandle: true,
+      draggable: true,
+      builder: (_) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ActionTile(
-              icon: Icons.science_outlined,
-              label: 'Lab Report',
-              color: colors.primary,
-              onTap: () => _openLabReportDrawer(context, patientRef, patientName),
-            ),
-            _ActionTile(
-              icon: Icons.assignment_outlined,
-              label: 'Diagnosis',
-              color: colors.warning,
-              onTap: () => _openDiagnosisDrawer(context, patientRef, patientName),
-            ),
-            _ActionTile(
-              icon: Icons.medication_outlined,
-              label: 'Prescription',
-              color: colors.success,
-              onTap: () => _openPrescriptionDrawer(context, patientRef, patientName),
-            ),
-            _ActionTile(
+            Text('Checkup', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground)),
+            const SizedBox(height: 4),
+            Text('Patient: $patientName', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
+            const SizedBox(height: 20),
+            _CheckupActionRow(
               icon: Icons.monitor_heart_outlined,
-              label: 'Vitals',
+              label: 'Record Vitals',
+              subtitle: 'BP, Heart Rate, Temp, SpO\u2082',
               color: colors.destructive,
-              onTap: () => _openVitalsDrawer(context, patientRef, patientName),
+              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openVitalsDrawer(context, patientRef, patientName); }); },
             ),
-            _ActionTile(
+            const SizedBox(height: 10),
+            _CheckupActionRow(
               icon: Icons.note_add_outlined,
-              label: 'Clinical Note',
+              label: 'Clinical Note (SOAP)',
+              subtitle: 'Subjective, Objective, Assessment, Plan',
               color: const Color(0xFF7C3AED),
-              onTap: () => _openClinicalNoteDrawer(context, patientRef, patientName),
+              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openClinicalNoteDrawer(context, patientRef, patientName); }); },
             ),
-            _ActionTile(
-              icon: Icons.picture_as_pdf_outlined,
-              label: 'Export PDF',
-              color: colors.mutedForeground,
-              onTap: () {
-                showToast(
-                  context: context,
-                  builder: (ctx, overlay) => SurfaceCard(
-                    child: Basic(
-                      title: const Text('Exporting PDF report...'),
-                      leading: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                    ),
-                  ),
-                );
-              },
+            const SizedBox(height: 10),
+            _CheckupActionRow(
+              icon: Icons.assignment_outlined,
+              label: 'Add Diagnosis',
+              subtitle: 'ICD-10 code and clinical notes',
+              color: colors.warning,
+              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openDiagnosisDrawer(context, patientRef, patientName); }); },
+            ),
+            const SizedBox(height: 10),
+            _CheckupActionRow(
+              icon: Icons.medication_outlined,
+              label: 'Prescribe Medication',
+              subtitle: 'E-Prescribe with dosage instructions',
+              color: colors.success,
+              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openPrescriptionDrawer(context, patientRef, patientName); }); },
+            ),
+            const SizedBox(height: 10),
+            _CheckupActionRow(
+              icon: Icons.science_outlined,
+              label: 'Order Lab Test',
+              subtitle: 'Request diagnostic report',
+              color: colors.primary,
+              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openLabReportDrawer(context, patientRef, patientName); }); },
+            ),
+            const SizedBox(height: 20),
+            Divider(color: colors.border),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlineButton(
+                onPressed: () {
+                  closeDrawer(context);
+                  context.push(RouteNames.clinicalStartEncounter);
+                },
+                leading: const Icon(Icons.open_in_new, size: 16),
+                child: const Text('Start Full Encounter'),
+              ),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -1339,8 +1539,48 @@ class _ActionTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final double? width;
   final VoidCallback onTap;
-  const _ActionTile({required this.icon, required this.label, required this.color, required this.onTap});
+  const _ActionTile({required this.icon, required this.label, required this.color, required this.onTap, this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: width,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+            borderRadius: AppRadius.cardRadius,
+            boxShadow: [SurfaceTheme.ambientShadow],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                child: Icon(icon, color: color, size: 17),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground))),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckupActionRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+  const _CheckupActionRow({required this.icon, required this.label, required this.subtitle, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1348,21 +1588,30 @@ class _ActionTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
           borderRadius: AppRadius.cardRadius,
-          boxShadow: [SurfaceTheme.ambientShadow],
         ),
         child: Row(
           children: [
             Container(
-              width: 34, height: 34,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-              child: Icon(icon, color: color, size: 17),
+              width: 40, height: 40,
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 10),
-            Expanded(child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground))),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.foreground)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(fontSize: 11, color: colors.mutedForeground)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 18, color: colors.mutedForeground),
           ],
         ),
       ),

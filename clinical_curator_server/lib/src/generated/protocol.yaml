@@ -38,6 +38,7 @@ auth:
   - getByEmail:
   - getById:
   - updateProfile:
+  - changePassword:
 fhirResource:
   - create:
   - read:

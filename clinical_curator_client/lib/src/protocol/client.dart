@@ -484,7 +484,7 @@ class EndpointAuth extends _i2.EndpointRef {
     },
   );
 
-  /// Register a new patient account.
+  /// Register a new patient account with bcrypt-hashed password.
   _i3.Future<_i5.UserAccount> signup(
     String email,
     String password,
@@ -539,6 +539,21 @@ class EndpointAuth extends _i2.EndpointRef {
         'updateProfile',
         {'account': account},
       );
+
+  /// Change password — hashes with bcrypt.
+  _i3.Future<bool> changePassword(
+    int userId,
+    String currentPassword,
+    String newPassword,
+  ) => caller.callServerEndpoint<bool>(
+    'auth',
+    'changePassword',
+    {
+      'userId': userId,
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -852,7 +867,7 @@ class EndpointOrganization extends _i2.EndpointRef {
         {},
       );
 
-  /// Search organizations by name.
+  /// Search organizations by name (sanitized).
   _i3.Future<List<_i13.Organization>> search(String query) =>
       caller.callServerEndpoint<List<_i13.Organization>>(
         'organization',

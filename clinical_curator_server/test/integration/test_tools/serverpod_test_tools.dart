@@ -1423,6 +1423,43 @@ class _AuthEndpoint {
       }
     });
   }
+
+  _i3.Future<bool> changePassword(
+    _i1.TestSessionBuilder sessionBuilder,
+    int userId,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'auth',
+            method: 'changePassword',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'auth',
+          methodName: 'changePassword',
+          parameters: _i1.testObjectToJson({
+            'userId': userId,
+            'currentPassword': currentPassword,
+            'newPassword': newPassword,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _FhirResourceEndpoint {

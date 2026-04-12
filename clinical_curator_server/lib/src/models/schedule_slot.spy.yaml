@@ -16,9 +16,9 @@ fields:
   createdAt: DateTime
   updatedAt: DateTime?
 indexes:
-  slot_practitioner_idx:
+  sched_slot_practitioner_idx:
     fields: practitionerRef
-  slot_date_idx:
+  sched_slot_date_idx:
     fields: date
-  slot_status_idx:
+  sched_slot_status_idx:
     fields: status

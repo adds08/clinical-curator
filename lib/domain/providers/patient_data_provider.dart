@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fhir/r4.dart' as fhir;
 
 import '../../core/database/isar_service.dart';
+import '../../data/collections/appointment_collection.dart';
 import '../../data/collections/fhir_resource_collection.dart';
+import 'practitioner_data_provider.dart' show appointmentRefreshProvider;
 
 // ---------------------------------------------------------------------------
 // Patient Vitals
@@ -262,4 +264,89 @@ final latestBloodPressureProvider =
   }
 
   return '$systolic/$diastolic';
+});
+
+// ---------------------------------------------------------------------------
+// Parsed FHIR Patient
+// ---------------------------------------------------------------------------
+
+/// Returns the parsed [fhir.Patient] resource for the given patient reference,
+/// or null if not found.
+final patientFhirProvider =
+    Provider.family<fhir.Patient?, String>((ref, patientRef) {
+  final patientId = patientRef.replaceFirst('Patient/', '');
+  final box = DatabaseService.fhirResources;
+  for (final r in box.values) {
+    if (r.resourceType == 'Patient' && r.fhirId == patientId) {
+      try {
+        final resource =
+            fhir.Resource.fromJson(jsonDecode(r.jsonData) as Map<String, dynamic>);
+        if (resource is fhir.Patient) return resource;
+      } catch (_) {}
+    }
+  }
+  return null;
+});
+
+/// Returns the registration date (createdAt) for the given patient, or null.
+final patientRegistrationDateProvider =
+    Provider.family<DateTime?, String>((ref, patientRef) {
+  final patientId = patientRef.replaceFirst('Patient/', '');
+  final box = DatabaseService.fhirResources;
+  for (final r in box.values) {
+    if (r.resourceType == 'Patient' && r.fhirId == patientId) {
+      return r.createdAt;
+    }
+  }
+  return null;
+});
+
+// ---------------------------------------------------------------------------
+// Patient Appointments
+// ---------------------------------------------------------------------------
+
+/// All appointments for a patient, sorted by scheduledAt descending.
+final patientAppointmentsProvider =
+    Provider.family<List<AppointmentLocal>, String>((ref, patientRef) {
+  ref.watch(appointmentRefreshProvider);
+  final box = DatabaseService.appointments;
+  final list = box.values
+      .where((a) => a.patientRef == patientRef)
+      .toList()
+    ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
+  return list;
+});
+
+/// Upcoming (future, non-cancelled) appointments for a patient, ascending.
+final patientUpcomingAppointmentsProvider =
+    Provider.family<List<AppointmentLocal>, String>((ref, patientRef) {
+  final all = ref.watch(patientAppointmentsProvider(patientRef));
+  final now = DateTime.now();
+  final upcoming = all
+      .where((a) =>
+          a.scheduledAt.isAfter(now) &&
+          a.status != 'cancelled')
+      .toList()
+    ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+  return upcoming;
+});
+
+/// Past / completed appointments for a patient, most recent first.
+final patientPastAppointmentsProvider =
+    Provider.family<List<AppointmentLocal>, String>((ref, patientRef) {
+  final all = ref.watch(patientAppointmentsProvider(patientRef));
+  final now = DateTime.now();
+  final past = all
+      .where((a) =>
+          a.scheduledAt.isBefore(now) || a.status == 'completed')
+      .toList()
+    ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
+  return past;
+});
+
+/// The next upcoming appointment for a patient, or null.
+final patientNextAppointmentProvider =
+    Provider.family<AppointmentLocal?, String>((ref, patientRef) {
+  final upcoming = ref.watch(patientUpcomingAppointmentsProvider(patientRef));
+  return upcoming.isNotEmpty ? upcoming.first : null;
 });

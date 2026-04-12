@@ -15,12 +15,10 @@ class PatientManagementScreen extends ConsumerStatefulWidget {
   const PatientManagementScreen({super.key});
 
   @override
-  ConsumerState<PatientManagementScreen> createState() =>
-      _PatientManagementScreenState();
+  ConsumerState<PatientManagementScreen> createState() => _PatientManagementScreenState();
 }
 
-class _PatientManagementScreenState
-    extends ConsumerState<PatientManagementScreen> {
+class _PatientManagementScreenState extends ConsumerState<PatientManagementScreen> {
   String _searchQuery = '';
   String _sortBy = 'latest';
   final _searchController = TextEditingController();
@@ -41,12 +39,7 @@ class _PatientManagementScreenState
       final fhirId = p.fhirId?.toString() ?? '';
       final patientRef = 'Patient/$fhirId';
       final name = _extractName(p);
-      final initials = name
-          .split(' ')
-          .where((w) => w.isNotEmpty)
-          .take(2)
-          .map((w) => w[0].toUpperCase())
-          .join();
+      final initials = name.split(' ').where((w) => w.isNotEmpty).take(2).map((w) => w[0].toUpperCase()).join();
       final gender = p.gender?.toString() ?? '';
       final birthDate = p.birthDate?.toString() ?? '';
       final pid = _extractPid(p);
@@ -55,26 +48,13 @@ class _PatientManagementScreenState
       final hr = ref.watch(latestHeartRateProvider(patientRef));
       final bp = ref.watch(latestBloodPressureProvider(patientRef));
 
-      return _PatientData(
-        fhirId: fhirId,
-        name: name,
-        initials: initials,
-        pid: pid,
-        gender: gender,
-        birthDate: birthDate,
-        hr: hr,
-        bp: bp,
-      );
+      return _PatientData(fhirId: fhirId, name: name, initials: initials, pid: pid, gender: gender, birthDate: birthDate, hr: hr, bp: bp);
     }).toList();
 
     // Search filter
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      displayPatients = displayPatients
-          .where((p) =>
-              p.name.toLowerCase().contains(q) ||
-              p.pid.toLowerCase().contains(q))
-          .toList();
+      displayPatients = displayPatients.where((p) => p.name.toLowerCase().contains(q) || p.pid.toLowerCase().contains(q)).toList();
     }
 
     // Sort
@@ -94,32 +74,47 @@ class _PatientManagementScreenState
       child: SafeArea(
         child: Stack(
           children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 80),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context, displayPatients.length),
-                  const SizedBox(height: AppSpacing.xl),
-                  _buildSearchBar(),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildSortRow(),
-                  const SizedBox(height: AppSpacing.xxl),
-                  if (displayPatients.isEmpty)
-                    _buildEmptyState()
-                  else
-                    ...displayPatients.asMap().entries.map((entry) {
-                      final i = entry.key;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                            bottom: i < displayPatients.length - 1
-                                ? AppSpacing.lg
-                                : 0),
-                        child: _buildPatientCard(context, entry.value),
-                      );
-                    }),
-                ],
+            Positioned.fill(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context, displayPatients.length),
+                    const SizedBox(height: AppSpacing.xl),
+                    Row(
+                      children: [
+                        Expanded(child: _buildSearchBar()),
+                        const SizedBox(width: AppSpacing.sm),
+                        _buildSortRow(),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: displayPatients.isEmpty
+                            ? _buildEmptyState()
+                            : Column(
+                                children:
+                                    displayPatients
+                                        .map(
+                                          (p) => Padding(
+                                            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                                            child: _buildPatientCard(context, p),
+                                          ),
+                                        )
+                                        .toList()
+                                      ..add(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+                                          child: Container(),
+                                        ),
+                                      ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Positioned(
@@ -132,9 +127,7 @@ class _PatientManagementScreenState
                   children: [
                     Icon(Icons.person_add, size: 18),
                     SizedBox(width: AppSpacing.sm),
-                    Text('New Intake',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700)),
+                    Text('New Intake', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
@@ -150,22 +143,19 @@ class _PatientManagementScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Patient Directory',
-            style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: colors.foreground,
-                letterSpacing: -0.5)),
+        Text(
+          'Patient Directory',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.foreground, letterSpacing: -0.5),
+        ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-            'Manage clinical intakes, assigned patient records, and real-time medical updates.',
-            style: TextStyle(
-                fontSize: 12, color: colors.mutedForeground, height: 1.4)),
+          'Manage clinical intakes, assigned patient records, and real-time medical updates.',
+          style: TextStyle(fontSize: 12, color: colors.mutedForeground, height: 1.4),
+        ),
         const SizedBox(height: AppSpacing.sm),
         PrimaryBadge(
-            child: Text('$patientCount Patients',
-                style: const TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700))),
+          child: Text('$patientCount Patients', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+        ),
       ],
     );
   }
@@ -177,10 +167,7 @@ class _PatientManagementScreenState
       placeholder: const Text('Search by name or ID...'),
       filled: true,
       borderRadius: AppRadius.cardRadius,
-      features: [
-        InputFeature.leading(
-            Icon(Icons.search, color: colors.mutedForeground, size: 20)),
-      ],
+      features: [InputFeature.leading(Icon(Icons.search, color: colors.mutedForeground, size: 20))],
       onChanged: (value) => setState(() => _searchQuery = value),
     );
   }
@@ -210,18 +197,18 @@ class _PatientManagementScreenState
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: colors.border)),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: colors.border),
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.swap_vert, size: 14, color: colors.mutedForeground),
                 const SizedBox(width: 4),
-                Text(_sortLabel,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors.mutedForeground)),
+                Text(
+                  _sortLabel,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                ),
               ],
             ),
           ),
@@ -239,19 +226,14 @@ class _PatientManagementScreenState
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.search_off,
-                size: 40,
-                color: colors.mutedForeground.withValues(alpha: 0.5)),
+            Icon(Icons.search_off, size: 40, color: colors.mutedForeground.withValues(alpha: 0.5)),
             const SizedBox(height: AppSpacing.md),
-            Text('No patients found',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: colors.mutedForeground)),
+            Text(
+              'No patients found',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Add a new intake to get started',
-                style:
-                    TextStyle(fontSize: 12, color: colors.mutedForeground)),
+            Text('Add a new intake to get started', style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
           ],
         ),
       ),
@@ -273,37 +255,29 @@ class _PatientManagementScreenState
           children: [
             Row(
               children: [
-                Avatar(
-                  initials: patient.initials,
-                  size: 40,
-                  backgroundColor: colors.primary.withValues(alpha: 0.1),
-                ),
+                Avatar(initials: patient.initials, size: 40, backgroundColor: colors.primary.withValues(alpha: 0.1)),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(patient.name,
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: colors.foreground)),
+                      Text(
+                        patient.name,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.foreground),
+                      ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Text(patient.pid,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.mutedForeground)),
+                          Text(
+                            patient.pid,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                          ),
                           if (patient.gender.isNotEmpty) ...[
                             const SizedBox(width: 8),
                             Text(
-                                patient.gender[0].toUpperCase() +
-                                    patient.gender.substring(1),
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: colors.mutedForeground)),
+                              patient.gender[0].toUpperCase() + patient.gender.substring(1),
+                              style: TextStyle(fontSize: 11, color: colors.mutedForeground),
+                            ),
                           ],
                         ],
                       ),
@@ -316,20 +290,12 @@ class _PatientManagementScreenState
               const SizedBox(height: AppSpacing.md),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: SurfaceTheme.colorFor(SurfaceLevel.low, context),
-                  borderRadius: AppRadius.inputRadius,
-                ),
+                decoration: BoxDecoration(color: SurfaceTheme.colorFor(SurfaceLevel.low, context), borderRadius: AppRadius.inputRadius),
                 child: Row(
                   children: [
-                    if (patient.hr != '--')
-                      _buildVitalPill('HR', patient.hr,
-                          _hrColor(patient.hr, colors)),
-                    if (patient.hr != '--' && patient.bp != '--/--')
-                      const SizedBox(width: AppSpacing.sm),
-                    if (patient.bp != '--/--')
-                      _buildVitalPill(
-                          'BP', patient.bp, colors.foreground),
+                    if (patient.hr != '--') _buildVitalPill('HR', patient.hr, _hrColor(patient.hr, colors)),
+                    if (patient.hr != '--' && patient.bp != '--/--') const SizedBox(width: AppSpacing.sm),
+                    if (patient.bp != '--/--') _buildVitalPill('BP', patient.bp, colors.foreground),
                   ],
                 ),
               ),
@@ -339,26 +305,19 @@ class _PatientManagementScreenState
               children: [
                 Expanded(
                   child: OutlineButton(
-                    density: ButtonDensity.compact,
-                    onPressed: () =>
-                        context.push('/patient-detail/${patient.fhirId}'),
+                    density: ButtonDensity.normal,
+                    onPressed: () => context.push('/patient-detail/${patient.fhirId}'),
                     leading: const Icon(Icons.description_outlined, size: 13),
-                    child: const Text('View Summary',
-                        style: TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w600)),
+                    child: const Text('View Summary', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: PrimaryButton(
-                    density: ButtonDensity.compact,
-                    onPressed: () =>
-                        context.push('/patient-detail/${patient.fhirId}'),
-                    leading:
-                        const Icon(Icons.medical_services_outlined, size: 13),
-                    child: const Text('Checkup',
-                        style: TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w600)),
+                    density: ButtonDensity.normal,
+                    onPressed: () => context.push('/patient-detail/${patient.fhirId}'),
+                    leading: const Icon(Icons.medical_services_outlined, size: 13),
+                    child: const Text('Checkup', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -372,25 +331,19 @@ class _PatientManagementScreenState
   Widget _buildVitalPill(String label, String value, Color valueColor) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
-        borderRadius: AppRadius.chipRadius,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(color: SurfaceTheme.colorFor(SurfaceLevel.lowest, context), borderRadius: AppRadius.chipRadius),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$label ',
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: colors.mutedForeground)),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: valueColor)),
+          Text(
+            '$label ',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+          ),
+          Text(
+            value,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: valueColor),
+          ),
         ],
       ),
     );
