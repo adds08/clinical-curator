@@ -1,3 +1,6 @@
+// ignore_for_file: avoid_print
+// This is a CLI seed script; print() is the intended output channel.
+
 import 'dart:convert';
 
 import 'package:bcrypt/bcrypt.dart';

@@ -1,0 +1,20 @@
+name: cc_core
+description: Shared core — theme, constants, auth primitives, config, utils, route names.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  shadcn_flutter: ^0.0.52
+  google_fonts: ^6.2.1
+  flutter_secure_storage: ^9.2.4
+  fhir: ^0.12.1
+  intl: any
+
+dev_dependencies:
+  flutter_lints: ^6.0.0

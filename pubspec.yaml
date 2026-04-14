@@ -1,84 +1,10 @@
-name: clinical_curator
-description: "A FHIR R4-compliant clinical health app for Nepal's healthcare ecosystem."
+name: clinical_curator_workspace
+description: Workspace root — managed by melos. Apps live under apps/, shared code under packages/.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0
 
 environment:
   sdk: ^3.11.0
 
-dependencies:
-  flutter:
-    sdk: flutter
-
-  # UI
-  shadcn_flutter: ^0.0.52
-  google_fonts: ^6.2.1
-  flutter_svg: ^2.2.4
-  fl_chart: ^0.70.2
-  cupertino_icons: ^1.0.8
-
-  # Routing
-  go_router: ^17.1.0
-
-  # State Management
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
-
-  # FHIR
-  fhir: ^0.12.1
-
-  # Local Database (Hive CE — works on mobile, desktop, AND web)
-  hive_ce: ^2.7.0
-  hive_ce_flutter: ^2.1.0
-
-  # Persistence
-  shared_preferences: ^2.5.3
-  flutter_secure_storage: ^9.2.4
-
-  # Date formatting
-  intl: any
-
-  # Offline & Network
-  connectivity_plus: ^6.1.4
-  dio: ^5.7.0
-  path_provider: ^2.1.5
-
-  # Maps & Location
-  flutter_map: ^7.0.2
-  latlong2: ^0.9.1
-  geolocator: ^13.0.2
-
-  # Media
-  image_picker: ^1.1.2
-
-  # PDF Generation
-  pdf: ^3.11.2
-
-  # QR Code (for consent sharing)
-  qr_flutter: ^4.1.0
-
-  # Serverpod
-  serverpod_flutter: 3.4.5
-  clinical_curator_client:
-    path: clinical_curator_client
-
-  # Immutable models (equatable instead of freezed codegen — avoids source_gen conflict)
-  equatable: ^2.0.7
-  json_annotation: ^4.9.0
-
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
-
-  # Code generation
-  build_runner: ^2.4.13
-  json_serializable: ^6.7.1
-  hive_ce_generator: ^1.6.0
-
-flutter:
-  uses-material-design: true
-
-  assets:
-    - assets/images/
-    - assets/icons/
+  melos: ^6.3.2

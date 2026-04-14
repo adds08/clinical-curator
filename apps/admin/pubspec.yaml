@@ -1,0 +1,42 @@
+name: clinical_curator_admin
+description: Admin console — verification, organizations, audit, RBAC management.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cc_core:
+    path: ../../packages/core
+  cc_fhir_models:
+    path: ../../packages/fhir_models
+  cc_data:
+    path: ../../packages/data
+  cc_ui_kit:
+    path: ../../packages/ui_kit
+  cc_rbac:
+    path: ../../packages/rbac
+
+  # UI + state
+  shadcn_flutter: ^0.0.52
+  flutter_riverpod: ^2.6.1
+  go_router: ^17.1.0
+  fl_chart: ^0.70.2
+  intl: any
+
+  # Hive (admin uses same DB as clinical app, separate Hive box dirs would
+  # break the shared boxes — DatabaseService.initialize() opens them all).
+  hive_ce: ^2.7.0
+  hive_ce_flutter: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

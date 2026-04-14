@@ -1,0 +1,22 @@
+name: cc_fhir_models
+description: FHIR R4 resource models + Hive collections + state machines.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  hive_ce: ^2.7.0
+  hive_ce_flutter: ^2.1.0
+  equatable: ^2.0.7
+
+  cc_core:
+    path: ../core
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  hive_ce_generator: ^1.6.0

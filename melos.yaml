@@ -1,0 +1,44 @@
+name: clinical_curator_workspace
+
+packages:
+  - .
+  - apps/*
+  - packages/*
+  - clinical_curator_client
+  - clinical_curator_server
+
+ide:
+  intellij: false
+
+ignore:
+  - "**/build/**"
+  - "**/.dart_tool/**"
+
+command:
+  bootstrap:
+    runPubGetInParallel: true
+
+scripts:
+  analyze:
+    description: Run dart analyze across all packages
+    run: melos exec -c 1 -- "dart analyze ."
+
+  test:
+    description: Run flutter/dart tests in packages that have a test/ dir
+    run: melos exec --dir-exists=test -- "flutter test"
+
+  format:
+    description: Format all dart code
+    run: melos exec -c 1 -- "dart format ."
+
+  format-check:
+    description: Verify formatting without writing changes
+    run: melos exec -c 1 -- "dart format --set-exit-if-changed ."
+
+  clean:
+    description: Clean build artifacts across Flutter packages
+    run: melos exec --flutter -- "flutter clean"
+
+  codegen:
+    description: Run build_runner in every package with build.yaml
+    run: melos exec --file-exists=build.yaml -- "dart run build_runner build --delete-conflicting-outputs"

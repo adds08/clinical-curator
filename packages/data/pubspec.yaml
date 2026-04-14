@@ -1,0 +1,28 @@
+name: cc_data
+description: DatabaseService, repositories, sync-ready API clients, and mock seed.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  hive_ce: ^2.7.0
+  hive_ce_flutter: ^2.1.0
+  dio: ^5.7.0
+  connectivity_plus: ^6.1.4
+  path_provider: ^2.1.5
+  flutter_riverpod: ^2.6.1
+  fhir: ^0.12.1
+  clinical_curator_client:
+    path: ../../clinical_curator_client
+
+  cc_core:
+    path: ../core
+  cc_fhir_models:
+    path: ../fhir_models
+
+dev_dependencies:
+  flutter_lints: ^6.0.0

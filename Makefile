@@ -2,17 +2,18 @@
        server-stop app-run app-run-web app-build app-test app-clean seed all \
        app-run-dev app-run-staging app-run-prod \
        app-build-staging app-build-prod \
-       server-start-staging server-start-prod status
+       server-start-staging server-start-prod status \
+       ws-bootstrap ws-analyze ws-test ws-format ws-format-check \
+       ws-clean ws-codegen admin-run admin-run-web
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
-setup: ## Install all dependencies
-	cd clinical_curator_client && dart pub get
-	cd clinical_curator_server && dart pub get
-	flutter pub get
+setup: ## Install all dependencies (melos bootstrap across the workspace)
+	dart pub get
+	dart run melos bootstrap
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 
@@ -57,43 +58,75 @@ server-stop: ## Stop Serverpod server
 	@sleep 1
 	@echo "Server stopped."
 
-# ─── Flutter App ──────────────────────────────────────────────────────────────
+# ─── Clinical app (apps/clinical) ────────────────────────────────────────────
+# Patient + clinician (doctor/nurse) flows. Doctor vs nurse delta is RBAC.
 
-app-run: ## Run Flutter app (dev environment)
-	flutter run --dart-define=ENV=dev
+app-run: ## Run clinical app (dev environment)
+	cd apps/clinical && flutter run --dart-define=ENV=dev
 
-app-run-dev: ## Run Flutter app (dev) on connected device
-	flutter run --dart-define=ENV=dev
+app-run-dev: ## Run clinical app (dev) on connected device
+	cd apps/clinical && flutter run --dart-define=ENV=dev
 
-app-run-staging: ## Run Flutter app (staging) on connected device
-	flutter run --dart-define=ENV=staging
+app-run-staging: ## Run clinical app (staging) on connected device
+	cd apps/clinical && flutter run --dart-define=ENV=staging
 
-app-run-prod: ## Run Flutter app (production) on connected device
-	flutter run --dart-define=ENV=prod
+app-run-prod: ## Run clinical app (production) on connected device
+	cd apps/clinical && flutter run --dart-define=ENV=prod
 
-app-run-web: ## Run Flutter app in Chrome (dev)
-	flutter run -d chrome --dart-define=ENV=dev
+app-run-web: ## Run clinical app in Chrome (dev)
+	cd apps/clinical && flutter run -d chrome --dart-define=ENV=dev
 
-app-build: ## Build Flutter web app (dev)
-	flutter build web --dart-define=ENV=dev
+app-build: ## Build clinical web app (dev)
+	cd apps/clinical && flutter build web --dart-define=ENV=dev
 
-app-build-staging: ## Build Flutter web app for staging
-	flutter build web --dart-define=ENV=staging
+app-build-staging: ## Build clinical web app for staging
+	cd apps/clinical && flutter build web --dart-define=ENV=staging
 
-app-build-prod: ## Build Flutter web app for production
-	flutter build web --dart-define=ENV=prod
+app-build-prod: ## Build clinical web app for production
+	cd apps/clinical && flutter build web --dart-define=ENV=prod
 
-app-test: ## Run Flutter tests
-	flutter test
+app-test: ## Run tests for the clinical app
+	cd apps/clinical && flutter test
 
-app-clean: ## Clean Flutter build artifacts
-	flutter clean && flutter pub get
+app-clean: ## Clean clinical app build artifacts
+	cd apps/clinical && flutter clean && flutter pub get
 
 # ─── Code Generation ─────────────────────────────────────────────────────────
 
-codegen: ## Run all code generation (Hive + Serverpod)
+codegen: ## Run all code generation (Serverpod + clinical app build_runner)
 	cd clinical_curator_server && serverpod generate
-	dart run build_runner build --delete-conflicting-outputs
+	cd apps/clinical && dart run build_runner build --delete-conflicting-outputs
+
+# ─── Workspace (Melos) ───────────────────────────────────────────────────────
+
+ws-bootstrap: ## melos bootstrap — resolve all package deps + link paths
+	dart run melos bootstrap
+
+ws-analyze: ## dart analyze across every workspace package
+	dart run melos run analyze
+
+ws-test: ## flutter test across every package that has a test/ dir
+	dart run melos run test
+
+ws-format: ## dart format every package
+	dart run melos run format
+
+ws-format-check: ## Verify formatting without writing changes
+	dart run melos run format-check
+
+ws-clean: ## flutter clean across every Flutter package
+	dart run melos run clean
+
+ws-codegen: ## build_runner across every package with build.yaml
+	dart run melos run codegen
+
+# ─── Admin app ───────────────────────────────────────────────────────────────
+
+admin-run: ## Run the admin app on a connected device
+	cd apps/admin && flutter run --dart-define=ENV=dev
+
+admin-run-web: ## Run the admin app in Chrome
+	cd apps/admin && flutter run -d chrome --dart-define=ENV=dev
 
 # ─── Seed ─────────────────────────────────────────────────────────────────────
 
