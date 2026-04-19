@@ -84,7 +84,7 @@ class PatientHomeScreen extends ConsumerWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => _VitalsDrawer(heartRate: heartRate, bloodPressure: bloodPressure),
+      builder: (ctx) => _VitalsDrawer(heartRate: heartRate, bloodPressure: bloodPressure),
     );
   }
 }
@@ -150,7 +150,7 @@ class _HeroBentoGrid extends StatelessWidget {
             children: [
               Expanded(
                 child: _VitalCardLarge(
-                  icon: Icons.favorite_rounded,
+                  icon: LucideIcons.heart,
                   color: Theme.of(context).colorScheme.heartRate,
                   bg: Theme.of(context).colorScheme.heartBg,
                   value: heartRate,
@@ -166,7 +166,7 @@ class _HeroBentoGrid extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _VitalCardCompact(
-                        icon: Icons.water_drop_rounded,
+                        icon: LucideIcons.droplet,
                         color: Theme.of(context).colorScheme.primary,
                         bg: Theme.of(context).colorScheme.oxygenBg,
                         value: bloodPressure,
@@ -177,7 +177,7 @@ class _HeroBentoGrid extends StatelessWidget {
                     const SizedBox(height: gap),
                     Expanded(
                       child: _VitalCardCompact(
-                        icon: Icons.thermostat_rounded,
+                        icon: LucideIcons.thermometer,
                         color: Theme.of(context).colorScheme.temperature,
                         bg: Theme.of(context).colorScheme.tempBg,
                         value: '98.6',
@@ -200,7 +200,7 @@ class _HeroBentoGrid extends StatelessWidget {
             children: [
               Expanded(
                 child: _VitalCardCompact(
-                  icon: Icons.air_rounded,
+                  icon: LucideIcons.wind,
                   color: Theme.of(context).colorScheme.oxygenSat,
                   bg: Theme.of(context).colorScheme.oxygenBg,
                   value: '98',
@@ -211,7 +211,7 @@ class _HeroBentoGrid extends StatelessWidget {
               const SizedBox(width: gap),
               Expanded(
                 child: _VitalCardCompact(
-                  icon: Icons.monitor_heart_rounded,
+                  icon: LucideIcons.heartPulse,
                   color: const Color(0xFF7C3AED),
                   bg: Theme.of(context).colorScheme.sleepBg,
                   value: '16',
@@ -444,7 +444,7 @@ class _VitalCardLarge extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        trendUp ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                        trendUp ? LucideIcons.trendingUp : LucideIcons.trendingDown,
                         size: 12,
                         color: trendUp ? colors.success : colors.destructive,
                       ),
@@ -555,7 +555,7 @@ class _ViewDetailsCard extends StatelessWidget {
                 color: colors.primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.open_in_full_rounded, size: 15, color: colors.primary),
+              child: Icon(LucideIcons.maximize2, size: 15, color: colors.primary),
             ),
             const SizedBox(height: 6),
             Text('View All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary)),
@@ -590,7 +590,7 @@ class _VitalsDrawer extends StatelessWidget {
               Text('Your Vitals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground)),
               IconButton.ghost(
                 onPressed: () => closeDrawer(context),
-                icon: Icon(Icons.close_rounded, size: 20, color: colors.mutedForeground),
+                icon: Icon(LucideIcons.x, size: 20, color: colors.mutedForeground),
               ),
             ],
           ),
@@ -599,19 +599,19 @@ class _VitalsDrawer extends StatelessWidget {
           // Large detailed cards
           Row(
             children: [
-              Expanded(child: _DetailCard(icon: Icons.favorite_rounded, color: colors.heartRate, bg: colors.heartBg, value: heartRate, unit: 'bpm', label: 'Heart Rate')),
+              Expanded(child: _DetailCard(icon: LucideIcons.heart, color: colors.heartRate, bg: colors.heartBg, value: heartRate, unit: 'bpm', label: 'Heart Rate')),
               const SizedBox(width: 12),
-              Expanded(child: _DetailCard(icon: Icons.water_drop_rounded, color: colors.primary, bg: colors.oxygenBg, value: bloodPressure, unit: 'mmHg', label: 'Blood Pressure')),
+              Expanded(child: _DetailCard(icon: LucideIcons.droplet, color: colors.primary, bg: colors.oxygenBg, value: bloodPressure, unit: 'mmHg', label: 'Blood Pressure')),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _DetailCard(icon: Icons.thermostat_rounded, color: colors.temperature, bg: colors.tempBg, value: '98.6', unit: '\u00B0F', label: 'Temperature')),
+              Expanded(child: _DetailCard(icon: LucideIcons.thermometer, color: colors.temperature, bg: colors.tempBg, value: '98.6', unit: '\u00B0F', label: 'Temperature')),
               const SizedBox(width: 12),
-              Expanded(child: _DetailCard(icon: Icons.air_rounded, color: colors.oxygenSat, bg: colors.oxygenBg, value: '98', unit: '%', label: 'SpO\u2082')),
+              Expanded(child: _DetailCard(icon: LucideIcons.wind, color: colors.oxygenSat, bg: colors.oxygenBg, value: '98', unit: '%', label: 'SpO\u2082')),
               const SizedBox(width: 12),
-              Expanded(child: _DetailCard(icon: Icons.monitor_heart_rounded, color: const Color(0xFF7C3AED), bg: colors.sleepBg, value: '16', unit: '/min', label: 'Resp Rate')),
+              Expanded(child: _DetailCard(icon: LucideIcons.heartPulse, color: const Color(0xFF7C3AED), bg: colors.sleepBg, value: '16', unit: '/min', label: 'Resp Rate')),
             ],
           ),
 
@@ -691,7 +691,7 @@ class _ProfileCompletion extends StatelessWidget {
               color: colors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.person_outline_rounded, color: colors.primary, size: 20),
+            child: Icon(LucideIcons.user, color: colors.primary, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -753,9 +753,9 @@ class _HealthAlerts extends StatelessWidget {
           context.go(RouteNames.patientAlerts);
         }),
         const SizedBox(height: 12),
-        _AlertTile(icon: Icons.warning_amber_rounded, title: 'Dengue Alert', subtitle: 'High mosquito activity in your area.', isWarning: true),
+        _AlertTile(icon: LucideIcons.triangleAlert, title: 'Dengue Alert', subtitle: 'High mosquito activity in your area.', isWarning: true),
         const SizedBox(height: 8),
-        _AlertTile(icon: Icons.vaccines_rounded, title: 'Vaccination Drive', subtitle: 'Free flu & COVID boosters available.', isWarning: false),
+        _AlertTile(icon: LucideIcons.syringe, title: 'Vaccination Drive', subtitle: 'Free flu & COVID boosters available.', isWarning: false),
       ],
     );
   }
@@ -794,7 +794,7 @@ class _AlertTile extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded, size: 18, color: textColor.withValues(alpha: 0.4)),
+          Icon(LucideIcons.chevronRight, size: 18, color: textColor.withValues(alpha: 0.4)),
         ],
       ),
     );
@@ -813,14 +813,14 @@ class _Services extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     final items = [
-      _SvcItem(Icons.calendar_month_rounded, 'Book Appt', const Color(0xFF2563EB), () => context.push(RouteNames.booking)),
-      _SvcItem(Icons.folder_shared_rounded, 'Records', colors.primary, () => context.go(RouteNames.patientRecords)),
-      _SvcItem(Icons.local_hospital_rounded, 'Hospitals', const Color(0xFF0D9488), () => context.push(RouteNames.serviceHospitals)),
-      _SvcItem(Icons.video_call_rounded, 'Teleconsult', const Color(0xFF7C3AED), () => context.push(RouteNames.serviceTelemedicine)),
-      _SvcItem(Icons.emergency_rounded, 'Ambulance', colors.destructive, () => context.push(RouteNames.serviceAmbulance)),
-      _SvcItem(Icons.auto_stories_rounded, 'Health Tips', colors.temperature, () => context.push(RouteNames.serviceHealthTips)),
-      _SvcItem(Icons.biotech_rounded, 'Lab Tests', colors.oxygenSat, () => context.push(RouteNames.serviceLabBooking)),
-      _SvcItem(Icons.local_pharmacy_rounded, 'Pharmacy', colors.success, () => context.push(RouteNames.servicePharmacy)),
+      _SvcItem(LucideIcons.calendar, 'Book Appt', const Color(0xFF2563EB), () => context.push(RouteNames.booking)),
+      _SvcItem(LucideIcons.folder, 'Records', colors.primary, () => context.go(RouteNames.patientRecords)),
+      _SvcItem(LucideIcons.hospital, 'Hospitals', const Color(0xFF0D9488), () => context.push(RouteNames.serviceHospitals)),
+      _SvcItem(LucideIcons.video, 'Teleconsult', const Color(0xFF7C3AED), () => context.push(RouteNames.serviceTelemedicine)),
+      _SvcItem(LucideIcons.siren, 'Ambulance', colors.destructive, () => context.push(RouteNames.serviceAmbulance)),
+      _SvcItem(LucideIcons.bookOpen, 'Health Tips', colors.temperature, () => context.push(RouteNames.serviceHealthTips)),
+      _SvcItem(LucideIcons.microscope, 'Lab Tests', colors.oxygenSat, () => context.push(RouteNames.serviceLabBooking)),
+      _SvcItem(LucideIcons.pill, 'Pharmacy', colors.success, () => context.push(RouteNames.servicePharmacy)),
     ];
 
     return Column(
@@ -888,7 +888,7 @@ class _SectionHeader extends StatelessWidget {
               children: [
                 Text(action!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.primary)),
                 const SizedBox(width: 2),
-                Icon(Icons.chevron_right_rounded, size: 16, color: colors.primary),
+                Icon(LucideIcons.chevronRight, size: 16, color: colors.primary),
               ],
             ),
           ),

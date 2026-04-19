@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../domain/services/backup_service.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
@@ -78,7 +81,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             _SettingsGroup(
               children: [
                 _SettingRow(
-                  icon: Icons.dark_mode_outlined,
+                  icon: LucideIcons.moon,
                   label: 'Dark Mode',
                   trailing: Switch(
                     value: themeMode == ThemeMode.dark,
@@ -86,7 +89,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   ),
                 ),
                 _SettingRow(
-                  icon: Icons.language_rounded,
+                  icon: LucideIcons.languages,
                   label: 'Language',
                   trailing: Text('English', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
                   onTap: () => _openLanguageDrawer(),
@@ -102,7 +105,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             _SettingsGroup(
               children: [
                 _SettingRow(
-                  icon: Icons.fingerprint_rounded,
+                  icon: LucideIcons.fingerprint,
                   label: 'Biometric Login',
                   trailing: Switch(
                     value: _biometricLogin,
@@ -110,13 +113,13 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   ),
                 ),
                 _SettingRow(
-                  icon: Icons.security_rounded,
+                  icon: LucideIcons.shield,
                   label: 'Two-Factor Auth',
-                  trailing: Icon(Icons.chevron_right_rounded, size: 18, color: colors.mutedForeground),
+                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
                   onTap: () => _open2FADrawer(),
                 ),
                 _SettingRow(
-                  icon: Icons.visibility_off_outlined,
+                  icon: LucideIcons.eyeOff,
                   label: 'Hide Profile Info',
                   trailing: Switch(
                     value: _hideProfileInfo,
@@ -134,7 +137,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             _SettingsGroup(
               children: [
                 _SettingRow(
-                  icon: Icons.message_outlined,
+                  icon: LucideIcons.messageSquare,
                   label: 'Patient Messages',
                   trailing: Switch(
                     value: _notifyMessages,
@@ -142,7 +145,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   ),
                 ),
                 _SettingRow(
-                  icon: Icons.notifications_active_outlined,
+                  icon: LucideIcons.bellRing,
                   label: 'System Alerts',
                   trailing: Switch(
                     value: _notifyAlerts,
@@ -150,12 +153,58 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   ),
                 ),
                 _SettingRow(
-                  icon: Icons.biotech_outlined,
+                  icon: LucideIcons.microscope,
                   label: 'Lab Reports',
                   trailing: Switch(
                     value: _notifyLabs,
                     onChanged: (v) => setState(() => _notifyLabs = v),
                   ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.xxl),
+
+            // ── Backup ──
+            _SectionLabel(label: 'Backup & Restore'),
+            const SizedBox(height: AppSpacing.sm),
+            _SettingsGroup(
+              children: [
+                _SettingRow(
+                  icon: LucideIcons.download,
+                  label: 'Export backup (local)',
+                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
+                  onTap: _exportLocal,
+                ),
+                _SettingRow(
+                  icon: LucideIcons.upload,
+                  label: 'Import backup (local)',
+                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
+                  onTap: _importLocal,
+                ),
+                _SettingRow(
+                  icon: LucideIcons.cloudUpload,
+                  label: isDriveBackupConfigured
+                      ? 'Back up to Google Drive'
+                      : 'Google Drive (unconfigured)',
+                  trailing: Icon(LucideIcons.chevronRight,
+                      size: 18,
+                      color: isDriveBackupConfigured
+                          ? colors.mutedForeground
+                          : colors.mutedForeground.withValues(alpha: 0.4)),
+                  onTap: isDriveBackupConfigured ? _exportDrive : _showDriveInfo,
+                ),
+                _SettingRow(
+                  icon: LucideIcons.cloudDownload,
+                  label: isDriveBackupConfigured
+                      ? 'Restore from Google Drive'
+                      : 'Restore from Drive (unconfigured)',
+                  trailing: Icon(LucideIcons.chevronRight,
+                      size: 18,
+                      color: isDriveBackupConfigured
+                          ? colors.mutedForeground
+                          : colors.mutedForeground.withValues(alpha: 0.4)),
+                  onTap: isDriveBackupConfigured ? _importDrive : _showDriveInfo,
                 ),
               ],
             ),
@@ -168,29 +217,29 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             _SettingsGroup(
               children: [
                 _SettingRow(
-                  icon: Icons.shield_outlined,
+                  icon: LucideIcons.shield,
                   label: 'Consent Management',
-                  trailing: Icon(Icons.chevron_right_rounded, size: 18, color: colors.mutedForeground),
+                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
                   onTap: () => context.push(RouteNames.consent),
                 ),
                 if (isPractitioner)
                   _SettingRow(
-                    icon: Icons.medical_information_outlined,
+                    icon: LucideIcons.clipboardPlus,
                     label: 'Clinician Settings',
-                    trailing: Icon(Icons.chevron_right_rounded, size: 18, color: colors.mutedForeground),
+                    trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
                     onTap: () => context.push(RouteNames.clinicianSettings),
                   ),
                 _SettingRow(
-                  icon: Icons.chat_outlined,
+                  icon: LucideIcons.messageCircle,
                   label: 'Live Chat',
-                  trailing: Icon(Icons.chevron_right_rounded, size: 18, color: colors.mutedForeground),
+                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
                   onTap: () => _openLiveChatDrawer(),
                 ),
                 _SettingRow(
-                  icon: Icons.menu_book_outlined,
+                  icon: LucideIcons.bookOpen,
                   label: 'User Manual',
-                  trailing: Icon(Icons.chevron_right_rounded, size: 18, color: colors.mutedForeground),
-                  onTap: () => _openManualDrawer(),
+                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
+                  onTap: () => context.push(RouteNames.userManual),
                 ),
               ],
             ),
@@ -241,7 +290,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +304,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               return GestureDetector(
                 onTap: () {
                   setState(() => _selectedLanguage = lang);
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('Language set to $lang'))));
                 },
                 child: Container(
@@ -270,7 +319,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   child: Row(
                     children: [
                       Expanded(child: Text(lang, style: TextStyle(fontSize: 15, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, color: colors.foreground))),
-                      if (isSelected) Icon(Icons.check_circle_rounded, size: 20, color: colors.primary),
+                      if (isSelected) Icon(LucideIcons.circleCheck, size: 20, color: colors.primary),
                     ],
                   ),
                 ),
@@ -289,7 +338,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,13 +348,13 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             Text('Add an extra layer of security to your account', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
             const SizedBox(height: 24),
             _SettingRow(
-              icon: Icons.sms_outlined,
+              icon: LucideIcons.messageSquare,
               label: 'SMS Verification',
               trailing: Switch(value: true, onChanged: (_) {}),
             ),
             const SizedBox(height: 8),
             _SettingRow(
-              icon: Icons.email_outlined,
+              icon: LucideIcons.mail,
               label: 'Email Verification',
               trailing: Switch(value: false, onChanged: (_) {}),
             ),
@@ -318,7 +367,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               width: double.infinity,
               child: Button.primary(
                 onPressed: () {
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: const Text('2FA settings updated'))));
                 },
                 child: const Text('Save Settings'),
@@ -338,7 +387,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,10 +420,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 const SizedBox(width: 8),
                 Button.primary(
                   onPressed: () {
-                    closeDrawer(context);
+                    closeDrawer(ctx);
                     showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: const Text('Message sent! We\'ll respond shortly.'))));
                   },
-                  child: const Icon(Icons.send_rounded, size: 18),
+                  child: const Icon(LucideIcons.send, size: 18),
                 ),
               ],
             ),
@@ -384,51 +433,222 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     );
   }
 
-  void _openManualDrawer() {
-    final colors = Theme.of(context).colorScheme;
-    final sections = [
-      ('Getting Started', 'Account setup, login, and navigation', Icons.play_circle_outline_rounded),
-      ('Patient Dashboard', 'Health summary, records, and vitals', Icons.dashboard_outlined),
-      ('Services', 'Ambulance, telemedicine, lab booking', Icons.medical_services_outlined),
-      ('Consent Management', 'Control who accesses your records', Icons.shield_outlined),
-      ('Offline Mode', 'Using the app without internet', Icons.wifi_off_rounded),
-      ('Privacy & Security', 'Data protection and account security', Icons.lock_outline_rounded),
-    ];
-    openDrawer(
+  BackupService _backupService() {
+    final user = ref.read(authProvider).user;
+    return BackupService(
+      userId: user?.id,
+      agentEmail: user?.email,
+      agentName: user?.displayName,
+    );
+  }
+
+  Future<void> _exportLocal() async {
+    try {
+      final file = await _backupService().exportLocal();
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.download, size: 18),
+            title: const Text('Backup exported'),
+            subtitle: Text(file.path),
+          ),
+        ),
+      );
+      // ignore: deprecated_member_use
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Clinical Curator backup',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.circleAlert, size: 18),
+            title: const Text('Export failed'),
+            subtitle: Text('$e'),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _importLocal() async {
+    try {
+      final report = await _backupService().pickAndImportLocal();
+      if (!mounted || report == null) return;
+      final proceed = await _confirmImport(report.total);
+      if (!proceed || !mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.upload, size: 18),
+            title: Text('Imported ${report.upserted} records'),
+            subtitle: Text(
+                '${report.conflicts} skipped (older), ${report.skipped} invalid'),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.circleAlert, size: 18),
+            title: const Text('Import failed'),
+            subtitle: Text('$e'),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<bool> _confirmImport(int total) async {
+    final ok = await showDialog<bool>(
       context: context,
-      position: OverlayPosition.bottom,
-      showDragHandle: true,
-      draggable: true,
-      builder: (_) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('User Manual', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground)),
-            const SizedBox(height: 4),
-            Text('Learn how to use Clinical Curator', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
-            const SizedBox(height: 20),
-            ...sections.map((s) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: colors.card, borderRadius: BorderRadius.circular(12)),
-              child: Row(
-                children: [
-                  Icon(s.$3, size: 20, color: colors.primary),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(s.$1, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.foreground)),
-                      const SizedBox(height: 2),
-                      Text(s.$2, style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
-                    ],
-                  )),
-                  Icon(Icons.chevron_right_rounded, size: 18, color: colors.mutedForeground),
-                ],
-              ),
-            )),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirm import'),
+        content: Text(
+            'Import $total records? Newer server copies will be preserved.'),
+        actions: [
+          OutlineButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel')),
+          PrimaryButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Import')),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  Future<void> _exportDrive() async {
+    try {
+      final id = await _backupService().exportToDrive();
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.cloudUpload, size: 18),
+            title: const Text('Uploaded to Google Drive'),
+            subtitle: Text(id ?? 'sign-in cancelled'),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.circleAlert, size: 18),
+            title: const Text('Drive export failed'),
+            subtitle: Text('$e'),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _importDrive() async {
+    try {
+      final backups = await _backupService().listDriveBackups();
+      if (!mounted) return;
+      if (backups.isEmpty) {
+        showToast(
+          context: context,
+          builder: (c, o) => const SurfaceCard(
+            child: Basic(title: Text('No Drive backups found')),
+          ),
+        );
+        return;
+      }
+      final selected = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Restore from Drive'),
+          content: SizedBox(
+            width: 320,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: backups.take(10).map((b) {
+                return GestureDetector(
+                  onTap: () => Navigator.of(ctx).pop(b.id),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    margin: const EdgeInsets.only(bottom: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.muted,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(b.name, style: const TextStyle(fontSize: 13)),
+                        if (b.createdTime != null)
+                          Text(b.createdTime!.toIso8601String(),
+                              style: const TextStyle(fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            OutlineButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel')),
           ],
+        ),
+      );
+      if (selected == null) return;
+      final report = await _backupService().importFromDrive(selected);
+      if (!mounted || report == null) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.cloudDownload, size: 18),
+            title: Text('Restored ${report.upserted} records'),
+            subtitle:
+                Text('${report.conflicts} skipped (older or dirty)'),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (c, o) => SurfaceCard(
+          child: Basic(
+            leading: const Icon(LucideIcons.circleAlert, size: 18),
+            title: const Text('Drive restore failed'),
+            subtitle: Text('$e'),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _showDriveInfo() {
+    showToast(
+      context: context,
+      builder: (c, o) => const SurfaceCard(
+        child: Basic(
+          leading: Icon(LucideIcons.info, size: 18),
+          title: Text('Google Drive not configured'),
+          subtitle: Text(
+              'Build with --dart-define=GOOGLE_CLIENT_ID=... to enable Drive backup.'),
         ),
       ),
     );
@@ -518,7 +738,7 @@ class _ProfileHero extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.badge_rounded, size: 16, color: colors.primary),
+                  Icon(LucideIcons.badge, size: 16, color: colors.primary),
                   const SizedBox(width: 8),
                   Text(
                     healthId,
@@ -537,9 +757,9 @@ class _ProfileHero extends StatelessWidget {
                     color: colors.mutedForeground.withValues(alpha: 0.2),
                   ),
                   const SizedBox(width: 10),
-                  Icon(Icons.qr_code_2_rounded, size: 16, color: colors.primary),
+                  Icon(LucideIcons.qrCode, size: 16, color: colors.primary),
                   const SizedBox(width: 4),
-                  Icon(Icons.share_outlined, size: 14, color: colors.primary),
+                  Icon(LucideIcons.share2, size: 14, color: colors.primary),
                 ],
               ),
             ),
@@ -589,7 +809,7 @@ class _RoleToggle extends StatelessWidget {
           Expanded(
             child: _SegmentButton(
               label: 'Clinician View',
-              icon: Icons.medical_services_outlined,
+              icon: LucideIcons.briefcaseMedical,
               isActive: isClinician,
               onTap: () => onSwitch(UserRole.clinician),
             ),
@@ -597,7 +817,7 @@ class _RoleToggle extends StatelessWidget {
           Expanded(
             child: _SegmentButton(
               label: 'Patient View',
-              icon: Icons.person_outline_rounded,
+              icon: LucideIcons.user,
               isActive: !isClinician,
               onTap: () => onSwitch(UserRole.patient),
             ),

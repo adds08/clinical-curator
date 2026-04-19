@@ -145,7 +145,7 @@ class _PatientManagementScreenState extends ConsumerState<PatientManagementScree
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.person_add, size: 18),
+              Icon(LucideIcons.userPlus, size: 18),
               SizedBox(width: AppSpacing.sm),
               Text('New Intake', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
             ],
@@ -162,7 +162,7 @@ class _PatientManagementScreenState extends ConsumerState<PatientManagementScree
       placeholder: const Text('Search by name or ID...'),
       filled: true,
       borderRadius: AppRadius.cardRadius,
-      features: [InputFeature.leading(Icon(Icons.search, color: colors.mutedForeground, size: 20))],
+      features: [InputFeature.leading(Icon(LucideIcons.search, color: colors.mutedForeground, size: 20))],
       onChanged: (value) => setState(() => _searchQuery = value),
     );
   }
@@ -198,7 +198,7 @@ class _PatientManagementScreenState extends ConsumerState<PatientManagementScree
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.swap_vert, size: 14, color: colors.mutedForeground),
+                Icon(LucideIcons.arrowUpDown, size: 14, color: colors.mutedForeground),
                 const SizedBox(width: 4),
                 Text(
                   _sortLabel,
@@ -221,7 +221,7 @@ class _PatientManagementScreenState extends ConsumerState<PatientManagementScree
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.search_off, size: 40, color: colors.mutedForeground.withValues(alpha: 0.5)),
+            Icon(LucideIcons.searchX, size: 40, color: colors.mutedForeground.withValues(alpha: 0.5)),
             const SizedBox(height: AppSpacing.md),
             Text(
               'No patients found',
@@ -302,7 +302,7 @@ class _PatientManagementScreenState extends ConsumerState<PatientManagementScree
                   child: OutlineButton(
                     density: ButtonDensity.normal,
                     onPressed: () => context.push('/patient-detail/${patient.fhirId}'),
-                    leading: const Icon(Icons.description_outlined, size: 13),
+                    leading: const Icon(LucideIcons.fileText, size: 13),
                     child: const Text('View Summary', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
                 ),
@@ -311,7 +311,7 @@ class _PatientManagementScreenState extends ConsumerState<PatientManagementScree
                   child: PrimaryButton(
                     density: ButtonDensity.normal,
                     onPressed: () => context.push('/patient-detail/${patient.fhirId}'),
-                    leading: const Icon(Icons.medical_services_outlined, size: 13),
+                    leading: const Icon(LucideIcons.briefcaseMedical, size: 13),
                     child: const Text('Checkup', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
                 ),

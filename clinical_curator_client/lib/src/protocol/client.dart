@@ -20,21 +20,26 @@ import 'package:clinical_curator_client/src/protocol/user_account.dart' as _i5;
 import 'package:clinical_curator_client/src/protocol/ambulance_request.dart'
     as _i6;
 import 'package:clinical_curator_client/src/protocol/appointment.dart' as _i7;
-import 'package:clinical_curator_client/src/protocol/fhir_resource.dart' as _i8;
-import 'package:clinical_curator_client/src/protocol/health_tip.dart' as _i9;
-import 'package:clinical_curator_client/src/protocol/insurance_claim.dart'
+import 'package:clinical_curator_client/src/protocol/audit_event.dart' as _i8;
+import 'package:clinical_curator_client/src/protocol/fhir_resource.dart' as _i9;
+import 'package:clinical_curator_client/src/protocol/fhir_sync_batch.dart'
     as _i10;
-import 'package:clinical_curator_client/src/protocol/lab_booking.dart' as _i11;
-import 'package:clinical_curator_client/src/protocol/notification_record.dart'
+import 'package:clinical_curator_client/src/protocol/health_tip.dart' as _i11;
+import 'package:clinical_curator_client/src/protocol/insurance_claim.dart'
     as _i12;
-import 'package:clinical_curator_client/src/protocol/organization.dart' as _i13;
-import 'package:clinical_curator_client/src/protocol/pharmacy_order.dart'
+import 'package:clinical_curator_client/src/protocol/lab_booking.dart' as _i13;
+import 'package:clinical_curator_client/src/protocol/notification_record.dart'
     as _i14;
-import 'package:clinical_curator_client/src/protocol/schedule_slot.dart'
-    as _i15;
-import 'package:clinical_curator_client/src/protocol/greetings/greeting.dart'
+import 'package:clinical_curator_client/src/protocol/organization.dart' as _i15;
+import 'package:clinical_curator_client/src/protocol/pharmacy_order.dart'
     as _i16;
-import 'protocol.dart' as _i17;
+import 'package:clinical_curator_client/src/protocol/rbac_permission.dart'
+    as _i17;
+import 'package:clinical_curator_client/src/protocol/schedule_slot.dart'
+    as _i18;
+import 'package:clinical_curator_client/src/protocol/greetings/greeting.dart'
+    as _i19;
+import 'protocol.dart' as _i20;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -303,6 +308,38 @@ class EndpointAdmin extends _i2.EndpointRef {
         'listVerifiedPractitioners',
         {},
       );
+
+  /// List all users, optionally filtered by `accountType`
+  /// ('patient' | 'practitioner' | 'admin'). Pass null/empty for all.
+  _i3.Future<List<_i5.UserAccount>> listAllUsers({String? accountType}) =>
+      caller.callServerEndpoint<List<_i5.UserAccount>>(
+        'admin',
+        'listAllUsers',
+        {'accountType': accountType},
+      );
+
+  /// Toggle a user's `isVerified` flag directly. Used by the admin
+  /// manage-users screen for quick flips outside the verification flow.
+  _i3.Future<_i5.UserAccount> setUserVerified(
+    int id,
+    bool isVerified,
+  ) => caller.callServerEndpoint<_i5.UserAccount>(
+    'admin',
+    'setUserVerified',
+    {
+      'id': id,
+      'isVerified': isVerified,
+    },
+  );
+
+  /// Aggregate dashboard counts. Superset of `getDashboardStats` —
+  /// includes patient/appointment/encounter counts in a single round-trip.
+  _i3.Future<Map<String, int>> getAnalytics() =>
+      caller.callServerEndpoint<Map<String, int>>(
+        'admin',
+        'getAnalytics',
+        {},
+      );
 }
 
 /// {@category Endpoint}
@@ -464,6 +501,48 @@ class EndpointAppointment extends _i2.EndpointRef {
       );
 }
 
+/// Audit trail read/write. Admin app uses this for the audit-log screen
+/// and to record admin actions (e.g. demo-data purges, verification
+/// approvals that go beyond `admin.approvePractitioner`).
+/// {@category Endpoint}
+class EndpointAudit extends _i2.EndpointRef {
+  EndpointAudit(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'audit';
+
+  /// List audit events, newest first. Supports optional action filter.
+  _i3.Future<List<_i8.AuditEvent>> list({
+    String? action,
+    int? limit,
+    int? offset,
+  }) => caller.callServerEndpoint<List<_i8.AuditEvent>>(
+    'audit',
+    'list',
+    {
+      'action': action,
+      'limit': limit,
+      'offset': offset,
+    },
+  );
+
+  /// Recent N events — used by dashboard "Recent Activity" panel.
+  _i3.Future<List<_i8.AuditEvent>> recent({required int limit}) =>
+      caller.callServerEndpoint<List<_i8.AuditEvent>>(
+        'audit',
+        'recent',
+        {'limit': limit},
+      );
+
+  /// Record a new audit event.
+  _i3.Future<_i8.AuditEvent> record(_i8.AuditEvent event) =>
+      caller.callServerEndpoint<_i8.AuditEvent>(
+        'audit',
+        'record',
+        {'event': event},
+      );
+}
+
 /// {@category Endpoint}
 class EndpointAuth extends _i2.EndpointRef {
   EndpointAuth(_i2.EndpointCaller caller) : super(caller);
@@ -564,18 +643,18 @@ class EndpointFhirResource extends _i2.EndpointRef {
   String get name => 'fhirResource';
 
   /// Create a new FHIR resource record.
-  _i3.Future<_i8.FhirResourceRecord> create(_i8.FhirResourceRecord resource) =>
-      caller.callServerEndpoint<_i8.FhirResourceRecord>(
+  _i3.Future<_i9.FhirResourceRecord> create(_i9.FhirResourceRecord resource) =>
+      caller.callServerEndpoint<_i9.FhirResourceRecord>(
         'fhirResource',
         'create',
         {'resource': resource},
       );
 
   /// Read a single FHIR resource by fhirId and resourceType.
-  _i3.Future<_i8.FhirResourceRecord?> read(
+  _i3.Future<_i9.FhirResourceRecord?> read(
     String fhirId,
     String resourceType,
-  ) => caller.callServerEndpoint<_i8.FhirResourceRecord?>(
+  ) => caller.callServerEndpoint<_i9.FhirResourceRecord?>(
     'fhirResource',
     'read',
     {
@@ -585,8 +664,8 @@ class EndpointFhirResource extends _i2.EndpointRef {
   );
 
   /// Update an existing FHIR resource (matched by fhirId + resourceType).
-  _i3.Future<_i8.FhirResourceRecord> update(_i8.FhirResourceRecord resource) =>
-      caller.callServerEndpoint<_i8.FhirResourceRecord>(
+  _i3.Future<_i9.FhirResourceRecord> update(_i9.FhirResourceRecord resource) =>
+      caller.callServerEndpoint<_i9.FhirResourceRecord>(
         'fhirResource',
         'update',
         {'resource': resource},
@@ -600,11 +679,11 @@ class EndpointFhirResource extends _i2.EndpointRef {
   );
 
   /// Search FHIR resources by resource type.
-  _i3.Future<List<_i8.FhirResourceRecord>> searchByType(
+  _i3.Future<List<_i9.FhirResourceRecord>> searchByType(
     String resourceType, {
     int? limit,
     int? offset,
-  }) => caller.callServerEndpoint<List<_i8.FhirResourceRecord>>(
+  }) => caller.callServerEndpoint<List<_i9.FhirResourceRecord>>(
     'fhirResource',
     'searchByType',
     {
@@ -615,11 +694,11 @@ class EndpointFhirResource extends _i2.EndpointRef {
   );
 
   /// Search FHIR resources by patient reference.
-  _i3.Future<List<_i8.FhirResourceRecord>> searchByPatient(
+  _i3.Future<List<_i9.FhirResourceRecord>> searchByPatient(
     String patientReference, {
     String? resourceType,
     int? limit,
-  }) => caller.callServerEndpoint<List<_i8.FhirResourceRecord>>(
+  }) => caller.callServerEndpoint<List<_i9.FhirResourceRecord>>(
     'fhirResource',
     'searchByPatient',
     {
@@ -630,11 +709,11 @@ class EndpointFhirResource extends _i2.EndpointRef {
   );
 
   /// Search FHIR resources by practitioner reference.
-  _i3.Future<List<_i8.FhirResourceRecord>> searchByPractitioner(
+  _i3.Future<List<_i9.FhirResourceRecord>> searchByPractitioner(
     String practitionerReference, {
     String? resourceType,
     int? limit,
-  }) => caller.callServerEndpoint<List<_i8.FhirResourceRecord>>(
+  }) => caller.callServerEndpoint<List<_i9.FhirResourceRecord>>(
     'fhirResource',
     'searchByPractitioner',
     {
@@ -645,11 +724,66 @@ class EndpointFhirResource extends _i2.EndpointRef {
   );
 
   /// Get all resources modified after a given timestamp (for sync).
-  _i3.Future<List<_i8.FhirResourceRecord>> getChangesSince(DateTime since) =>
-      caller.callServerEndpoint<List<_i8.FhirResourceRecord>>(
+  _i3.Future<List<_i9.FhirResourceRecord>> getChangesSince(DateTime since) =>
+      caller.callServerEndpoint<List<_i9.FhirResourceRecord>>(
         'fhirResource',
         'getChangesSince',
         {'since': since},
+      );
+}
+
+/// FHIR offline/online sync endpoint.
+///
+/// Implements a simple `_since` timestamp pattern over Serverpod. Clients
+/// persist `lastSyncTimestamp_<resourceType>` locally; on each tick they
+/// call [since] to pull server-side changes, then [push] to upload their
+/// local dirty set. Server-side conflict resolution is last-write-wins
+/// by comparing `meta.lastUpdated` in the embedded JSON.
+/// {@category Endpoint}
+class EndpointFhirSync extends _i2.EndpointRef {
+  EndpointFhirSync(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'fhirSync';
+
+  /// Returns resources of [resourceType] with `lastUpdated > since`,
+  /// capped at [limit]. `nextSince` is the max `lastUpdated` in the
+  /// returned batch (or the input `since` if the batch is empty).
+  _i3.Future<_i10.FhirSyncBatchDto> since(
+    String resourceType,
+    DateTime since, {
+    required int limit,
+  }) => caller.callServerEndpoint<_i10.FhirSyncBatchDto>(
+    'fhirSync',
+    'since',
+    {
+      'resourceType': resourceType,
+      'since': since,
+      'limit': limit,
+    },
+  );
+
+  /// Upserts a batch of resources by `fhirId`+`resourceType`. Last-write-wins
+  /// on `meta.lastUpdated` inside the JSON payload. Resources whose server
+  /// copy is newer are skipped.
+  _i3.Future<void> push(List<_i9.FhirResourceRecord> resources) =>
+      caller.callServerEndpoint<void>(
+        'fhirSync',
+        'push',
+        {'resources': resources},
+      );
+
+  /// Admin-only. Deletes every FhirResourceRecord whose `patientReference`
+  /// matches one of the demo patient ids. The optional [adminEmail] is
+  /// cross-checked against `UserAccount.accountType == 'admin'` — if the
+  /// caller isn't an admin, the call throws. Pass `null` to bypass (trust
+  /// the transport, e.g. a local dev tool). Real RBAC middleware should
+  /// replace this once Serverpod Auth is fully wired.
+  _i3.Future<int> purgeDemoData({String? adminEmail}) =>
+      caller.callServerEndpoint<int>(
+        'fhirSync',
+        'purgeDemoData',
+        {'adminEmail': adminEmail},
       );
 }
 
@@ -660,11 +794,11 @@ class EndpointHealthTip extends _i2.EndpointRef {
   @override
   String get name => 'healthTip';
 
-  /// List all active health tips.
-  _i3.Future<List<_i9.HealthTip>> listAll({
+  /// List active health tips.
+  _i3.Future<List<_i11.HealthTip>> listAll({
     int? limit,
     int? offset,
-  }) => caller.callServerEndpoint<List<_i9.HealthTip>>(
+  }) => caller.callServerEndpoint<List<_i11.HealthTip>>(
     'healthTip',
     'listAll',
     {
@@ -673,12 +807,19 @@ class EndpointHealthTip extends _i2.EndpointRef {
     },
   );
 
-  /// List active health tips by category.
-  _i3.Future<List<_i9.HealthTip>> listByCategory(
+  /// Admin view: list every health tip regardless of `isActive`.
+  _i3.Future<List<_i11.HealthTip>> listAllAdmin() =>
+      caller.callServerEndpoint<List<_i11.HealthTip>>(
+        'healthTip',
+        'listAllAdmin',
+        {},
+      );
+
+  _i3.Future<List<_i11.HealthTip>> listByCategory(
     String category, {
     int? limit,
     int? offset,
-  }) => caller.callServerEndpoint<List<_i9.HealthTip>>(
+  }) => caller.callServerEndpoint<List<_i11.HealthTip>>(
     'healthTip',
     'listByCategory',
     {
@@ -688,21 +829,32 @@ class EndpointHealthTip extends _i2.EndpointRef {
     },
   );
 
-  /// Get a health tip by ID.
-  _i3.Future<_i9.HealthTip?> getById(int id) =>
-      caller.callServerEndpoint<_i9.HealthTip?>(
+  _i3.Future<_i11.HealthTip?> getById(int id) =>
+      caller.callServerEndpoint<_i11.HealthTip?>(
         'healthTip',
         'getById',
         {'id': id},
       );
 
-  /// Create a health tip (admin).
-  _i3.Future<_i9.HealthTip> create(_i9.HealthTip tip) =>
-      caller.callServerEndpoint<_i9.HealthTip>(
+  _i3.Future<_i11.HealthTip> create(_i11.HealthTip tip) =>
+      caller.callServerEndpoint<_i11.HealthTip>(
         'healthTip',
         'create',
         {'tip': tip},
       );
+
+  _i3.Future<_i11.HealthTip> update(_i11.HealthTip tip) =>
+      caller.callServerEndpoint<_i11.HealthTip>(
+        'healthTip',
+        'update',
+        {'tip': tip},
+      );
+
+  _i3.Future<bool> delete(int id) => caller.callServerEndpoint<bool>(
+    'healthTip',
+    'delete',
+    {'id': id},
+  );
 }
 
 /// {@category Endpoint}
@@ -713,26 +865,26 @@ class EndpointInsurance extends _i2.EndpointRef {
   String get name => 'insurance';
 
   /// Submit a new insurance claim.
-  _i3.Future<_i10.InsuranceClaim> submitClaim(_i10.InsuranceClaim claim) =>
-      caller.callServerEndpoint<_i10.InsuranceClaim>(
+  _i3.Future<_i12.InsuranceClaim> submitClaim(_i12.InsuranceClaim claim) =>
+      caller.callServerEndpoint<_i12.InsuranceClaim>(
         'insurance',
         'submitClaim',
         {'claim': claim},
       );
 
   /// List claims for a patient.
-  _i3.Future<List<_i10.InsuranceClaim>> listClaims(String patientRef) =>
-      caller.callServerEndpoint<List<_i10.InsuranceClaim>>(
+  _i3.Future<List<_i12.InsuranceClaim>> listClaims(String patientRef) =>
+      caller.callServerEndpoint<List<_i12.InsuranceClaim>>(
         'insurance',
         'listClaims',
         {'patientRef': patientRef},
       );
 
   /// Update claim status.
-  _i3.Future<_i10.InsuranceClaim> updateStatus(
+  _i3.Future<_i12.InsuranceClaim> updateStatus(
     int id,
     String status,
-  ) => caller.callServerEndpoint<_i10.InsuranceClaim>(
+  ) => caller.callServerEndpoint<_i12.InsuranceClaim>(
     'insurance',
     'updateStatus',
     {
@@ -742,8 +894,8 @@ class EndpointInsurance extends _i2.EndpointRef {
   );
 
   /// Get claim by ID.
-  _i3.Future<_i10.InsuranceClaim?> getById(int id) =>
-      caller.callServerEndpoint<_i10.InsuranceClaim?>(
+  _i3.Future<_i12.InsuranceClaim?> getById(int id) =>
+      caller.callServerEndpoint<_i12.InsuranceClaim?>(
         'insurance',
         'getById',
         {'id': id},
@@ -758,26 +910,26 @@ class EndpointLabBooking extends _i2.EndpointRef {
   String get name => 'labBooking';
 
   /// Create a lab booking.
-  _i3.Future<_i11.LabBooking> create(_i11.LabBooking booking) =>
-      caller.callServerEndpoint<_i11.LabBooking>(
+  _i3.Future<_i13.LabBooking> create(_i13.LabBooking booking) =>
+      caller.callServerEndpoint<_i13.LabBooking>(
         'labBooking',
         'create',
         {'booking': booking},
       );
 
   /// List bookings for a patient.
-  _i3.Future<List<_i11.LabBooking>> listForPatient(String patientRef) =>
-      caller.callServerEndpoint<List<_i11.LabBooking>>(
+  _i3.Future<List<_i13.LabBooking>> listForPatient(String patientRef) =>
+      caller.callServerEndpoint<List<_i13.LabBooking>>(
         'labBooking',
         'listForPatient',
         {'patientRef': patientRef},
       );
 
   /// Update booking status.
-  _i3.Future<_i11.LabBooking> updateStatus(
+  _i3.Future<_i13.LabBooking> updateStatus(
     int id,
     String status,
-  ) => caller.callServerEndpoint<_i11.LabBooking>(
+  ) => caller.callServerEndpoint<_i13.LabBooking>(
     'labBooking',
     'updateStatus',
     {
@@ -787,8 +939,8 @@ class EndpointLabBooking extends _i2.EndpointRef {
   );
 
   /// Get booking by ID.
-  _i3.Future<_i11.LabBooking?> getById(int id) =>
-      caller.callServerEndpoint<_i11.LabBooking?>(
+  _i3.Future<_i13.LabBooking?> getById(int id) =>
+      caller.callServerEndpoint<_i13.LabBooking?>(
         'labBooking',
         'getById',
         {'id': id},
@@ -803,25 +955,25 @@ class EndpointNotification extends _i2.EndpointRef {
   String get name => 'notification';
 
   /// Create a notification.
-  _i3.Future<_i12.NotificationRecord> create(
-    _i12.NotificationRecord notification,
-  ) => caller.callServerEndpoint<_i12.NotificationRecord>(
+  _i3.Future<_i14.NotificationRecord> create(
+    _i14.NotificationRecord notification,
+  ) => caller.callServerEndpoint<_i14.NotificationRecord>(
     'notification',
     'create',
     {'notification': notification},
   );
 
   /// List notifications for a user.
-  _i3.Future<List<_i12.NotificationRecord>> listForUser(String userEmail) =>
-      caller.callServerEndpoint<List<_i12.NotificationRecord>>(
+  _i3.Future<List<_i14.NotificationRecord>> listForUser(String userEmail) =>
+      caller.callServerEndpoint<List<_i14.NotificationRecord>>(
         'notification',
         'listForUser',
         {'userEmail': userEmail},
       );
 
   /// Mark a notification as read.
-  _i3.Future<_i12.NotificationRecord> markAsRead(int id) =>
-      caller.callServerEndpoint<_i12.NotificationRecord>(
+  _i3.Future<_i14.NotificationRecord> markAsRead(int id) =>
+      caller.callServerEndpoint<_i14.NotificationRecord>(
         'notification',
         'markAsRead',
         {'id': id},
@@ -851,45 +1003,60 @@ class EndpointOrganization extends _i2.EndpointRef {
   @override
   String get name => 'organization';
 
-  /// List hospitals.
-  _i3.Future<List<_i13.Organization>> listHospitals() =>
-      caller.callServerEndpoint<List<_i13.Organization>>(
+  _i3.Future<List<_i15.Organization>> listAll() =>
+      caller.callServerEndpoint<List<_i15.Organization>>(
+        'organization',
+        'listAll',
+        {},
+      );
+
+  _i3.Future<List<_i15.Organization>> listHospitals() =>
+      caller.callServerEndpoint<List<_i15.Organization>>(
         'organization',
         'listHospitals',
         {},
       );
 
-  /// List pharmacies.
-  _i3.Future<List<_i13.Organization>> listPharmacies() =>
-      caller.callServerEndpoint<List<_i13.Organization>>(
+  _i3.Future<List<_i15.Organization>> listPharmacies() =>
+      caller.callServerEndpoint<List<_i15.Organization>>(
         'organization',
         'listPharmacies',
         {},
       );
 
-  /// Search organizations by name (sanitized).
-  _i3.Future<List<_i13.Organization>> search(String query) =>
-      caller.callServerEndpoint<List<_i13.Organization>>(
+  _i3.Future<List<_i15.Organization>> search(String query) =>
+      caller.callServerEndpoint<List<_i15.Organization>>(
         'organization',
         'search',
         {'query': query},
       );
 
-  /// Get organization by ID.
-  _i3.Future<_i13.Organization?> getById(int id) =>
-      caller.callServerEndpoint<_i13.Organization?>(
+  _i3.Future<_i15.Organization?> getById(int id) =>
+      caller.callServerEndpoint<_i15.Organization?>(
         'organization',
         'getById',
         {'id': id},
       );
 
-  /// Create an organization (admin/seed).
-  _i3.Future<_i13.Organization> create(_i13.Organization org) =>
-      caller.callServerEndpoint<_i13.Organization>(
+  _i3.Future<_i15.Organization> create(_i15.Organization org) =>
+      caller.callServerEndpoint<_i15.Organization>(
         'organization',
         'create',
         {'org': org},
       );
+
+  _i3.Future<_i15.Organization> update(_i15.Organization org) =>
+      caller.callServerEndpoint<_i15.Organization>(
+        'organization',
+        'update',
+        {'org': org},
+      );
+
+  _i3.Future<bool> delete(int id) => caller.callServerEndpoint<bool>(
+    'organization',
+    'delete',
+    {'id': id},
+  );
 }
 
 /// {@category Endpoint}
@@ -900,26 +1067,26 @@ class EndpointPharmacy extends _i2.EndpointRef {
   String get name => 'pharmacy';
 
   /// Create a pharmacy order.
-  _i3.Future<_i14.PharmacyOrder> createOrder(_i14.PharmacyOrder order) =>
-      caller.callServerEndpoint<_i14.PharmacyOrder>(
+  _i3.Future<_i16.PharmacyOrder> createOrder(_i16.PharmacyOrder order) =>
+      caller.callServerEndpoint<_i16.PharmacyOrder>(
         'pharmacy',
         'createOrder',
         {'order': order},
       );
 
   /// List orders for a patient.
-  _i3.Future<List<_i14.PharmacyOrder>> listOrders(String patientRef) =>
-      caller.callServerEndpoint<List<_i14.PharmacyOrder>>(
+  _i3.Future<List<_i16.PharmacyOrder>> listOrders(String patientRef) =>
+      caller.callServerEndpoint<List<_i16.PharmacyOrder>>(
         'pharmacy',
         'listOrders',
         {'patientRef': patientRef},
       );
 
   /// Update order status.
-  _i3.Future<_i14.PharmacyOrder> updateStatus(
+  _i3.Future<_i16.PharmacyOrder> updateStatus(
     int id,
     String status,
-  ) => caller.callServerEndpoint<_i14.PharmacyOrder>(
+  ) => caller.callServerEndpoint<_i16.PharmacyOrder>(
     'pharmacy',
     'updateStatus',
     {
@@ -929,12 +1096,65 @@ class EndpointPharmacy extends _i2.EndpointRef {
   );
 
   /// Get order by ID.
-  _i3.Future<_i14.PharmacyOrder?> getById(int id) =>
-      caller.callServerEndpoint<_i14.PharmacyOrder?>(
+  _i3.Future<_i16.PharmacyOrder?> getById(int id) =>
+      caller.callServerEndpoint<_i16.PharmacyOrder?>(
         'pharmacy',
         'getById',
         {'id': id},
       );
+}
+
+/// Role-based access control read/write. Admin app manages the
+/// permission matrix here.
+/// {@category Endpoint}
+class EndpointRbac extends _i2.EndpointRef {
+  EndpointRbac(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'rbac';
+
+  /// List every RBAC permission entry (all roles).
+  _i3.Future<List<_i17.RbacPermission>> listAll() =>
+      caller.callServerEndpoint<List<_i17.RbacPermission>>(
+        'rbac',
+        'listAll',
+        {},
+      );
+
+  /// List permissions scoped to one role.
+  _i3.Future<List<_i17.RbacPermission>> listForRole(String roleId) =>
+      caller.callServerEndpoint<List<_i17.RbacPermission>>(
+        'rbac',
+        'listForRole',
+        {'roleId': roleId},
+      );
+
+  /// Upsert a permission. Matches on (roleId, resource, action) and
+  /// updates `isAllowed` if found, otherwise inserts.
+  _i3.Future<_i17.RbacPermission> setPermission(
+    String roleId,
+    String roleName,
+    String resource,
+    String action,
+    bool isAllowed,
+  ) => caller.callServerEndpoint<_i17.RbacPermission>(
+    'rbac',
+    'setPermission',
+    {
+      'roleId': roleId,
+      'roleName': roleName,
+      'resource': resource,
+      'action': action,
+      'isAllowed': isAllowed,
+    },
+  );
+
+  /// Delete a permission entry.
+  _i3.Future<bool> deletePermission(int id) => caller.callServerEndpoint<bool>(
+    'rbac',
+    'deletePermission',
+    {'id': id},
+  );
 }
 
 /// {@category Endpoint}
@@ -945,16 +1165,16 @@ class EndpointSchedule extends _i2.EndpointRef {
   String get name => 'schedule';
 
   /// Create a new schedule slot.
-  _i3.Future<_i15.ScheduleSlot> createSlot(_i15.ScheduleSlot slot) =>
-      caller.callServerEndpoint<_i15.ScheduleSlot>(
+  _i3.Future<_i18.ScheduleSlot> createSlot(_i18.ScheduleSlot slot) =>
+      caller.callServerEndpoint<_i18.ScheduleSlot>(
         'schedule',
         'createSlot',
         {'slot': slot},
       );
 
   /// Update a schedule slot.
-  _i3.Future<_i15.ScheduleSlot> updateSlot(_i15.ScheduleSlot slot) =>
-      caller.callServerEndpoint<_i15.ScheduleSlot>(
+  _i3.Future<_i18.ScheduleSlot> updateSlot(_i18.ScheduleSlot slot) =>
+      caller.callServerEndpoint<_i18.ScheduleSlot>(
         'schedule',
         'updateSlot',
         {'slot': slot},
@@ -968,18 +1188,18 @@ class EndpointSchedule extends _i2.EndpointRef {
   );
 
   /// List schedule slots for a practitioner.
-  _i3.Future<List<_i15.ScheduleSlot>> listSlots(String practitionerRef) =>
-      caller.callServerEndpoint<List<_i15.ScheduleSlot>>(
+  _i3.Future<List<_i18.ScheduleSlot>> listSlots(String practitionerRef) =>
+      caller.callServerEndpoint<List<_i18.ScheduleSlot>>(
         'schedule',
         'listSlots',
         {'practitionerRef': practitionerRef},
       );
 
   /// List available slots for a practitioner on a given date.
-  _i3.Future<List<_i15.ScheduleSlot>> listAvailableSlots(
+  _i3.Future<List<_i18.ScheduleSlot>> listAvailableSlots(
     String practitionerRef,
     DateTime date,
-  ) => caller.callServerEndpoint<List<_i15.ScheduleSlot>>(
+  ) => caller.callServerEndpoint<List<_i18.ScheduleSlot>>(
     'schedule',
     'listAvailableSlots',
     {
@@ -989,12 +1209,61 @@ class EndpointSchedule extends _i2.EndpointRef {
   );
 
   /// Increment booked count for a slot.
-  _i3.Future<_i15.ScheduleSlot> bookSlot(int slotId) =>
-      caller.callServerEndpoint<_i15.ScheduleSlot>(
+  _i3.Future<_i18.ScheduleSlot> bookSlot(int slotId) =>
+      caller.callServerEndpoint<_i18.ScheduleSlot>(
         'schedule',
         'bookSlot',
         {'slotId': slotId},
       );
+}
+
+/// Minimal in-memory WebRTC signaling relay.
+///
+/// Three message types are relayed between peers sharing a `roomId`:
+///   - 'offer'       : SDP offer
+///   - 'answer'      : SDP answer
+///   - 'ice'         : ICE candidate
+///
+/// Clients `subscribe(roomId)` to receive a stream of messages, and call
+/// `send(roomId, type, payload)` to broadcast. Peer identity is the session
+/// id — no authn wired here; secure via Serverpod's auth before prod use.
+///
+/// NOTE(webrtc): this is a skeleton — for production we'd persist messages
+/// to Postgres with TTL, enforce peer allow-lists, and add TURN credentials.
+/// {@category Endpoint}
+class EndpointWebrtcSignaling extends _i2.EndpointRef {
+  EndpointWebrtcSignaling(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'webrtcSignaling';
+
+  /// Stream of signaling messages for a room. Sends are broadcast to all
+  /// other listeners in the same room (not back to the sender).
+  _i3.Stream<Map<String, dynamic>> subscribe(String roomId) =>
+      caller.callStreamingServerEndpoint<
+        _i3.Stream<Map<String, dynamic>>,
+        Map<String, dynamic>
+      >(
+        'webrtcSignaling',
+        'subscribe',
+        {'roomId': roomId},
+        {},
+      );
+
+  /// Broadcast a signaling message to peers in [roomId] (excluding sender).
+  _i3.Future<void> send(
+    String roomId,
+    String type,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'webrtcSignaling',
+    'send',
+    {
+      'roomId': roomId,
+      'type': type,
+      'payload': payload,
+    },
+  );
 }
 
 /// This is an example endpoint that returns a greeting message through
@@ -1007,8 +1276,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i16.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i16.Greeting>(
+  _i3.Future<_i19.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i19.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -1046,7 +1315,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i17.Protocol(),
+         _i20.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -1060,15 +1329,19 @@ class Client extends _i2.ServerpodClientShared {
     admin = EndpointAdmin(this);
     ambulance = EndpointAmbulance(this);
     appointment = EndpointAppointment(this);
+    audit = EndpointAudit(this);
     auth = EndpointAuth(this);
     fhirResource = EndpointFhirResource(this);
+    fhirSync = EndpointFhirSync(this);
     healthTip = EndpointHealthTip(this);
     insurance = EndpointInsurance(this);
     labBooking = EndpointLabBooking(this);
     notification = EndpointNotification(this);
     organization = EndpointOrganization(this);
     pharmacy = EndpointPharmacy(this);
+    rbac = EndpointRbac(this);
     schedule = EndpointSchedule(this);
+    webrtcSignaling = EndpointWebrtcSignaling(this);
     greeting = EndpointGreeting(this);
     modules = Modules(this);
   }
@@ -1083,9 +1356,13 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointAppointment appointment;
 
+  late final EndpointAudit audit;
+
   late final EndpointAuth auth;
 
   late final EndpointFhirResource fhirResource;
+
+  late final EndpointFhirSync fhirSync;
 
   late final EndpointHealthTip healthTip;
 
@@ -1099,7 +1376,11 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointPharmacy pharmacy;
 
+  late final EndpointRbac rbac;
+
   late final EndpointSchedule schedule;
+
+  late final EndpointWebrtcSignaling webrtcSignaling;
 
   late final EndpointGreeting greeting;
 
@@ -1112,15 +1393,19 @@ class Client extends _i2.ServerpodClientShared {
     'admin': admin,
     'ambulance': ambulance,
     'appointment': appointment,
+    'audit': audit,
     'auth': auth,
     'fhirResource': fhirResource,
+    'fhirSync': fhirSync,
     'healthTip': healthTip,
     'insurance': insurance,
     'labBooking': labBooking,
     'notification': notification,
     'organization': organization,
     'pharmacy': pharmacy,
+    'rbac': rbac,
     'schedule': schedule,
+    'webrtcSignaling': webrtcSignaling,
     'greeting': greeting,
   };
 

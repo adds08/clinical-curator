@@ -13,6 +13,7 @@ import '../../../domain/providers/healthcare_service_provider.dart';
 import '../../../domain/providers/location_provider.dart';
 import '../../../domain/providers/practitioner_role_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class HospitalDetailScreen extends ConsumerStatefulWidget {
   final String organizationId;
@@ -207,16 +208,16 @@ class _OverviewTab extends StatelessWidget {
           _InfoSection(
             title: 'Contact',
             children: [
-              _InfoRow(icon: Icons.location_on_outlined, text: org.address),
+              _InfoRow(icon: LucideIcons.mapPin, text: org.address),
               if (org.phone != null)
-                _InfoRow(icon: Icons.phone_outlined, text: org.phone!),
+                _InfoRow(icon: LucideIcons.phone, text: org.phone!),
               if (org.openHours != null)
                 _InfoRow(
-                    icon: Icons.access_time_rounded,
+                    icon: LucideIcons.clock,
                     text: 'Hours: ${org.openHours}'),
               if (org.rating != null)
                 _InfoRow(
-                    icon: Icons.star_outline_rounded,
+                    icon: LucideIcons.star,
                     text: '${org.rating} rating'),
             ],
           ),
@@ -227,7 +228,7 @@ class _OverviewTab extends StatelessWidget {
               title: 'Departments (${departments.length})',
               children: departments
                   .map((d) => _InfoRow(
-                      icon: Icons.domain_rounded, text: d))
+                      icon: LucideIcons.building2, text: d))
                   .toList(),
             ),
           ],
@@ -298,8 +299,8 @@ class _StaffTab extends StatelessWidget {
                           alignment: Alignment.center,
                           child: Icon(
                             role.code == 'nurse'
-                                ? Icons.local_hospital_rounded
-                                : Icons.medical_services_rounded,
+                                ? LucideIcons.hospital
+                                : LucideIcons.briefcaseMedical,
                             size: 18,
                             color: colors.primary,
                           ),
@@ -323,6 +324,8 @@ class _StaffTab extends StatelessWidget {
                                     fontSize: 12,
                                     color: colors.mutedForeground),
                               ),
+                              const SizedBox(height: 4),
+                              PractitionerVerifiedBadge(practitionerRef: role.practitionerRef),
                             ],
                           ),
                         ),
@@ -425,11 +428,11 @@ class _ServicesTab extends StatelessWidget {
 
   IconData _iconForServiceType(String type) {
     return switch (type) {
-      'emergency' => Icons.emergency_rounded,
-      'laboratory' => Icons.science_outlined,
-      'radiology' => Icons.image_outlined,
-      'pharmacy' => Icons.local_pharmacy_outlined,
-      _ => Icons.medical_services_outlined,
+      'emergency' => LucideIcons.siren,
+      'laboratory' => LucideIcons.flaskConical,
+      'radiology' => LucideIcons.image,
+      'pharmacy' => LucideIcons.pill,
+      _ => LucideIcons.briefcaseMedical,
     };
   }
 }
@@ -467,11 +470,11 @@ class _LocationsTab extends StatelessWidget {
             children: [
               Icon(
                 switch (loc.type) {
-                  'wing' => Icons.apartment_rounded,
-                  'room' => Icons.meeting_room_outlined,
-                  'bed' => Icons.bed_outlined,
-                  'area' => Icons.grid_view_rounded,
-                  _ => Icons.place_outlined,
+                  'wing' => LucideIcons.building2,
+                  'room' => LucideIcons.doorOpen,
+                  'bed' => LucideIcons.bed,
+                  'area' => LucideIcons.layoutGrid,
+                  _ => LucideIcons.mapPin,
                 },
                 size: 18,
                 color: colors.primary,

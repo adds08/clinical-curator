@@ -14,23 +14,87 @@ A FHIR R4-compliant clinical health application for Nepal's healthcare ecosystem
 | `bikesh@example.com` | `password123` | Doctor (pending) | Submitted for admin verification, NOT yet approved |
 | `admin@example.com` | `admin123` | Admin | Dedicated admin account for practitioner verification |
 
-## Quick Start
+## Configuration (`.env`)
+
+Runtime config for both Flutter apps (clinical + admin) and docker-compose lives in a single `.env` at the repo root. Copy the template on first checkout:
 
 ```bash
-# Install dependencies
-flutter pub get
+cp .env.example .env
+```
 
-# Generate Hive adapters
-dart run build_runner build --delete-conflicting-outputs
+The Flutter apps bundle `../../.env` as an asset (see `apps/clinical/pubspec.yaml` + `apps/admin/pubspec.yaml`) and load it via `flutter_dotenv` in `main.dart` before `runApp`. Both apps read the SAME file — this is what keeps admin approvals flowing to the clinical app's backend.
 
-# Run on Chrome
-flutter run -d chrome
+Keys consumed by the Flutter apps (via `package:cc_core/config/app_config.dart`):
 
-# Run on iOS/Android
-flutter run
+| Key | Default | Used by |
+| --- | ------- | ------- |
+| `ENV` | `dev` | Seed picker + debug banner (mock/dev/staging/prod) |
+| `SERVERPOD_URL` | `http://localhost:8080/` | Clinical + admin Serverpod `Client(...)` — must match! |
+| `SERVERPOD_HOST` / `SERVERPOD_PORT` | `localhost` / `8080` | Reserved for tooling |
+| `GOOGLE_CLIENT_ID` | (empty) | Drive backup (feature disabled when blank) |
+| `KHALTI_PUBLIC_KEY`, `ESEWA_PUBLIC_KEY` | (empty) | Payment gateways |
 
-# Build for web
-flutter build web
+`.env` is gitignored; `.env.example` is committed. `AppConfig.<key>` falls back to `--dart-define=<KEY>=...` when `.env` is missing, so CI pipelines without a `.env` still work.
+
+## Quick Start
+
+All day-to-day commands run through the top-level `Makefile`. Run `make help` for the full list.
+
+### ENV values (`--dart-define=ENV=<value>`)
+
+| Value | Client seed | Server seed | Typical use |
+| ----- | ----------- | ----------- | ----------- |
+| `mock` | Full `MockSeed` — Arjun, Sunita, 60+ FHIR resources | `--mode mock` via `make seed-mock` | Demos / screenshots |
+| `dev` *(default)* | `ReferenceSeed` — admin + RBAC + 5 hospitals only | `--mode reference` via `make seed` | Local dev |
+| `staging` | `ReferenceSeed` | `--mode reference` | Pre-prod QA |
+| `prod` | `ReferenceSeed` | `--mode reference` | Production |
+
+`dev`, `staging`, and `prod` never create phantom patients / practitioners / observations.
+
+```bash
+# First-time setup: install deps across the workspace
+make setup
+
+# Start PostgreSQL + Redis
+make db-up
+
+# Generate Serverpod + Hive adapters
+make codegen
+
+# Start the Serverpod backend (applies migrations)
+make server
+
+# Run the clinical app in Chrome (dev env)
+make app-web
+
+# Run on a connected device
+make app                # ENV=dev by default
+make app ENV=mock       # full demo data (Arjun, Sunita, fake FHIR)
+make app ENV=staging    # staging
+make app ENV=prod       # production
+make app DEVICE=chrome  # pick a device
+
+# Admin app
+make admin-web
+
+# Seed reference data only (admin + RBAC + 5 hospitals)
+make server-stop && make seed
+
+# Seed the full mock/demo dataset
+make server-stop && make seed-mock
+
+# One-shot: install, start DB, seed, start server
+make all
+```
+
+### Serverpod migrations
+
+When you change a protocol YAML, create a migration before restarting the server:
+
+```bash
+make server-migrate   # serverpod create-migration
+make server           # applies on startup
+make server-repair    # dev escape hatch — forces DB to match target
 ```
 
 ## Tech Stack
@@ -161,7 +225,37 @@ lib/
 
 ## Offline Support
 
-All data is stored locally in Hive CE. The app works fully offline. FHIR resources are cached as JSON and can be downloaded for offline access. Sync with a remote server (HAPI FHIR, etc.) is architecturally planned but not yet implemented.
+All data is stored locally in Hive CE. The app works fully offline. FHIR resources are cached as JSON and can be downloaded for offline access.
+
+### Offline sync
+
+The clinical app ships a **FHIR `_since` sync service** (`apps/clinical/lib/domain/services/fhir_sync_service.dart`):
+- **Per-resource watermarks** — `lastSyncTimestamp_<ResourceType>` lives in `SharedPreferences`. On each tick the client pulls resources with `lastUpdated > since` from `FhirSyncEndpoint.since(...)` in 500-row batches (`hasMore`/`nextSince`) and pushes any local rows where `syncStatus != 0` via `FhirSyncEndpoint.push(...)`.
+- **Conflict resolution** — `meta.lastUpdated` wins. Server keeps the newer copy; if the local row is newer it is kept and a `dataConflict` AuditEvent is written.
+- **Triggers** — 5-minute timer, `AppLifecycleState.resumed`, online-transition via `connectivity_plus`. 30-second debounce prevents thrashing.
+- **Status UI** — shadcn `SyncChip` (AppBar pill) shows `Offline` / `Syncing…` / `Synced Xm ago`; tap → drawer with per-type counts and a "Sync now" button.
+- **Supported types** — `Patient`, `Observation`, `MedicationRequest`, `AllergyIntolerance`, `Immunization`, `Encounter`, `Condition`, `DiagnosticReport`.
+
+### Backups
+
+Profile → **Backup & Restore** gives the patient four paths, all backed by `BackupService` (`apps/clinical/lib/domain/services/backup_service.dart`):
+
+| Path | Scope | Notes |
+| --- | --- | --- |
+| Export backup (local) | every Hive `FhirResource` | Writes `clinical_curator_backup_<ts>.json` to app-documents then triggers the system share sheet via `share_plus`. |
+| Import backup (local) | same | `file_picker` → shadcn confirm → upsert into Hive (last-write-wins on `lastUpdated`). |
+| Back up to Google Drive | same | Uploads the JSON to the Drive **app-data** folder (`drive.appdata` scope) via `google_sign_in` + `googleapis`. |
+| Restore from Google Drive | same | Lists timestamped backups and downloads + imports the chosen one. |
+
+Google Drive backup requires an OAuth Client ID at build time. If `GOOGLE_CLIENT_ID` is not defined, the Drive rows stay visible but disabled with a shadcn info toast.
+
+```
+flutter run -d macos \
+  --dart-define=ENV=mock \
+  --dart-define=GOOGLE_CLIENT_ID=123-abc.apps.googleusercontent.com
+```
+
+Every backup/restore writes an `AuditEvent` (`dataExported` / `dataImported`).
 
 ## License
 

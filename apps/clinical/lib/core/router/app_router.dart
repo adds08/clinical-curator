@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_fhir_models/models/user_role.dart';
 import '../../domain/providers/auth_provider.dart';
@@ -36,6 +36,8 @@ import '../../features/telemedicine/screens/video_call_screen.dart';
 // Profile
 import '../../features/profile/screens/profile_settings_screen.dart';
 import '../../features/profile/screens/clinician_settings_screen.dart';
+// Help
+import '../../features/help/screens/user_manual_screen.dart';
 // Consent
 import '../../features/consent/screens/consent_management_screen.dart';
 // Admin features now live in apps/admin — no imports here.
@@ -65,6 +67,7 @@ import '../../features/booking/screens/booking_success_screen.dart';
 import '../../features/booking/screens/my_appointments_screen.dart';
 import '../../features/booking/screens/appointment_detail_screen.dart';
 import '../../features/booking/screens/reschedule_screen.dart';
+import '../../features/booking/screens/ai_triage_screen.dart';
 // Onboarding
 import '../../features/onboarding/screens/onboarding_screen.dart';
 
@@ -158,7 +161,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/service/telemedicine/call',
-        builder: (_, _) => const VideoCallScreen(),
+        builder: (_, state) {
+          final q = state.uri.queryParameters;
+          return VideoCallScreen(
+            practitionerName: q['name'],
+            specialty: q['specialty'],
+          );
+        },
       ),
       // Health Tips
       GoRoute(
@@ -177,6 +186,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/clinician-settings',
         builder: (_, _) => const ClinicianSettingsScreen(),
+      ),
+      // User manual (in-app markdown docs)
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: RouteNames.userManual,
+        builder: (_, _) => const UserManualScreen(),
       ),
       // Add patient
       GoRoute(
@@ -317,6 +332,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/booking/my-appointments',
         builder: (_, _) => const MyAppointmentsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/booking/ai-triage',
+        builder: (_, _) => const AiTriageScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

@@ -1,46 +1,77 @@
+import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/constants/app_spacing.dart';
-import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_fhir_models/collections/user_account_collection.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+
+import '../../../domain/providers/repository_providers.dart';
+
+final _allUsersProvider = FutureProvider.autoDispose<List<UserAccount>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(userRepositoryProvider).listAll();
+});
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
   const ManageUsersScreen({super.key});
 
   @override
-  ConsumerState<ManageUsersScreen> createState() =>
-      _ManageUsersScreenState();
+  ConsumerState<ManageUsersScreen> createState() => _ManageUsersScreenState();
 }
 
 class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
   String _searchQuery = '';
   String _roleFilter = 'all';
 
+  bool _matches(UserAccount u) {
+    switch (_roleFilter) {
+      case 'patient':
+        if (u.isPractitioner || u.accountType == 'admin') return false;
+        break;
+      case 'doctor':
+        if (u.practitionerType != 'doctor') return false;
+        break;
+      case 'nurse':
+        if (u.practitionerType != 'nurse') return false;
+        break;
+      case 'admin':
+        if (u.accountType != 'admin') return false;
+        break;
+    }
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    return u.displayName.toLowerCase().contains(q) ||
+        u.email.toLowerCase().contains(q);
+  }
+
+  Future<void> _toggleVerification(UserAccount u) async {
+    if (u.id == null) return;
+    try {
+      await ref.read(userRepositoryProvider).setVerified(u.id!, !u.isVerified);
+      bumpRepos(ref);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context: context,
+        builder: (_, __) => SurfaceCard(
+          child: Basic(
+            title: const Text('Update failed'),
+            subtitle: Text(e.toString()),
+            leading: const Icon(Icons.error_outline, size: 16),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final allUsers = DatabaseService.userAccounts.values.toList();
-
-    var filtered = allUsers.where((u) {
-      if (_roleFilter != 'all') {
-        if (_roleFilter == 'patient' && (u.isPractitioner || u.accountType == 'admin')) return false;
-        if (_roleFilter == 'doctor' && u.practitionerType != 'doctor') return false;
-        if (_roleFilter == 'nurse' && u.practitionerType != 'nurse') return false;
-        if (_roleFilter == 'admin' && u.accountType != 'admin') return false;
-      }
-      if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        return u.displayName.toLowerCase().contains(q) ||
-            u.email.toLowerCase().contains(q);
-      }
-      return true;
-    }).toList();
+    final usersAsync = ref.watch(_allUsersProvider);
 
     return SubPageScaffold(
       title: 'Manage Users',
@@ -50,7 +81,6 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               children: [
-                // Search
                 SizedBox(
                   width: double.infinity,
                   child: TextArea(
@@ -63,20 +93,15 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                // Filters
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      for (final filter in [
-                        'all', 'patient', 'doctor', 'nurse', 'admin'
-                      ])
+                      for (final filter in ['all', 'patient', 'doctor', 'nurse', 'admin'])
                         Padding(
-                          padding:
-                              const EdgeInsets.only(right: AppSpacing.sm),
+                          padding: const EdgeInsets.only(right: AppSpacing.sm),
                           child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _roleFilter = filter),
+                            onTap: () => setState(() => _roleFilter = filter),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.md,
@@ -88,8 +113,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                                 borderRadius: AppRadius.chipRadius,
                               ),
                               child: Text(
-                                filter[0].toUpperCase() +
-                                    filter.substring(1),
+                                filter[0].toUpperCase() + filter.substring(1),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -107,31 +131,39 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
               ],
             ),
           ),
-          // Results
           Expanded(
-            child: filtered.isEmpty
-                ? Center(
-                    child: Text('No users found',
-                        style: TextStyle(color: colors.mutedForeground)))
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.sm),
-                    itemBuilder: (context, index) {
-                      return _UserCard(
-                        user: filtered[index],
-                        onToggleVerification: () {
-                          setState(() {
-                            filtered[index].isVerified =
-                                !filtered[index].isVerified;
-                            filtered[index].save();
-                          });
-                        },
-                      );
-                    },
+            child: usersAsync.when(
+              loading: () => const Center(
+                  child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Text('Failed to load users: $e',
+                      style: TextStyle(color: colors.destructive)),
+                ),
+              ),
+              data: (users) {
+                final filtered = users.where(_matches).toList();
+                if (filtered.isEmpty) {
+                  return Center(
+                      child: Text('No users found',
+                          style: TextStyle(color: colors.mutedForeground)));
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (_, i) => _UserCard(
+                    user: filtered[i],
+                    onToggleVerification: () => _toggleVerification(filtered[i]),
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -171,7 +203,6 @@ class _UserCard extends StatelessWidget {
       decoration: SurfaceTheme.cardDecoration(context: context),
       child: Row(
         children: [
-          // Avatar
           Container(
             width: 40,
             height: 40,
@@ -185,9 +216,7 @@ class _UserCard extends StatelessWidget {
                   ? user.displayName[0].toUpperCase()
                   : '?',
               style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: roleColor),
+                  fontSize: 16, fontWeight: FontWeight.w600, color: roleColor),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -249,9 +278,7 @@ class _UserCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: user.isVerified
-                        ? colors.success
-                        : colors.warning,
+                    color: user.isVerified ? colors.success : colors.warning,
                   ),
                 ),
               ),

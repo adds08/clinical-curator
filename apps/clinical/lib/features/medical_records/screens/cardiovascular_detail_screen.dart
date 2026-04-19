@@ -1,7 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
@@ -16,17 +15,17 @@ class CardiovascularDetailScreen extends StatelessWidget {
 
   /// Show the cardiovascular detail as a draggable modal bottom sheet.
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet<void>(
+    return openDrawer(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      position: OverlayPosition.bottom,
+      draggable: true,
       builder: (_) => const CardiovascularDetailScreen(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return DraggableScrollableSheet(
@@ -66,7 +65,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   Widget _buildDragHandle(BuildContext context) {
-      final colors = shadcn.Theme.of(context).colorScheme;
+      final colors = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: AppSpacing.md),
@@ -87,7 +86,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   Widget _buildTitleBar(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl,
@@ -112,11 +111,10 @@ class CardiovascularDetailScreen extends StatelessWidget {
               color: colors.muted,
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: IconButton(
+            child: IconButton.ghost(
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.close_rounded, size: 18),
-              color: colors.mutedForeground,
-              padding: EdgeInsets.zero,
+              icon: Icon(LucideIcons.x,
+                  size: 18, color: colors.mutedForeground),
             ),
           ),
         ],
@@ -129,7 +127,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   Widget _buildHeroMetrics(BuildContext context) {
-      final colors = shadcn.Theme.of(context).colorScheme;
+      final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Row(
@@ -140,7 +138,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
               label: 'HRV',
               value: '86',
               unit: 'ms',
-              icon: Icons.show_chart_rounded,
+              icon: LucideIcons.chartLine,
               iconColor: colors.primary,
             ),
           ),
@@ -151,7 +149,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
               label: 'BPM',
               value: '95',
               unit: 'bpm',
-              icon: Icons.favorite_rounded,
+              icon: LucideIcons.heart,
               iconColor: colors.destructive,
             ),
           ),
@@ -168,7 +166,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
     required IconData icon,
     required Color iconColor,
   }) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.xxl),
       child: BackdropFilter(
@@ -178,7 +176,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
             borderRadius: AppRadius.xxl,
             borderOpacity: 0.25,
           ),
-          child: shadcn.Card(
+          child: Card(
             padding: const EdgeInsets.all(AppSpacing.xl),
             fillColor: Colors.transparent,
             child: Column(
@@ -239,7 +237,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   Widget _buildHorizontalMetrics(BuildContext context) {
-      final colors = shadcn.Theme.of(context).colorScheme;
+      final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -269,7 +267,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
                 unit: 'mmHg',
                 status: 'Normal',
                 statusColor: colors.success,
-                icon: Icons.speed_rounded,
+                icon: LucideIcons.gauge,
                 iconColor: colors.primary,
               ),
               const SizedBox(width: AppSpacing.md),
@@ -280,7 +278,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
                 unit: '%',
                 status: 'Normal',
                 statusColor: colors.success,
-                icon: Icons.air_rounded,
+                icon: LucideIcons.wind,
                 iconColor: const Color(0xFF0891B2),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -291,7 +289,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
                 unit: '',
                 status: 'Good',
                 statusColor: colors.success,
-                icon: Icons.self_improvement_rounded,
+                icon: LucideIcons.personStanding,
                 iconColor: const Color(0xFF7C3AED),
               ),
             ],
@@ -311,10 +309,10 @@ class CardiovascularDetailScreen extends StatelessWidget {
     required IconData icon,
     required Color iconColor,
   }) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return SizedBox(
       width: 160,
-      child: shadcn.Card(
+      child: Card(
         padding: const EdgeInsets.all(AppSpacing.lg),
         fillColor: colors.card,
         child: Column(
@@ -370,7 +368,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            shadcn.PrimaryBadge(
+            PrimaryBadge(
               child: Text(
                 status,
                 style: TextStyle(
@@ -395,15 +393,15 @@ class CardiovascularDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: SizedBox(
         width: double.infinity,
-        child: shadcn.Button.primary(
+        child: Button.primary(
           onPressed: () {
-            shadcn.showToast(
+            showToast(
               context: context,
               builder: (ctx, overlay) {
-                return shadcn.SurfaceCard(
-                  child: shadcn.Basic(
+                return SurfaceCard(
+                  child: Basic(
                     title: const Text('Health report downloaded'),
-                    leading: const Icon(Icons.check_circle_outline_rounded),
+                    leading: const Icon(LucideIcons.circleCheck),
                   ),
                 );
               },
@@ -412,7 +410,7 @@ class CardiovascularDetailScreen extends StatelessWidget {
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.download_rounded, size: 18),
+              Icon(LucideIcons.download, size: 18),
               SizedBox(width: AppSpacing.sm),
               Text(
                 'Download Health Report (PDF)',

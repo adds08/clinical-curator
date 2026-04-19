@@ -1,17 +1,23 @@
-.PHONY: help setup db-up db-down db-reset server-generate server-start \
-       server-stop app-run app-run-web app-build app-test app-clean seed all \
-       app-run-dev app-run-staging app-run-prod \
-       app-build-staging app-build-prod \
-       server-start-staging server-start-prod status \
-       ws-bootstrap ws-analyze ws-test ws-format ws-format-check \
-       ws-clean ws-codegen admin-run admin-run-web
+.PHONY: help setup db-up db-down db-reset \
+       server server-stop server-migrate server-repair codegen \
+       app app-web app-build app-test app-clean \
+       admin admin-web \
+       ws-bootstrap ws-analyze ws-test ws-format ws-clean \
+       seed seed-mock status all
+
+# Shared args (override on CLI, e.g. `make server MODE=staging`, `make app ENV=prod`)
+ENV  ?= dev
+MODE ?= development
+DEVICE ?=
+
+FLUTTER_RUN = flutter run $(if $(DEVICE),-d $(DEVICE),) --dart-define=ENV=$(ENV)
 
 help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
-setup: ## Install all dependencies (melos bootstrap across the workspace)
+setup: ## Install deps (melos bootstrap across the workspace)
 	dart pub get
 	dart run melos bootstrap
 
@@ -23,7 +29,7 @@ db-up: ## Start PostgreSQL and Redis via Docker
 db-down: ## Stop all Docker services
 	docker compose down
 
-db-reset: ## Reset database (destroy volumes + recreate)
+db-reset: ## Reset database (destroy volumes + recreate + apply migrations)
 	docker compose down -v
 	docker compose up -d postgres redis
 	@echo "Waiting for PostgreSQL to be ready..."
@@ -32,25 +38,12 @@ db-reset: ## Reset database (destroy volumes + recreate)
 
 # ─── Server ───────────────────────────────────────────────────────────────────
 
-server-generate: ## Generate Serverpod protocol code
-	cd clinical_curator_server && serverpod generate
-
-server-start: ## Start Serverpod server (dev mode, applies migrations)
+server: ## Start Serverpod (MODE=development|staging|production)
 	@if lsof -ti:8080 > /dev/null 2>&1; then \
-		echo "⚠️  Server already running:"; \
-		echo "   API:      http://localhost:8080"; \
-		echo "   Insights: http://localhost:8081"; \
-		echo "   Web:      http://localhost:8082"; \
-		echo "   Run 'make server-stop' first to restart."; \
+		echo "⚠️  Server already running on :8080 — run 'make server-stop' first."; \
 	else \
-		cd clinical_curator_server && dart bin/main.dart --apply-migrations; \
+		cd clinical_curator_server && dart bin/main.dart --mode $(MODE) --apply-migrations; \
 	fi
-
-server-start-staging: ## Start Serverpod server in staging mode
-	cd clinical_curator_server && dart bin/main.dart --mode staging --apply-migrations
-
-server-start-prod: ## Start Serverpod server in production mode
-	cd clinical_curator_server && dart bin/main.dart --mode production --apply-migrations
 
 server-stop: ## Stop Serverpod server
 	@pkill -f "dart bin/main.dart" 2>/dev/null || true
@@ -58,32 +51,28 @@ server-stop: ## Stop Serverpod server
 	@sleep 1
 	@echo "Server stopped."
 
-# ─── Clinical app (apps/clinical) ────────────────────────────────────────────
-# Patient + clinician (doctor/nurse) flows. Doctor vs nurse delta is RBAC.
+server-migrate: ## Create a new Serverpod migration from protocol changes
+	cd clinical_curator_server && serverpod create-migration
 
-app-run: ## Run clinical app (dev environment)
-	cd apps/clinical && flutter run --dart-define=ENV=dev
+server-repair: ## Apply a repair migration (dev only — forces DB to match target)
+	cd clinical_curator_server && dart bin/main.dart --apply-repair-migration
 
-app-run-dev: ## Run clinical app (dev) on connected device
-	cd apps/clinical && flutter run --dart-define=ENV=dev
+# ─── Code Generation ─────────────────────────────────────────────────────────
 
-app-run-staging: ## Run clinical app (staging) on connected device
-	cd apps/clinical && flutter run --dart-define=ENV=staging
+codegen: ## Serverpod generate + build_runner (clinical app)
+	cd clinical_curator_server && serverpod generate
+	cd apps/clinical && dart run build_runner build --delete-conflicting-outputs
 
-app-run-prod: ## Run clinical app (production) on connected device
-	cd apps/clinical && flutter run --dart-define=ENV=prod
+# ─── Clinical app (apps/clinical) ─────────────────────────────────────────────
 
-app-run-web: ## Run clinical app in Chrome (dev)
-	cd apps/clinical && flutter run -d chrome --dart-define=ENV=dev
+app: ## Run clinical app (ENV=dev|staging|prod DEVICE=chrome|...)
+	cd apps/clinical && $(FLUTTER_RUN)
 
-app-build: ## Build clinical web app (dev)
-	cd apps/clinical && flutter build web --dart-define=ENV=dev
+app-web: ## Run clinical app in Chrome (ENV=dev|staging|prod)
+	$(MAKE) app DEVICE=chrome ENV=$(ENV)
 
-app-build-staging: ## Build clinical web app for staging
-	cd apps/clinical && flutter build web --dart-define=ENV=staging
-
-app-build-prod: ## Build clinical web app for production
-	cd apps/clinical && flutter build web --dart-define=ENV=prod
+app-build: ## Build clinical web app (ENV=dev|staging|prod)
+	cd apps/clinical && flutter build web --dart-define=ENV=$(ENV)
 
 app-test: ## Run tests for the clinical app
 	cd apps/clinical && flutter test
@@ -91,52 +80,47 @@ app-test: ## Run tests for the clinical app
 app-clean: ## Clean clinical app build artifacts
 	cd apps/clinical && flutter clean && flutter pub get
 
-# ─── Code Generation ─────────────────────────────────────────────────────────
+# ─── Admin app ───────────────────────────────────────────────────────────────
 
-codegen: ## Run all code generation (Serverpod + clinical app build_runner)
-	cd clinical_curator_server && serverpod generate
-	cd apps/clinical && dart run build_runner build --delete-conflicting-outputs
+admin: ## Run admin app (DEVICE=chrome|... ENV=dev|staging|prod)
+	cd apps/admin && $(FLUTTER_RUN)
+
+admin-web: ## Run admin app in Chrome
+	$(MAKE) admin DEVICE=chrome ENV=$(ENV)
 
 # ─── Workspace (Melos) ───────────────────────────────────────────────────────
 
-ws-bootstrap: ## melos bootstrap — resolve all package deps + link paths
+ws-bootstrap: ## melos bootstrap — resolve deps + link paths
 	dart run melos bootstrap
 
 ws-analyze: ## dart analyze across every workspace package
 	dart run melos run analyze
 
-ws-test: ## flutter test across every package that has a test/ dir
+ws-test: ## flutter test across every package with tests
 	dart run melos run test
 
 ws-format: ## dart format every package
 	dart run melos run format
 
-ws-format-check: ## Verify formatting without writing changes
-	dart run melos run format-check
-
 ws-clean: ## flutter clean across every Flutter package
 	dart run melos run clean
 
-ws-codegen: ## build_runner across every package with build.yaml
-	dart run melos run codegen
-
-# ─── Admin app ───────────────────────────────────────────────────────────────
-
-admin-run: ## Run the admin app on a connected device
-	cd apps/admin && flutter run --dart-define=ENV=dev
-
-admin-run-web: ## Run the admin app in Chrome
-	cd apps/admin && flutter run -d chrome --dart-define=ENV=dev
-
 # ─── Seed ─────────────────────────────────────────────────────────────────────
 
-seed: ## Seed the server database with test data (dev only)
+seed: ## Seed minimal reference data (admin + RBAC + hospitals)
 	@if lsof -ti:8080 > /dev/null 2>&1; then \
-		echo "⚠️  Server is running on port 8080. Stop it first:"; \
-		echo "   make server-stop && make seed"; \
+		echo "⚠️  Server running on :8080. Run: make server-stop && make seed"; \
 		exit 1; \
 	else \
-		cd clinical_curator_server && dart run bin/seed.dart; \
+		cd clinical_curator_server && dart run bin/seed.dart --mode reference; \
+	fi
+
+seed-mock: ## Seed full mock/demo dataset (patients, practitioners, etc.)
+	@if lsof -ti:8080 > /dev/null 2>&1; then \
+		echo "⚠️  Server running on :8080. Run: make server-stop && make seed-mock"; \
+		exit 1; \
+	else \
+		cd clinical_curator_server && dart run bin/seed.dart --mode mock; \
 	fi
 
 # ─── Status ──────────────────────────────────────────────────────────────────
@@ -158,7 +142,7 @@ status: ## Show status of all services
 		echo "     Insights    — http://localhost:8081"; \
 		echo "     Web         — http://localhost:8082"; \
 	else \
-		echo "  ❌ Serverpod    — not running (make server-start)"; \
+		echo "  ❌ Serverpod    — not running (make server)"; \
 	fi
 	@echo "────────────────────────────────────────────"
 
@@ -188,5 +172,5 @@ all: setup db-up ## Full setup: install deps, start DB, seed, start server
 	@echo "   PostgreSQL:  localhost:8090"
 	@echo "   Redis:       localhost:8091"
 	@echo "────────────────────────────────────────────"
-	@echo "   Run 'make app-run-web' to start the Flutter app"
+	@echo "   Run 'make app-web' to start the Flutter app"
 	@echo "   Run 'make status' to check services"

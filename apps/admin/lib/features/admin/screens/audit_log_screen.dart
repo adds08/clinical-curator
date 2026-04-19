@@ -1,14 +1,21 @@
+import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/constants/app_spacing.dart';
-import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_fhir_models/collections/audit_event_collection.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+
+import '../../../domain/providers/repository_providers.dart';
+
+final _auditProvider =
+    FutureProvider.autoDispose<List<AuditEvent>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(auditRepositoryProvider).list(limit: 500);
+});
 
 class AuditLogScreen extends ConsumerStatefulWidget {
   const AuditLogScreen({super.key});
@@ -24,22 +31,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final box = DatabaseService.auditEvents;
-    var events = box.values.toList()
-      ..sort((a, b) => b.recorded.compareTo(a.recorded));
-
-    if (_actionFilter != 'all') {
-      events = events.where((e) => e.action == _actionFilter).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      final q = _searchQuery.toLowerCase();
-      events = events
-          .where((e) =>
-              e.agentName.toLowerCase().contains(q) ||
-              (e.detail?.toLowerCase().contains(q) ?? false) ||
-              (e.entityType?.toLowerCase().contains(q) ?? false))
-          .toList();
-    }
+    final async = ref.watch(_auditProvider);
 
     return SubPageScaffold(
       title: 'Audit Log',
@@ -75,11 +67,9 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                         'delete'
                       ])
                         Padding(
-                          padding:
-                              const EdgeInsets.only(right: AppSpacing.sm),
+                          padding: const EdgeInsets.only(right: AppSpacing.sm),
                           child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _actionFilter = filter),
+                            onTap: () => setState(() => _actionFilter = filter),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.md,
@@ -91,8 +81,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                                 borderRadius: AppRadius.chipRadius,
                               ),
                               child: Text(
-                                filter[0].toUpperCase() +
-                                    filter.substring(1),
+                                filter[0].toUpperCase() + filter.substring(1),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -110,34 +99,71 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
               ],
             ),
           ),
-          // Count
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Row(
-              children: [
-                Text(
-                  '${events.length} events',
-                  style: TextStyle(
-                      fontSize: 12, color: colors.mutedForeground),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
           Expanded(
-            child: events.isEmpty
-                ? Center(
-                    child: Text('No audit events',
-                        style: TextStyle(color: colors.mutedForeground)))
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl),
-                    itemCount: events.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.sm),
-                    itemBuilder: (context, index) =>
-                        _AuditEventRow(event: events[index]),
-                  ),
+            child: async.when(
+              loading: () => const Center(
+                  child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Text('Failed to load audit log: $e',
+                      style: TextStyle(color: colors.destructive)),
+                ),
+              ),
+              data: (all) {
+                var events = List<AuditEvent>.from(all)
+                  ..sort((a, b) => b.recorded.compareTo(a.recorded));
+                if (_actionFilter != 'all') {
+                  events =
+                      events.where((e) => e.action == _actionFilter).toList();
+                }
+                if (_searchQuery.isNotEmpty) {
+                  final q = _searchQuery.toLowerCase();
+                  events = events
+                      .where((e) =>
+                          e.agentName.toLowerCase().contains(q) ||
+                          (e.detail?.toLowerCase().contains(q) ?? false) ||
+                          (e.entityType?.toLowerCase().contains(q) ?? false))
+                      .toList();
+                }
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl),
+                      child: Row(
+                        children: [
+                          Text('${events.length} events',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: colors.mutedForeground)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Expanded(
+                      child: events.isEmpty
+                          ? Center(
+                              child: Text('No audit events',
+                                  style: TextStyle(
+                                      color: colors.mutedForeground)))
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xl),
+                              itemCount: events.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: AppSpacing.sm),
+                              itemBuilder: (_, i) =>
+                                  _AuditEventRow(event: events[i]),
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -146,7 +172,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
 }
 
 class _AuditEventRow extends StatelessWidget {
-  final AuditEventLocal event;
+  final AuditEvent event;
   const _AuditEventRow({required this.event});
 
   @override
@@ -246,8 +272,7 @@ class _AuditEventRow extends StatelessWidget {
             children: [
               Text(
                 dateFormat.format(event.recorded),
-                style: TextStyle(
-                    fontSize: 11, color: colors.mutedForeground),
+                style: TextStyle(fontSize: 11, color: colors.mutedForeground),
               ),
               const SizedBox(height: 2),
               Container(

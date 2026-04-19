@@ -8,6 +8,8 @@ import 'package:cc_fhir_models/collections/practitioner_role_collection.dart';
 import 'package:cc_fhir_models/collections/provenance_collection.dart';
 import 'package:cc_fhir_models/models/encounter_status.dart';
 
+import '../services/audit_logger.dart';
+
 enum EncounterWorkflowStatus { idle, starting, active, finalizing }
 
 class EncounterWorkflowState {
@@ -95,6 +97,13 @@ class EncounterWorkflowNotifier extends StateNotifier<EncounterWorkflowState> {
         ..syncStatus = 1;
 
       await box.add(encounter);
+
+      // Audit trail — records who started the encounter (FHIR AuditEvent).
+      await AuditLogger.encounterCreated(
+        encounterRef: 'Encounter/$fhirId',
+        agentRef: practitionerRef,
+        agentName: practitionerName,
+      );
 
       state = EncounterWorkflowState(
         status: EncounterWorkflowStatus.active,

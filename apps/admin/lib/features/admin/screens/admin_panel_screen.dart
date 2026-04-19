@@ -1,215 +1,254 @@
+import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
-import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/router/route_names.dart';
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_fhir_models/collections/user_account_collection.dart';
-import 'package:cc_data/providers/practitioner_data_provider.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
+
+import '../../../domain/providers/repository_providers.dart';
+
+/// Admin panel pulls from the shared repository layer. Bumping
+/// `repoRefreshProvider` anywhere in the app invalidates these.
+final pendingPractitionersProvider =
+    FutureProvider.autoDispose<List<UserAccount>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(userRepositoryProvider).listPendingPractitioners();
+});
+
+final verifiedPractitionersProvider =
+    FutureProvider.autoDispose<List<UserAccount>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(userRepositoryProvider).listVerifiedPractitioners();
+});
+
+/// Kept for compatibility — re-exports [repoRefreshProvider] under the
+/// old name so existing `ref.read(adminPanelRefreshProvider.notifier)` call
+/// sites keep working. Prefer `bumpRepos(ref)` in new code.
+final adminPanelRefreshProvider = repoRefreshProvider;
 
 class AdminPanelScreen extends ConsumerStatefulWidget {
   const AdminPanelScreen({super.key});
 
   @override
-  ConsumerState<AdminPanelScreen> createState() =>
-      _AdminPanelScreenState();
+  ConsumerState<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
-class _AdminPanelScreenState
-    extends ConsumerState<AdminPanelScreen> {
+class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
   int _selectedTab = 0;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final pendingVerifications =
-        ref.watch(pendingVerificationsProvider);
+    final pendingAsync = ref.watch(pendingPractitionersProvider);
+    final verifiedAsync = ref.watch(verifiedPractitionersProvider);
 
-    // Compute stats from real data
-    final allAccounts = DatabaseService.userAccounts.values.toList();
-    final totalPractitioners =
-        allAccounts.where((a) => a.isPractitioner).length;
-    final verifiedCount =
-        allAccounts.where((a) => a.isPractitioner && a.isVerified).length;
-    final pendingCount = pendingVerifications.length;
+    final pendingList = pendingAsync.valueOrNull ?? const <UserAccount>[];
+    final verifiedList = verifiedAsync.valueOrNull ?? const <UserAccount>[];
 
-    // Filter based on selected tab
-    List<UserAccount> displayList;
-    switch (_selectedTab) {
-      case 1: // Approved
-        displayList = allAccounts
-            .where((a) => a.isPractitioner && a.isVerified)
-            .toList();
-        break;
-      case 2: // Rejected (non-practitioner accounts that were previously practitioners)
-        displayList = []; // No rejection tracking yet
-        break;
-      default: // Pending
-        displayList = pendingVerifications;
-    }
+    final pendingCount = pendingList.length;
+    final verifiedCount = verifiedList.length;
+    final totalPractitioners = pendingCount + verifiedCount;
+
+    final List<UserAccount> displayList = switch (_selectedTab) {
+      1 => verifiedList,
+      2 => const [],
+      _ => pendingList,
+    };
+
+    final isLoading = pendingAsync.isLoading || verifiedAsync.isLoading;
+    final error = pendingAsync.error ?? verifiedAsync.error;
 
     return Scaffold(
       backgroundColor: colors.background,
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // -- Header --
-              Row(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.all(AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: colors.primary
-                          .withValues(alpha: 0.1),
-                      borderRadius: AppRadius.inputRadius,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.1),
+                        borderRadius: AppRadius.inputRadius,
+                      ),
+                      child: Icon(Icons.shield,
+                          size: 22, color: colors.primary),
                     ),
-                    child: Icon(
-                      Icons.shield,
-                      size: 22,
-                      color: colors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Admin Panel',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: colors.foreground,
-                            letterSpacing: -0.5,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Admin Panel',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: colors.foreground,
+                              letterSpacing: -0.5,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Practitioner verification & oversight',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colors.mutedForeground,
+                          const SizedBox(height: 2),
+                          Text(
+                            'Practitioner verification & oversight',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colors.mutedForeground,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xxl),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xxl),
 
-              // -- Dashboard Stats --
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(context, 
-                      label: 'Total Pending',
-                      value: '$pendingCount',
-                      color: colors.warning,
-                      icon: Icons.hourglass_empty,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: _buildStatCard(context, 
-                      label: 'Verified',
-                      value: '$verifiedCount',
-                      color: colors.success,
-                      icon: Icons.check_circle_outline,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(context, 
-                      label: 'Total Practitioners',
-                      value: '$totalPractitioners',
-                      color: colors.primary,
-                      icon: Icons.people_outline,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: _buildStatCard(context, 
-                      label: 'Total Users',
-                      value: '${allAccounts.length}',
-                      color: colors.secondary,
-                      icon: Icons.group_outlined,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xxl),
+                if (error != null)
+                  _buildErrorBanner(context, error),
 
-              // -- Filter Tabs --
-              _buildFilterTabs(context, pendingCount, verifiedCount),
-              const SizedBox(height: AppSpacing.lg),
+                // Stats
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(context,
+                          label: 'Total Pending',
+                          value: '$pendingCount',
+                          color: colors.warning,
+                          icon: Icons.hourglass_empty),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: _buildStatCard(context,
+                          label: 'Verified',
+                          value: '$verifiedCount',
+                          color: colors.success,
+                          icon: Icons.check_circle_outline),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(context,
+                          label: 'Total Practitioners',
+                          value: '$totalPractitioners',
+                          color: colors.primary,
+                          icon: Icons.people_outline),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: _buildStatCard(context,
+                          label: 'Total Practitioners',
+                          value: '$totalPractitioners',
+                          color: colors.secondary,
+                          icon: Icons.group_outlined),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xxl),
 
-              // -- Verification Queue --
-              Text(
-                _selectedTab == 0
-                    ? 'Verification Queue'
-                    : _selectedTab == 1
-                        ? 'Approved Practitioners'
-                        : 'Rejected Applications',
+                _buildFilterTabs(context, pendingCount, verifiedCount),
+                const SizedBox(height: AppSpacing.lg),
+
+                Text(
+                  _selectedTab == 0
+                      ? 'Verification Queue'
+                      : _selectedTab == 1
+                          ? 'Approved Practitioners'
+                          : 'Rejected Applications',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                if (isLoading && displayList.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(AppSpacing.xxl),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  )
+                else if (displayList.isEmpty)
+                  Card(
+                    padding: const EdgeInsets.all(AppSpacing.xxl),
+                    fillColor:
+                        SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+                    borderRadius: AppRadius.cardRadius,
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.check_circle_outline,
+                              size: 40,
+                              color: colors.mutedForeground
+                                  .withValues(alpha: 0.5)),
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            _selectedTab == 0
+                                ? 'No pending verifications'
+                                : 'No entries to display',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: colors.mutedForeground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  ...displayList.map((account) => Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: _buildVerificationCard(context, account),
+                      )),
+              ],
+            ),
+          ),
+        ),
+      );
+  }
+
+  Widget _buildErrorBanner(BuildContext context, Object error) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: colors.destructive.withValues(alpha: 0.08),
+          borderRadius: AppRadius.cardRadius,
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline,
+                size: 18, color: colors.destructive),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                'Could not reach server: $error',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: colors.foreground,
+                  fontSize: 12,
+                  color: colors.destructive,
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-
-              if (displayList.isEmpty)
-                Card(
-                  padding: const EdgeInsets.all(AppSpacing.xxl),
-                  fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
-                  borderRadius: AppRadius.cardRadius,
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 40,
-                          color: colors.mutedForeground.withValues(alpha: 0.5),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          _selectedTab == 0
-                              ? 'No pending verifications'
-                              : 'No entries to display',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: colors.mutedForeground,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ...displayList.map((account) {
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                        bottom: AppSpacing.md),
-                    child: _buildVerificationCard(context, account),
-                  );
-                }),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -244,14 +283,9 @@ class _AdminPanelScreenState
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 24, fontWeight: FontWeight.w800, color: color)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             label.toUpperCase(),
@@ -278,12 +312,9 @@ class _AdminPanelScreenState
         final isSelected = _selectedTab == index;
 
         return Padding(
-          padding:
-              const EdgeInsets.only(right: AppSpacing.sm),
+          padding: const EdgeInsets.only(right: AppSpacing.sm),
           child: Chip(
-            onPressed: () {
-              setState(() => _selectedTab = index);
-            },
+            onPressed: () => setState(() => _selectedTab = index),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -299,15 +330,11 @@ class _AdminPanelScreenState
                 ),
                 if (index == 0 && pendingCount > 0) ...[
                   const SizedBox(width: AppSpacing.xs),
-                  SecondaryBadge(
-                    child: Text('$pendingCount'),
-                  ),
+                  SecondaryBadge(child: Text('$pendingCount')),
                 ],
                 if (index == 1 && verifiedCount > 0) ...[
                   const SizedBox(width: AppSpacing.xs),
-                  SecondaryBadge(
-                    child: Text('$verifiedCount'),
-                  ),
+                  SecondaryBadge(child: Text('$verifiedCount')),
                 ],
               ],
             ),
@@ -323,7 +350,8 @@ class _AdminPanelScreenState
     final initials = _extractInitials(account.displayName);
     final d = account.createdAt;
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    final submittedDate = '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}, ${d.year}';
+    final submittedDate =
+        '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}, ${d.year}';
 
     return Card(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -332,15 +360,13 @@ class _AdminPanelScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: avatar + name + type badge
           Row(
             children: [
               Avatar(initials: initials, size: 40),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       account.displayName,
@@ -363,29 +389,22 @@ class _AdminPanelScreenState
                 ),
               ),
               isDoctor
-                  ? const PrimaryBadge(
-                      child: Text('DOCTOR'))
-                  : const SecondaryBadge(
-                      child: Text('NURSE')),
+                  ? const PrimaryBadge(child: Text('DOCTOR'))
+                  : const SecondaryBadge(child: Text('NURSE')),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Detail row
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color:
-                  SurfaceTheme.colorFor(SurfaceLevel.low, context),
+              color: SurfaceTheme.colorFor(SurfaceLevel.low, context),
               borderRadius: AppRadius.inputRadius,
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.business,
-                  size: 14,
-                  color: colors.mutedForeground,
-                ),
+                Icon(Icons.business,
+                    size: 14, color: colors.mutedForeground),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
@@ -397,11 +416,8 @@ class _AdminPanelScreenState
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.calendar_today,
-                  size: 12,
-                  color: colors.mutedForeground,
-                ),
+                Icon(Icons.calendar_today,
+                    size: 12, color: colors.mutedForeground),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   submittedDate,
@@ -416,22 +432,21 @@ class _AdminPanelScreenState
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Review button
           SizedBox(
             width: double.infinity,
             child: Button.primary(
-              onPressed: () {
-                context.push(
-                  RouteNames.verificationDetail
-                      .replaceFirst(':id', account.key.toString()),
-                );
-              },
+              onPressed: account.id == null
+                  ? null
+                  : () {
+                      context.push(
+                        RouteNames.verificationDetail
+                            .replaceFirst(':id', account.id!.toString()),
+                      );
+                    },
               child: const Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.rate_review_outlined,
-                      size: 14),
+                  Icon(Icons.rate_review_outlined, size: 14),
                   SizedBox(width: 6),
                   Text('Review'),
                 ],

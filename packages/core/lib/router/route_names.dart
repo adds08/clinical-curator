@@ -52,6 +52,7 @@ class RouteNames {
   static const serviceHealthTips = '/service/health-tips';
   static const consent = '/consent';
   static const clinicianSettings = '/clinician-settings';
+  static const userManual = '/user-manual';
   static const addPatient = '/add-patient';
   static const patientDetail = '/patient-detail/:id';
   static const scheduleEntry = '/schedule-entry';

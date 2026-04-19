@@ -182,7 +182,7 @@ Sync operates at the storage level (`FhirResource` box and domain-specific boxes
 ## Mock Data Requirements
 
 For testing sync:
-- Server must be running (`make db-up && make server-start`)
+- Server must be running (`make db-up && make server`)
 - Need matching data on server and client with different timestamps to test conflict resolution
 - Create a sync test scenario in mock seed: some records synced (status=0), some pending upload (status=1), some pending delete (status=2)
 

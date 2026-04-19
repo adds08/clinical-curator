@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
@@ -75,12 +74,12 @@ class _AmbulanceRequestScreenState
   }
 
   void _showCancellationDialog(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     String? selectedReason;
 
-    shadcn.openDrawer(
+    openDrawer(
       context: context,
-      position: shadcn.OverlayPosition.bottom,
+      position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
       builder: (_) => StatefulBuilder(
@@ -132,8 +131,8 @@ class _AmbulanceRequestScreenState
                       children: [
                         Icon(
                           isSelected
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_off,
+                              ? LucideIcons.circleDot
+                              : LucideIcons.circle,
                           size: 20,
                           color: isSelected
                               ? colors.destructive
@@ -158,7 +157,7 @@ class _AmbulanceRequestScreenState
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: shadcn.Button.destructive(
+                child: Button.destructive(
                   onPressed: selectedReason == null
                       ? null
                       : () {
@@ -166,12 +165,12 @@ class _AmbulanceRequestScreenState
                               .read(ambulanceProvider.notifier)
                               .cancelActiveRequestWithReason(
                                   selectedReason!);
-                          shadcn.closeDrawer(ctx);
-                          shadcn.showToast(
+                          closeDrawer(ctx);
+                          showToast(
                             context: context,
-                            builder: (c, o) => shadcn.SurfaceCard(
-                              child: shadcn.Basic(
-                                leading: Icon(Icons.cancel,
+                            builder: (c, o) => SurfaceCard(
+                              child: Basic(
+                                leading: Icon(LucideIcons.circleX,
                                     color: colors.destructive),
                                 title:
                                     const Text('Request cancelled'),
@@ -194,14 +193,14 @@ class _AmbulanceRequestScreenState
   }
 
   void _showCompletionDialog(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     String selectedTimeliness = 'on_time';
     int selectedHelpfulness = 5;
     final feedbackController = TextEditingController();
 
-    shadcn.openDrawer(
+    openDrawer(
       context: context,
-      position: shadcn.OverlayPosition.bottom,
+      position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
       builder: (_) => StatefulBuilder(
@@ -221,7 +220,7 @@ class _AmbulanceRequestScreenState
                       color: colors.success.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check_circle,
+                    child: Icon(LucideIcons.circleCheck,
                         color: colors.success, size: 28),
                   ),
                   const SizedBox(width: 12),
@@ -267,7 +266,7 @@ class _AmbulanceRequestScreenState
                     ctx, setDrawerState, colors,
                     value: 'early',
                     label: 'Early',
-                    icon: Icons.speed,
+                    icon: LucideIcons.gauge,
                     isSelected: selectedTimeliness == 'early',
                     onTap: () => setDrawerState(
                         () => selectedTimeliness = 'early'),
@@ -277,7 +276,7 @@ class _AmbulanceRequestScreenState
                     ctx, setDrawerState, colors,
                     value: 'on_time',
                     label: 'On Time',
-                    icon: Icons.check_circle_outline,
+                    icon: LucideIcons.circleCheck,
                     isSelected: selectedTimeliness == 'on_time',
                     onTap: () => setDrawerState(
                         () => selectedTimeliness = 'on_time'),
@@ -287,7 +286,7 @@ class _AmbulanceRequestScreenState
                     ctx, setDrawerState, colors,
                     value: 'delayed',
                     label: 'Delayed',
-                    icon: Icons.schedule,
+                    icon: LucideIcons.clock,
                     isSelected: selectedTimeliness == 'delayed',
                     onTap: () => setDrawerState(
                         () => selectedTimeliness = 'delayed'),
@@ -318,8 +317,8 @@ class _AmbulanceRequestScreenState
                           const EdgeInsets.symmetric(horizontal: 4),
                       child: Icon(
                         rating <= selectedHelpfulness
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded,
+                            ? LucideIcons.star
+                            : LucideIcons.star,
                         size: 36,
                         color: rating <= selectedHelpfulness
                             ? const Color(0xFFFACC15)
@@ -341,7 +340,7 @@ class _AmbulanceRequestScreenState
                 ),
               ),
               const SizedBox(height: 8),
-              shadcn.TextField(
+              TextField(
                 controller: feedbackController,
                 placeholder: const Text(
                     'Any comments about the service...'),
@@ -352,7 +351,7 @@ class _AmbulanceRequestScreenState
               // Confirm button
               SizedBox(
                 width: double.infinity,
-                child: shadcn.Button.primary(
+                child: Button.primary(
                   onPressed: () {
                     ref
                         .read(ambulanceProvider.notifier)
@@ -365,12 +364,12 @@ class _AmbulanceRequestScreenState
                               ? feedbackController.text.trim()
                               : null,
                         );
-                    shadcn.closeDrawer(ctx);
-                    shadcn.showToast(
+                    closeDrawer(ctx);
+                    showToast(
                       context: context,
-                      builder: (c, o) => shadcn.SurfaceCard(
-                        child: shadcn.Basic(
-                          leading: Icon(Icons.thumb_up,
+                      builder: (c, o) => SurfaceCard(
+                        child: Basic(
+                          leading: Icon(LucideIcons.thumbsUp,
                               color: colors.success),
                           title: const Text(
                               'Thank you for your feedback!'),
@@ -384,7 +383,7 @@ class _AmbulanceRequestScreenState
                       if (context.mounted) context.pop();
                     });
                   },
-                  leading: const Icon(Icons.check, size: 20),
+                  leading: const Icon(LucideIcons.check, size: 20),
                   child: const Text(
                     'Confirm Patient Received',
                     style: TextStyle(
@@ -404,7 +403,7 @@ class _AmbulanceRequestScreenState
   Widget _buildTimelinessChip(
     BuildContext ctx,
     StateSetter setDrawerState,
-    shadcn.ColorScheme colors, {
+    ColorScheme colors, {
     required String value,
     required String label,
     required IconData icon,
@@ -452,7 +451,7 @@ class _AmbulanceRequestScreenState
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final activeRequest = ref.watch(activeAmbulanceRequestProvider);
     final isArrived = activeRequest?.status == 'arrived';
     final driverName = activeRequest?.assignedDriverName ?? 'Ram Bahadur';
@@ -480,7 +479,7 @@ class _AmbulanceRequestScreenState
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isArrived ? Icons.where_to_vote : Icons.check_circle,
+                isArrived ? LucideIcons.mapPinCheck : LucideIcons.circleCheck,
                 color: colors.success,
                 size: 40,
               ),
@@ -514,9 +513,9 @@ class _AmbulanceRequestScreenState
             if (isArrived) ...[
               SizedBox(
                 width: double.infinity,
-                child: shadcn.Button.primary(
+                child: Button.primary(
                   onPressed: () => _showCompletionDialog(context),
-                  leading: const Icon(Icons.check_circle, size: 22),
+                  leading: const Icon(LucideIcons.circleCheck, size: 22),
                   child: const Text(
                     'Confirm Patient Received',
                     style: TextStyle(
@@ -599,7 +598,7 @@ class _AmbulanceRequestScreenState
                                         width: 2),
                                   ),
                                   child: const Icon(
-                                      Icons.location_on,
+                                      LucideIcons.mapPin,
                                       color: Colors.white,
                                       size: 16),
                                 ),
@@ -624,7 +623,7 @@ class _AmbulanceRequestScreenState
                                     ],
                                   ),
                                   child: const Icon(
-                                      Icons.local_shipping,
+                                      LucideIcons.truck,
                                       color: Colors.white,
                                       size: 18),
                                 ),
@@ -647,7 +646,7 @@ class _AmbulanceRequestScreenState
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.fullscreen,
+                              Icon(LucideIcons.maximize,
                                   size: 14, color: colors.primary),
                               const SizedBox(width: 4),
                               Text(
@@ -712,13 +711,13 @@ class _AmbulanceRequestScreenState
             const SizedBox(height: AppSpacing.lg),
 
             // -- Driver card --
-            shadcn.Card(
+            Card(
               padding: const EdgeInsets.all(AppSpacing.lg),
               fillColor:
                   SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
               child: Row(
                 children: [
-                  shadcn.Avatar(
+                  Avatar(
                       initials: driverName
                           .split(' ')
                           .map((w) => w[0])
@@ -744,7 +743,7 @@ class _AmbulanceRequestScreenState
                       ],
                     ),
                   ),
-                  shadcn.PrimaryBadge(
+                  PrimaryBadge(
                     child: const Text('ICU Equipped'),
                   ),
                 ],
@@ -772,7 +771,7 @@ class _AmbulanceRequestScreenState
                 return Padding(
                   padding:
                       const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: shadcn.Card(
+                  child: Card(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     fillColor: SurfaceTheme.colorFor(
                         SurfaceLevel.lowest, context),
@@ -814,21 +813,21 @@ class _AmbulanceRequestScreenState
             // -- Action buttons --
             SizedBox(
               width: double.infinity,
-              child: shadcn.Button.primary(
+              child: Button.primary(
                 onPressed: () {
-                  shadcn.showToast(
+                  showToast(
                     context: context,
-                    builder: (ctx, overlay) => shadcn.SurfaceCard(
-                      child: shadcn.Basic(
+                    builder: (ctx, overlay) => SurfaceCard(
+                      child: Basic(
                         leading:
-                            Icon(Icons.call, color: colors.primary),
+                            Icon(LucideIcons.phone, color: colors.primary),
                         title: Text('Calling $driverName...'),
                         subtitle: Text(vehicleNumber),
                       ),
                     ),
                   );
                 },
-                leading: const Icon(Icons.call, size: 20),
+                leading: const Icon(LucideIcons.phone, size: 20),
                 child: const Text('Call Driver',
                     style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700)),
@@ -838,7 +837,7 @@ class _AmbulanceRequestScreenState
             if (!isArrived)
               SizedBox(
                 width: double.infinity,
-                child: shadcn.Button.destructive(
+                child: Button.destructive(
                   onPressed: () => _showCancellationDialog(context),
                   child: const Text('Cancel Request',
                       style: TextStyle(

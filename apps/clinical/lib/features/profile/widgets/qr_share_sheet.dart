@@ -57,7 +57,7 @@ class _QrShareSheetState extends ConsumerState<QrShareSheet> {
                 ),
               ),
               IconButton.ghost(
-                icon: const Icon(Icons.close, size: 20),
+                icon: const Icon(LucideIcons.x, size: 20),
                 onPressed: () => closeDrawer(context),
               ),
             ],
@@ -163,7 +163,7 @@ class _QrShareSheetState extends ConsumerState<QrShareSheet> {
                   builder: (ctx, overlay) => SurfaceCard(
                     child: Basic(
                       title: const Text('Share link copied'),
-                      leading: const Icon(Icons.check_circle_outline),
+                      leading: const Icon(LucideIcons.circleCheck),
                     ),
                   ),
                 );
@@ -171,7 +171,7 @@ class _QrShareSheetState extends ConsumerState<QrShareSheet> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.link, size: 16),
+                  Icon(LucideIcons.link, size: 16),
                   SizedBox(width: 8),
                   Text('Copy Share Link'),
                 ],

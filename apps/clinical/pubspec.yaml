@@ -31,6 +31,9 @@ dependencies:
   hive_ce: ^2.7.0
   hive_ce_flutter: ^2.1.0
 
+  # Config — dotenv loaded at startup (see lib/main.dart)
+  flutter_dotenv: ^5.2.1
+
   # Persistence
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
@@ -56,6 +59,19 @@ dependencies:
 
   # QR Code
   qr_flutter: ^4.1.0
+
+  # Markdown rendering for in-app user manual
+  flutter_markdown_plus: ^1.0.3
+
+  # Backup / sharing / file pick
+  share_plus: ^10.1.4
+  file_picker: ^8.1.7
+
+  # Google Drive backup (requires GOOGLE_CLIENT_ID at build time)
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.5.1
+  google_sign_in: ^6.2.1
+  http: ^1.2.2
 
   # Serverpod
   serverpod_flutter: 3.4.5
@@ -89,7 +105,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/images/
     - assets/icons/
+    # Root `.env` shared between clinical + admin. Keeps a single source of
+    # truth for SERVERPOD_URL so both apps hit the same backend.
+    - ../../.env
+    # In-app user manuals, rendered by flutter_markdown_plus. Source of
+    # truth lives in docs/manual/ so prose can be edited without rebuilding.
+    - ../../docs/manual/PATIENT_MANUAL.md
+    - ../../docs/manual/CLINICIAN_MANUAL.md

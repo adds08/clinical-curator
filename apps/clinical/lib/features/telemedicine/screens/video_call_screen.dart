@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
 
 class VideoCallScreen extends StatefulWidget {
-  const VideoCallScreen({super.key});
+  final String? practitionerName;
+  final String? specialty;
+
+  const VideoCallScreen({super.key, this.practitionerName, this.specialty});
 
   @override
   State<VideoCallScreen> createState() => _VideoCallScreenState();
@@ -19,7 +21,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final topPad = MediaQuery.of(context).padding.top;
 
@@ -55,8 +57,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                       ),
                       child: Icon(
                         _cameraEnabled
-                            ? Icons.videocam
-                            : Icons.videocam_off,
+                            ? LucideIcons.video
+                            : LucideIcons.videoOff,
                         color: const Color(0xFF555555),
                         size: 40,
                       ),
@@ -72,7 +74,9 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      'Connecting to Dr. Arpan K. Sharma...',
+                      widget.practitionerName != null
+                          ? 'Connecting to ${widget.practitionerName}...'
+                          : 'Call in progress...',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.3),
@@ -101,7 +105,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                       color: Colors.white.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.arrow_back,
+                    child: const Icon(LucideIcons.arrowLeft,
                         color: Colors.white, size: 20),
                   ),
                 ),
@@ -110,9 +114,9 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Dr. Arpan K. Sharma',
-                        style: TextStyle(
+                      Text(
+                        widget.practitionerName ?? 'Call in progress',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -120,7 +124,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Cardiology',
+                        widget.specialty ?? '',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withValues(alpha: 0.6),
@@ -187,7 +191,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person, color: Color(0xFF555555), size: 32),
+                  Icon(LucideIcons.user, color: Color(0xFF555555), size: 32),
                   SizedBox(height: 4),
                   Text(
                     'You',
@@ -227,17 +231,17 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                 children: [
                   // Mic toggle
                   _buildControlButton(
-                    icon: _micEnabled ? Icons.mic : Icons.mic_off,
+                    icon: _micEnabled ? LucideIcons.mic : LucideIcons.micOff,
                     label: _micEnabled ? 'Mic On' : 'Mic Off',
                     active: _micEnabled,
                     onTap: () {
                       setState(() => _micEnabled = !_micEnabled);
-                      shadcn.showToast(
+                      showToast(
                         context: context,
-                        builder: (ctx, overlay) => shadcn.SurfaceCard(
-                          child: shadcn.Basic(
+                        builder: (ctx, overlay) => SurfaceCard(
+                          child: Basic(
                             leading: Icon(
-                              _micEnabled ? Icons.mic : Icons.mic_off,
+                              _micEnabled ? LucideIcons.mic : LucideIcons.micOff,
                               color: _micEnabled
                                   ? colors.primary
                                   : colors.destructive,
@@ -252,20 +256,20 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                   // Camera toggle
                   _buildControlButton(
                     icon: _cameraEnabled
-                        ? Icons.videocam
-                        : Icons.videocam_off,
+                        ? LucideIcons.video
+                        : LucideIcons.videoOff,
                     label: _cameraEnabled ? 'Cam On' : 'Cam Off',
                     active: _cameraEnabled,
                     onTap: () {
                       setState(() => _cameraEnabled = !_cameraEnabled);
-                      shadcn.showToast(
+                      showToast(
                         context: context,
-                        builder: (ctx, overlay) => shadcn.SurfaceCard(
-                          child: shadcn.Basic(
+                        builder: (ctx, overlay) => SurfaceCard(
+                          child: Basic(
                             leading: Icon(
                               _cameraEnabled
-                                  ? Icons.videocam
-                                  : Icons.videocam_off,
+                                  ? LucideIcons.video
+                                  : LucideIcons.videoOff,
                               color: _cameraEnabled
                                   ? colors.primary
                                   : colors.destructive,
@@ -288,27 +292,27 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                         color: colors.destructive,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.call_end,
+                      child: const Icon(LucideIcons.phoneOff,
                           color: Colors.white, size: 28),
                     ),
                   ),
                   // Chat toggle
                   _buildControlButton(
                     icon: _chatOpen
-                        ? Icons.chat
-                        : Icons.chat_bubble_outline,
+                        ? LucideIcons.messageCircle
+                        : LucideIcons.messageCircle,
                     label: 'Chat',
                     active: _chatOpen,
                     onTap: () {
                       setState(() => _chatOpen = !_chatOpen);
-                      shadcn.showToast(
+                      showToast(
                         context: context,
-                        builder: (ctx, overlay) => shadcn.SurfaceCard(
-                          child: shadcn.Basic(
+                        builder: (ctx, overlay) => SurfaceCard(
+                          child: Basic(
                             leading: Icon(
                               _chatOpen
-                                  ? Icons.chat
-                                  : Icons.chat_bubble_outline,
+                                  ? LucideIcons.messageCircle
+                                  : LucideIcons.messageCircle,
                               color: colors.primary,
                             ),
                             title: Text(_chatOpen

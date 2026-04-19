@@ -55,7 +55,7 @@ class _EncounterListScreenState extends ConsumerState<EncounterListScreen> {
       title: 'Encounters',
       trailing: [
         IconButton.ghost(
-          icon: const Icon(Icons.add_rounded, size: 22),
+          icon: const Icon(LucideIcons.plus, size: 22),
           onPressed: () => context.push('/clinical/start-encounter'),
         ),
       ],
@@ -94,7 +94,7 @@ class _EncounterListScreenState extends ConsumerState<EncounterListScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.medical_services_outlined,
+                        Icon(LucideIcons.briefcaseMedical,
                             size: 48, color: colors.mutedForeground),
                         const SizedBox(height: AppSpacing.md),
                         Text('No encounters',
@@ -238,7 +238,7 @@ class _EncounterCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Icon(Icons.calendar_today_rounded,
+                Icon(LucideIcons.calendar,
                     size: 13, color: colors.mutedForeground),
                 const SizedBox(width: 4),
                 Text(

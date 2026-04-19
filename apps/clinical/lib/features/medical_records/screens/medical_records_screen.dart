@@ -29,7 +29,6 @@ class _TimelineEntry {
   final DateTime sortDate;
   final ClinicalCategory category;
   final bool isCritical;
-  final List<String> subItems;
 
   const _TimelineEntry({
     required this.title,
@@ -39,7 +38,6 @@ class _TimelineEntry {
     required this.sortDate,
     required this.category,
     this.isCritical = false,
-    this.subItems = const [],
   });
 }
 
@@ -179,9 +177,18 @@ class _MedicalRecordsScreenState extends ConsumerState<MedicalRecordsScreen> {
                   padding: const EdgeInsets.only(top: 48),
                   child: Column(
                     children: [
-                      Icon(Icons.search_off_rounded, size: 40, color: colors.mutedForeground.withValues(alpha: 0.4)),
+                      Icon(
+                        entries.isEmpty ? LucideIcons.fileText : LucideIcons.searchX,
+                        size: 40,
+                        color: colors.mutedForeground.withValues(alpha: 0.4),
+                      ),
                       const SizedBox(height: 12),
-                      Text('No records match your filters', style: TextStyle(fontSize: 14, color: colors.mutedForeground)),
+                      Text(
+                        entries.isEmpty
+                            ? 'No medical records yet'
+                            : 'No records match your filters',
+                        style: TextStyle(fontSize: 14, color: colors.mutedForeground),
+                      ),
                     ],
                   ),
                 ),
@@ -219,10 +226,6 @@ class _MedicalRecordsScreenState extends ConsumerState<MedicalRecordsScreen> {
           ref.watch(patientImmunizationsProvider(patientRef)), entries);
       _addAllergyEntries(
           ref.watch(patientAllergiesProvider(patientRef)), entries);
-    }
-
-    if (entries.isEmpty) {
-      entries.addAll(_mockEntries());
     }
 
     entries.sort((a, b) => b.sortDate.compareTo(a.sortDate));
@@ -358,103 +361,6 @@ class _MedicalRecordsScreenState extends ConsumerState<MedicalRecordsScreen> {
   }
 
   // -------------------------------------------------------------------------
-  // Mock fallback entries
-  // -------------------------------------------------------------------------
-
-  List<_TimelineEntry> _mockEntries() {
-    return [
-      _TimelineEntry(
-        title: 'Full Lipid Panel',
-        subtitle: 'Dr. Elena Vance, Metabolic Health Center',
-        detail: 'LDL 142 mg/dL — HIGH',
-        dateLabel: 'Oct 12',
-        sortDate: DateTime(2025, 10, 12),
-        category: ClinicalCategory.lab,
-        isCritical: true,
-        subItems: [
-          'Total Cholesterol: 238 mg/dL',
-          'HDL: 52 mg/dL',
-          'Triglycerides: 165 mg/dL',
-        ],
-      ),
-      _TimelineEntry(
-        title: 'Blood Pressure',
-        subtitle: 'Vital Signs',
-        detail: '138/88 mmHg — elevated',
-        dateLabel: 'Oct 10',
-        sortDate: DateTime(2025, 10, 10),
-        category: ClinicalCategory.vital,
-      ),
-      _TimelineEntry(
-        title: 'Amoxicillin 500mg',
-        subtitle: 'Take 1 capsule 3x daily',
-        detail: 'Prescriber: Dr. Marcus Thorne | ACTIVE',
-        dateLabel: 'Oct 8',
-        sortDate: DateTime(2025, 10, 8),
-        category: ClinicalCategory.medication,
-      ),
-      _TimelineEntry(
-        title: 'Penicillin Allergy',
-        subtitle: 'Severity: severe',
-        detail: 'Reaction: Anaphylaxis',
-        dateLabel: 'Sep 20',
-        sortDate: DateTime(2025, 9, 20),
-        category: ClinicalCategory.allergy,
-        isCritical: true,
-      ),
-      _TimelineEntry(
-        title: 'Influenza Vaccine',
-        subtitle: 'CVS Pharmacy, Kathmandu',
-        detail: 'Administered at CVS Pharmacy',
-        dateLabel: 'Sep 15',
-        sortDate: DateTime(2025, 9, 15),
-        category: ClinicalCategory.immunization,
-      ),
-      _TimelineEntry(
-        title: 'Heart Rate',
-        subtitle: 'Vital Signs',
-        detail: '78 bpm — normal',
-        dateLabel: 'Sep 12',
-        sortDate: DateTime(2025, 9, 12),
-        category: ClinicalCategory.vital,
-      ),
-      _TimelineEntry(
-        title: 'Complete Blood Count',
-        subtitle: 'Dr. Elena Vance',
-        detail: 'All values within normal range',
-        dateLabel: 'Sep 5',
-        sortDate: DateTime(2025, 9, 5),
-        category: ClinicalCategory.lab,
-      ),
-      _TimelineEntry(
-        title: 'Metformin 500mg',
-        subtitle: 'Take 1 tablet twice daily with meals',
-        detail: 'Prescriber: Dr. S. Patel | ACTIVE',
-        dateLabel: 'Aug 28',
-        sortDate: DateTime(2025, 8, 28),
-        category: ClinicalCategory.medication,
-      ),
-      _TimelineEntry(
-        title: 'Sulfa Drug Allergy',
-        subtitle: 'Severity: moderate',
-        detail: 'Reaction: Skin rash',
-        dateLabel: 'Aug 15',
-        sortDate: DateTime(2025, 8, 15),
-        category: ClinicalCategory.allergy,
-        isCritical: true,
-      ),
-      _TimelineEntry(
-        title: 'COVID-19 Booster',
-        subtitle: 'City Hospital',
-        detail: 'Administered at City Hospital',
-        dateLabel: 'Aug 1',
-        sortDate: DateTime(2025, 8, 1),
-        category: ClinicalCategory.immunization,
-      ),
-    ];
-  }
-
-  // -------------------------------------------------------------------------
   // Filter + search
   // -------------------------------------------------------------------------
 
@@ -536,19 +442,19 @@ class _MedicalRecordsScreenState extends ConsumerState<MedicalRecordsScreen> {
   IconData _categoryIcon(ClinicalCategory cat) {
     switch (cat) {
       case ClinicalCategory.lab:
-        return Icons.biotech_rounded;
+        return LucideIcons.microscope;
       case ClinicalCategory.medication:
-        return Icons.medication_rounded;
+        return LucideIcons.pill;
       case ClinicalCategory.vital:
-        return Icons.monitor_heart_rounded;
+        return LucideIcons.heartPulse;
       case ClinicalCategory.immunization:
-        return Icons.vaccines_rounded;
+        return LucideIcons.syringe;
       case ClinicalCategory.allergy:
-        return Icons.warning_amber_rounded;
+        return LucideIcons.triangleAlert;
       case ClinicalCategory.diagnosis:
-        return Icons.medical_information_rounded;
+        return LucideIcons.clipboardPlus;
       case ClinicalCategory.note:
-        return Icons.note_rounded;
+        return LucideIcons.stickyNote;
     }
   }
 
@@ -794,34 +700,6 @@ class _TimelineEntryCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Sub-items
-                  if (entry.subItems.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    ...entry.subItems.map((item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 3),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 4,
-                                height: 4,
-                                margin: const EdgeInsets.only(top: 6, right: 8),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: colors.mutedForeground.withValues(alpha: 0.4),
-                                ),
-                              ),
-                              Flexible(
-                                child: Text(
-                                  item,
-                                  style: TextStyle(fontSize: 12, color: colors.mutedForeground, height: 1.4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
-
                   // Allergy warning banner
                   if (entry.category == ClinicalCategory.allergy) ...[
                     const SizedBox(height: 10),
@@ -834,7 +712,7 @@ class _TimelineEntryCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.warning_amber_rounded, size: 14, color: colors.warning),
+                          Icon(LucideIcons.triangleAlert, size: 14, color: colors.warning),
                           const SizedBox(width: 6),
                           Text(
                             'Check drug interactions',

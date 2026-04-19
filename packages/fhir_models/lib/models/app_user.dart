@@ -29,9 +29,9 @@ class AppUser extends Equatable {
     this.healthId,
   });
 
-  /// Whether this user can toggle between patient and practitioner roles.
-  /// Only verified practitioners are allowed to switch roles.
-  bool get canToggleRole => isPractitioner && isVerified;
+  bool get canToggleRole => isPractitioner;
+
+  bool get canReceiveConsent => isPractitioner && isVerified;
 
   AppUser copyWith({
     String? id,

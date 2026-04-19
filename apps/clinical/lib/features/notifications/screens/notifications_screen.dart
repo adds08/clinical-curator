@@ -120,7 +120,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             _SectionHeader(label: 'ACTIVE SERVICES', colors: colors),
             const Gap(10),
             _NotificationTile(
-              icon: Icons.emergency_rounded,
+              icon: LucideIcons.siren,
               iconColor: colors.destructive,
               iconBg: colors.criticalBackground,
               title: 'Ambulance Dispatched',
@@ -131,7 +131,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             const Gap(8),
             _NotificationTile(
-              icon: Icons.video_call_rounded,
+              icon: LucideIcons.video,
               iconColor: const Color(0xFF7C3AED),
               iconBg: const Color(0xFF7C3AED).withValues(alpha: 0.1),
               title: 'Upcoming Teleconsult',
@@ -144,7 +144,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             _SectionHeader(label: 'RECENT', colors: colors),
             const Gap(10),
             _NotificationTile(
-              icon: Icons.biotech_rounded,
+              icon: LucideIcons.microscope,
               iconColor: colors.oxygenSat,
               iconBg: colors.oxygenSat.withValues(alpha: 0.1),
               title: 'Lab Results Ready',
@@ -154,7 +154,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             const Gap(8),
             _NotificationTile(
-              icon: Icons.vaccines_rounded,
+              icon: LucideIcons.syringe,
               iconColor: colors.primary,
               iconBg: colors.primary.withValues(alpha: 0.1),
               title: 'Vaccination Reminder',
@@ -172,13 +172,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'ambulance': return Icons.emergency_rounded;
-      case 'appointment': return Icons.calendar_month_rounded;
-      case 'lab': return Icons.biotech_rounded;
-      case 'pharmacy': return Icons.local_pharmacy_rounded;
-      case 'alert': return Icons.warning_amber_rounded;
-      case 'consent': return Icons.shield_outlined;
-      default: return Icons.notifications_outlined;
+      case 'ambulance': return LucideIcons.siren;
+      case 'appointment': return LucideIcons.calendar;
+      case 'lab': return LucideIcons.microscope;
+      case 'pharmacy': return LucideIcons.pill;
+      case 'alert': return LucideIcons.triangleAlert;
+      case 'consent': return LucideIcons.shield;
+      default: return LucideIcons.bell;
     }
   }
 

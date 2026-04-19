@@ -90,23 +90,28 @@ class _PractitionerRegistrationScreenState
     final user = ref.read(authProvider).user;
     if (user == null) return;
 
-    // 1. Update UserAccount to mark as practitioner pending verification
-    final box = DatabaseService.userAccounts;
-    for (final account in box.values) {
-      if (account.email == user.email) {
-        account.isPractitioner = true;
-        account.isVerified = false;
-        account.practitionerType =
-            _selectedPractitionerType?.toLowerCase() ?? 'doctor';
-        account.accountType = 'practitioner';
-        account.updatedAt = DateTime.now();
-        await account.save();
-        break;
-      }
+    // Submit to Serverpod — this is what the admin app reads from.
+    // Without this round-trip, the admin verification queue never sees
+    // the application.
+    final ok = await ref
+        .read(authProvider.notifier)
+        .submitPractitionerRegistration(
+          practitionerType:
+              _selectedPractitionerType?.toLowerCase() ?? 'doctor',
+          licenseNumber: _licenseController.text.trim(),
+          specialization: _selectedSpecialization ?? 'General Practice',
+        );
+
+    if (!ok) {
+      // Error message is set on authProvider state; the UI renders it.
+      return;
     }
 
-    // 2. Create a FHIR Practitioner resource
-    final practitionerId = 'practitioner-${DateTime.now().millisecondsSinceEpoch}';
+    // Local-only mirror: create a FHIR Practitioner resource in Hive so
+    // offline clinician UI can resolve references. Not load-bearing for
+    // admin verification.
+    final practitionerId =
+        'practitioner-${DateTime.now().millisecondsSinceEpoch}';
     final nameParts = user.displayName.split(' ');
     final familyName = nameParts.length > 1 ? nameParts.last : user.displayName;
     final givenNames = nameParts.length > 1
@@ -149,16 +154,6 @@ class _PractitionerRegistrationScreenState
 
     await DatabaseService.fhirResources.add(fhirResource);
 
-    // 3. Link practitioner ID to user account
-    for (final account in box.values) {
-      if (account.email == user.email) {
-        account.fhirPractitionerId = practitionerId;
-        await account.save();
-        break;
-      }
-    }
-
-    // 4. Show confirmation and navigate back
     if (!mounted) return;
     showToast(
       context: context,
@@ -167,7 +162,8 @@ class _PractitionerRegistrationScreenState
           title: const Text('Registration Submitted'),
           subtitle: const Text(
               'Your credentials are pending admin review. You will be notified once verified.'),
-          leading: Icon(Icons.check_circle, size: 18, color: Theme.of(context).colorScheme.success),
+          leading: Icon(LucideIcons.circleCheck,
+              size: 18, color: Theme.of(context).colorScheme.success),
         ),
       ),
       location: ToastLocation.bottomRight,
@@ -196,7 +192,7 @@ class _PractitionerRegistrationScreenState
                     density: ButtonDensity.icon,
                     onPressed: () => context.go(RouteNames.login),
                     child: Icon(
-                      Icons.arrow_back,
+                      LucideIcons.arrowLeft,
                       size: 20,
                       color: colors.primary,
                     ),
@@ -245,7 +241,7 @@ class _PractitionerRegistrationScreenState
                           Alert(
                             destructive: true,
                             leading: const Icon(
-                              Icons.error_outline,
+                              LucideIcons.circleAlert,
                               size: 18,
                             ),
                             title: Text(authState.errorMessage!),
@@ -286,13 +282,13 @@ class _PractitionerRegistrationScreenState
                                   children: [
                                     _buildTypeOption(
                                       value: 'Doctor',
-                                      icon: Icons.medical_services_outlined,
+                                      icon: LucideIcons.briefcaseMedical,
                                       label: 'Doctor',
                                     ),
                                     const SizedBox(width: 12),
                                     _buildTypeOption(
                                       value: 'Nurse',
-                                      icon: Icons.health_and_safety_outlined,
+                                      icon: LucideIcons.shieldPlus,
                                       label: 'Nurse',
                                     ),
                                   ],
@@ -411,7 +407,7 @@ class _PractitionerRegistrationScreenState
                               // NMC Verification Notice
                               Alert(
                                 leading: Icon(
-                                  Icons.info_outline,
+                                  LucideIcons.info,
                                   size: 18,
                                   color: colors.primary,
                                 ),
@@ -439,7 +435,7 @@ class _PractitionerRegistrationScreenState
                                     : _handleSubmit,
                                 size: const ButtonSize(1.1),
                                 trailing: const Icon(
-                                  Icons.arrow_forward,
+                                  LucideIcons.arrowRight,
                                   size: 18,
                                   color: Colors.white,
                                 ),
@@ -472,7 +468,7 @@ class _PractitionerRegistrationScreenState
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.schedule,
+                                LucideIcons.clock,
                                 size: 14,
                                 color: colors.mutedForeground,
                               ),
@@ -582,7 +578,7 @@ class _PractitionerRegistrationScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              uploaded ? Icons.check_circle : Icons.cloud_upload_outlined,
+              uploaded ? LucideIcons.circleCheck : LucideIcons.cloudUpload,
               size: 28,
               color: uploaded ? colors.success : colors.mutedForeground,
             ),

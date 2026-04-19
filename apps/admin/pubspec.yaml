@@ -1,5 +1,5 @@
 name: clinical_curator_admin
-description: Admin console — verification, organizations, audit, RBAC management.
+description: Admin console — verification, organizations, audit, RBAC management. Talks to Serverpod exclusively (no local Hive cache).
 publish_to: none
 version: 0.1.0+1
 
@@ -12,14 +12,10 @@ dependencies:
 
   cc_core:
     path: ../../packages/core
-  cc_fhir_models:
-    path: ../../packages/fhir_models
-  cc_data:
-    path: ../../packages/data
   cc_ui_kit:
     path: ../../packages/ui_kit
-  cc_rbac:
-    path: ../../packages/rbac
+  cc_repositories:
+    path: ../../packages/repositories
 
   # UI + state
   shadcn_flutter: ^0.0.52
@@ -28,10 +24,15 @@ dependencies:
   fl_chart: ^0.70.2
   intl: any
 
-  # Hive (admin uses same DB as clinical app, separate Hive box dirs would
-  # break the shared boxes — DatabaseService.initialize() opens them all).
-  hive_ce: ^2.7.0
-  hive_ce_flutter: ^2.1.0
+  shared_preferences: ^2.3.2
+
+  # Config — dotenv loaded at startup (see lib/main.dart)
+  flutter_dotenv: ^5.2.1
+
+  # Serverpod client
+  serverpod_flutter: 3.4.5
+  clinical_curator_client:
+    path: ../../clinical_curator_client
 
 dev_dependencies:
   flutter_test:
@@ -40,3 +41,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # Root `.env` shared between clinical + admin.
+    - ../../.env

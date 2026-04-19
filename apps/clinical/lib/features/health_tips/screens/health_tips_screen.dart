@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/surface_theme.dart';
@@ -30,7 +29,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final allTips = ref.watch(healthTipsProvider);
 
     // Build category list from data
@@ -65,13 +64,13 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Search
-            shadcn.TextField(
+            TextField(
               controller: _searchController,
               placeholder: const Text('Search articles...'),
               onChanged: (_) => setState(() {}),
               features: [
-                shadcn.InputFeature.leading(
-                    Icon(Icons.search, color: colors.mutedForeground, size: 20)),
+                InputFeature.leading(
+                    Icon(LucideIcons.search, color: colors.mutedForeground, size: 20)),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -85,7 +84,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
                 separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
                 itemBuilder: (context, i) {
                   final selected = categoryList[i] == _selectedCategory;
-                  return shadcn.Chip(
+                  return Chip(
                     onPressed: () =>
                         setState(() => _selectedCategory = categoryList[i]),
                     child: Text(
@@ -106,7 +105,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
             if (featured != null) ...[
               GestureDetector(
                 onTap: () => _openArticle(context, featured),
-                child: shadcn.Card(
+                child: Card(
                   padding: EdgeInsets.zero,
                   fillColor:
                       SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
@@ -145,7 +144,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            shadcn.PrimaryBadge(
+                            PrimaryBadge(
                                 child: Text(featured.category.toUpperCase())),
                             const SizedBox(height: AppSpacing.sm),
                             Text(featured.title,
@@ -187,14 +186,14 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
               ),
 
             if (tips.isEmpty)
-              shadcn.Card(
+              Card(
                 padding: const EdgeInsets.all(AppSpacing.xxl),
                 fillColor:
                     SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.lightbulb_outline,
+                      Icon(LucideIcons.lightbulb,
                           size: 36,
                           color:
                               colors.mutedForeground.withValues(alpha: 0.4)),
@@ -212,7 +211,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
             const SizedBox(height: AppSpacing.xxl),
 
             // Newsletter signup
-            shadcn.Card(
+            Card(
               padding: const EdgeInsets.all(AppSpacing.xl),
               fillColor: colors.primary.withValues(alpha: 0.06),
               child: Column(
@@ -220,7 +219,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.mail_outline, color: colors.primary, size: 22),
+                      Icon(LucideIcons.mail, color: colors.primary, size: 22),
                       const SizedBox(width: AppSpacing.sm),
                       Text('Clinical Digest',
                           style: TextStyle(
@@ -240,25 +239,25 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: shadcn.TextField(
+                        child: TextField(
                           controller: _emailController,
                           placeholder: const Text('you@email.com'),
                           features: [
-                            shadcn.InputFeature.leading(Icon(
-                                Icons.email_outlined,
+                            InputFeature.leading(Icon(
+                                LucideIcons.mail,
                                 color: colors.mutedForeground,
                                 size: 18)),
                           ],
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      shadcn.Button.primary(
+                      Button.primary(
                         onPressed: () {
-                          shadcn.showToast(
+                          showToast(
                             context: context,
-                            builder: (ctx, overlay) => shadcn.SurfaceCard(
-                              child: shadcn.Basic(
-                                leading: Icon(Icons.check_circle,
+                            builder: (ctx, overlay) => SurfaceCard(
+                              child: Basic(
+                                leading: Icon(LucideIcons.circleCheck,
                                     color: colors.success),
                                 title: const Text(
                                     'Subscribed to Clinical Digest'),
@@ -281,20 +280,20 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
   }
 
   void _openArticle(BuildContext context, HealthTipLocal tip) {
-    final colors = shadcn.Theme.of(context).colorScheme;
-    shadcn.openDrawer(
+    final colors = Theme.of(context).colorScheme;
+    openDrawer(
       context: context,
-      position: shadcn.OverlayPosition.bottom,
+      position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                shadcn.SecondaryBadge(child: Text(tip.category)),
+                SecondaryBadge(child: Text(tip.category)),
                 const SizedBox(width: 8),
                 Text('By ${tip.author}',
                     style: TextStyle(
@@ -325,8 +324,8 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: shadcn.Button.outline(
-                onPressed: () => shadcn.closeDrawer(context),
+              child: Button.outline(
+                onPressed: () => closeDrawer(ctx),
                 child: const Text('Close'),
               ),
             ),
@@ -337,10 +336,10 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
   }
 
   Widget _buildArticleCard(HealthTipLocal tip) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _openArticle(context, tip),
-      child: shadcn.Card(
+      child: Card(
         padding: EdgeInsets.zero,
         fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
         child: Column(
@@ -369,7 +368,7 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  shadcn.SecondaryBadge(child: Text(tip.category)),
+                  SecondaryBadge(child: Text(tip.category)),
                   const SizedBox(height: AppSpacing.sm),
                   Text(tip.title,
                       maxLines: 2,
@@ -395,19 +394,19 @@ class _HealthTipsScreenState extends ConsumerState<HealthTipsScreen> {
   IconData _iconForCategory(String category) {
     switch (category) {
       case 'cardiovascular':
-        return Icons.favorite;
+        return LucideIcons.heart;
       case 'wellness':
-        return Icons.spa;
+        return LucideIcons.flower;
       case 'prevention':
-        return Icons.health_and_safety;
+        return LucideIcons.shieldPlus;
       case 'chronic-disease':
-        return Icons.medical_information;
+        return LucideIcons.clipboardPlus;
       case 'mental-health':
-        return Icons.self_improvement;
+        return LucideIcons.personStanding;
       case 'nutrition':
-        return Icons.restaurant;
+        return LucideIcons.utensils;
       default:
-        return Icons.lightbulb_outline;
+        return LucideIcons.lightbulb;
     }
   }
 }

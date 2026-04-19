@@ -6,6 +6,7 @@ import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/consent_provider.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 
 class ConsentManagementScreen extends ConsumerStatefulWidget {
@@ -43,7 +44,7 @@ class _ConsentManagementScreenState extends ConsumerState<ConsentManagementScree
                 decoration: BoxDecoration(color: colors.muted, borderRadius: BorderRadius.circular(16)),
                 child: Column(
                   children: [
-                    Icon(Icons.shield_outlined, size: 32, color: colors.mutedForeground),
+                    Icon(LucideIcons.shield, size: 32, color: colors.mutedForeground),
                     const SizedBox(height: 12),
                     Text('No active consents', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.foreground)),
                     const SizedBox(height: 4),
@@ -66,13 +67,13 @@ class _ConsentManagementScreenState extends ConsumerState<ConsentManagementScree
                   showToast(
                     context: context,
                     builder: (ctx, overlay) => SurfaceCard(
-                      child: Basic(title: const Text('Grant New Access'), subtitle: const Text('New consent form opening...'), leading: const Icon(Icons.add, size: 18)),
+                      child: Basic(title: const Text('Grant New Access'), subtitle: const Text('New consent form opening...'), leading: const Icon(LucideIcons.plus, size: 18)),
                     ),
                   );
                 },
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Icon(Icons.add, size: 18), SizedBox(width: 6), Text('Grant New Access')],
+                  children: [Icon(LucideIcons.plus, size: 18), SizedBox(width: 6), Text('Grant New Access')],
                 ),
               ),
             ),
@@ -84,13 +85,13 @@ class _ConsentManagementScreenState extends ConsumerState<ConsentManagementScree
                   showToast(
                     context: context,
                     builder: (ctx, overlay) => SurfaceCard(
-                      child: Basic(title: const Text('QR Code'), subtitle: const Text('QR code generated'), leading: const Icon(Icons.qr_code, size: 18)),
+                      child: Basic(title: const Text('QR Code'), subtitle: const Text('QR code generated'), leading: const Icon(LucideIcons.qrCode, size: 18)),
                     ),
                   );
                 },
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Icon(Icons.qr_code, size: 18), SizedBox(width: 6), Text('Share via QR Code')],
+                  children: [Icon(LucideIcons.qrCode, size: 18), SizedBox(width: 6), Text('Share via QR Code')],
                 ),
               ),
             ),
@@ -107,7 +108,7 @@ class _ConsentManagementScreenState extends ConsumerState<ConsentManagementScree
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.verified_user_outlined, size: 20, color: colors.primary.withValues(alpha: 0.7)),
+                  Icon(LucideIcons.shieldCheck, size: 20, color: colors.primary.withValues(alpha: 0.7)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -128,7 +129,13 @@ class _ConsentManagementScreenState extends ConsumerState<ConsentManagementScree
     final id = consent.fhirId?.toString() ?? '';
     if (id.isEmpty) return;
 
-    await toggleConsentStatus(id, activate);
+    final user = ref.read(authProvider).user;
+    await toggleConsentStatus(
+      id,
+      activate,
+      agentEmail: user?.email,
+      agentName: user?.displayName,
+    );
     setState(() {}); // Rebuild to reflect Hive change
     ref.invalidate(patientConsentsProvider);
 
@@ -138,7 +145,7 @@ class _ConsentManagementScreenState extends ConsumerState<ConsentManagementScree
         builder: (ctx, overlay) => SurfaceCard(
           child: Basic(
             title: Text(activate ? 'Access granted' : 'Access revoked'),
-            leading: Icon(activate ? Icons.check_circle : Icons.cancel, size: 18),
+            leading: Icon(activate ? LucideIcons.circleCheck : LucideIcons.circleX, size: 18),
           ),
         ),
       );
@@ -188,6 +195,8 @@ class _ConsentCard extends StatelessWidget {
                     Text(practitionerName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.foreground)),
                     const SizedBox(height: 2),
                     Text(practitionerRef, style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
+                    const SizedBox(height: 4),
+                    PractitionerVerifiedBadge(practitionerRef: practitionerRef),
                   ],
                 ),
               ),

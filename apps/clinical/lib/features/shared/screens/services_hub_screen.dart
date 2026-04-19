@@ -62,7 +62,7 @@ class ServicesHubScreen extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.emergency_rounded,
+                      child: const Icon(LucideIcons.siren,
                           color: Colors.white, size: 26),
                     ),
                     const Gap(16),
@@ -89,7 +89,7 @@ class ServicesHubScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded,
+                    const Icon(LucideIcons.chevronRight,
                         color: Colors.white, size: 16),
                   ],
                 ),
@@ -111,7 +111,7 @@ class ServicesHubScreen extends StatelessWidget {
             const Gap(14),
 
             _ServiceRow(
-              icon: Icons.calendar_month_rounded,
+              icon: LucideIcons.calendar,
               title: 'Book Appointment',
               subtitle: 'Find a doctor and book a visit',
               color: const Color(0xFF2563EB),
@@ -119,7 +119,7 @@ class ServicesHubScreen extends StatelessWidget {
             ),
             const Gap(10),
             _ServiceRow(
-              icon: Icons.videocam_rounded,
+              icon: LucideIcons.video,
               title: 'Telemedicine',
               subtitle: 'Video consult with specialists',
               color: const Color(0xFF7C3AED),
@@ -127,7 +127,7 @@ class ServicesHubScreen extends StatelessWidget {
             ),
             const Gap(10),
             _ServiceRow(
-              icon: Icons.tips_and_updates_rounded,
+              icon: LucideIcons.lightbulb,
               title: 'Health Tips',
               subtitle: 'Evidence-based wellness articles',
               color: colors.temperature,
@@ -151,7 +151,7 @@ class ServicesHubScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: _ServiceCard(
-                    icon: Icons.science_rounded,
+                    icon: LucideIcons.flaskConical,
                     label: 'Lab Booking',
                     description: 'Book tests nearby',
                     color: colors.oxygenSat,
@@ -161,7 +161,7 @@ class ServicesHubScreen extends StatelessWidget {
                 const Gap(12),
                 Expanded(
                   child: _ServiceCard(
-                    icon: Icons.medication_rounded,
+                    icon: LucideIcons.pill,
                     label: 'Pharmacy',
                     description: 'Order medicines',
                     color: colors.success,
@@ -175,7 +175,7 @@ class ServicesHubScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: _ServiceCard(
-                    icon: Icons.local_hospital_rounded,
+                    icon: LucideIcons.hospital,
                     label: 'Hospitals',
                     description: 'Find nearby',
                     color: const Color(0xFF0D9488),
@@ -185,7 +185,7 @@ class ServicesHubScreen extends StatelessWidget {
                 const Gap(12),
                 Expanded(
                   child: _ServiceCard(
-                    icon: Icons.shield_rounded,
+                    icon: LucideIcons.shield,
                     label: 'Insurance',
                     description: 'Claims & billing',
                     color: const Color(0xFF4F46E5),
@@ -267,7 +267,7 @@ class _ServiceRow extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
+            Icon(LucideIcons.chevronRight,
                 size: 14, color: colors.mutedForeground),
           ],
         ),

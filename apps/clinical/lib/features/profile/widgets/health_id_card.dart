@@ -46,7 +46,7 @@ class HealthIdCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.local_hospital_rounded,
+                  Icon(LucideIcons.hospital,
                       color: Colors.white.withValues(alpha: 0.9), size: 20),
                   const SizedBox(width: 8),
                   Text(
@@ -134,7 +134,7 @@ class HealthIdCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  Icons.qr_code_2_rounded,
+                  LucideIcons.qrCode,
                   color: Colors.white.withValues(alpha: 0.6),
                   size: 24,
                 ),

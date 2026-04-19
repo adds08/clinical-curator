@@ -15,6 +15,7 @@ import 'package:cc_fhir_models/collections/appointment_collection.dart';
 import 'package:cc_fhir_models/collections/fhir_resource_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/patient_data_provider.dart';
+import '../../../domain/services/audit_logger.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
 import 'package:cc_rbac/can.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
@@ -24,22 +25,43 @@ class PatientDetailScreen extends ConsumerWidget {
 
   const PatientDetailScreen({
     super.key,
-    this.patientId = '0922-A',
+    required this.patientId,
   });
+
+  // Guards duplicate data-access audits when the widget rebuilds for
+  // unrelated state. Reset on hot restart / process launch.
+  static final Set<String> _auditedThisSession = <String>{};
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final patientRef = 'Patient/$patientId';
 
-    // Pre-load real patient data from FHIR providers (used by sub-widgets)
-    // ignore: unused_local_variable
+    // Fire a one-per-session FHIR data-access audit the first time a
+    // clinician lands on a patient's detail screen.
+    if (_auditedThisSession.add(patientRef)) {
+      final agent = ref.read(authProvider).user;
+      if (agent != null && agent.isPractitioner) {
+        AuditLogger.dataAccessed(
+          entityRef: patientRef,
+          entityType: 'Patient',
+          agentRef:
+              'Practitioner/${agent.fhirPractitionerId ?? agent.email}',
+          agentName: agent.displayName,
+          agentRole: agent.practitionerType,
+        );
+      }
+    }
+
+    // Pre-load real patient data from FHIR providers
     final patientVitals = ref.watch(patientVitalsProvider(patientRef));
-    // ignore: unused_local_variable
     final patientLabs = ref.watch(patientLabsProvider(patientRef));
-    // ignore: unused_local_variable
     final patientMeds = ref.watch(patientMedicationsProvider(patientRef));
-    // ignore: unused_local_variable
     final patientAllergies = ref.watch(patientAllergiesProvider(patientRef));
+    final patientImmunizations = ref.watch(patientImmunizationsProvider(patientRef));
+
+    // Derive latest weight / height from vitals (LOINC 29463-7 weight, 8302-2 height)
+    final latestWeight = _latestObsValue(patientVitals, '29463-7');
+    final latestHeight = _latestObsValue(patientVitals, '8302-2');
 
     // Resolve patient from FHIR provider
     final fhirPatient = ref.watch(patientFhirProvider(patientRef));
@@ -80,23 +102,29 @@ class PatientDetailScreen extends ConsumerWidget {
                       registrationDate: registrationDate,
                       nextAppointment: nextAppt,
                       practitionerName: practitionerName,
+                      weightLabel: latestWeight,
+                      heightLabel: latestHeight,
                     ),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Allergy Alert
-                    _buildAllergyAlert(context),
+                    _buildAllergyAlert(context, patientAllergies),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Vitals Trendline
-                    _buildVitalsTrendline(context),
+                    _buildVitalsTrendline(context, patientVitals),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Lab Results
-                    _buildLabResults(context),
+                    _buildLabResults(context, patientLabs),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Active Medications
-                    _buildActiveMedications(context),
+                    _buildActiveMedications(context, patientMeds),
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // Immunizations
+                    _buildImmunizations(context, patientImmunizations),
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Visit Timeline
@@ -104,7 +132,7 @@ class PatientDetailScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.xxl),
 
                     // Clinical Actions
-                    _buildClinicalActions(context, patientRef, patientName),
+                    _buildClinicalActions(context, ref, patientRef, patientName),
                     const SizedBox(height: AppSpacing.xl),
                   ],
                 ),
@@ -122,6 +150,8 @@ class PatientDetailScreen extends ConsumerWidget {
     DateTime? registrationDate,
     AppointmentLocal? nextAppointment,
     String? practitionerName,
+    String? weightLabel,
+    String? heightLabel,
   }) {
     final colors = Theme.of(context).colorScheme;
     final regText = registrationDate != null
@@ -153,30 +183,35 @@ class PatientDetailScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    _buildInfoChip(context, Icons.monitor_weight_outlined, '68.4 kg'),
-                    const SizedBox(width: AppSpacing.sm),
-                    _buildInfoChip(context, Icons.height, '172 cm'),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                if (weightLabel != null || heightLabel != null) ...[
+                  Row(
+                    children: [
+                      if (weightLabel != null)
+                        _buildInfoChip(context, LucideIcons.scale, weightLabel),
+                      if (weightLabel != null && heightLabel != null)
+                        const SizedBox(width: AppSpacing.sm),
+                      if (heightLabel != null)
+                        _buildInfoChip(context, LucideIcons.ruler, heightLabel),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
                 _buildProfileInfoRow(
                   context,
-                  Icons.calendar_today,
+                  LucideIcons.calendar,
                   'Registered: $regText',
                 ),
                 const SizedBox(height: 4),
                 _buildProfileInfoRow(
                   context,
-                  Icons.event,
+                  LucideIcons.calendar,
                   nextText != null ? 'Next visit: $nextText' : 'No upcoming visits',
                   highlight: nextText != null,
                 ),
                 const SizedBox(height: 4),
                 _buildProfileInfoRow(
                   context,
-                  Icons.medical_services_outlined,
+                  LucideIcons.briefcaseMedical,
                   practitionerName ?? 'Unassigned',
                 ),
               ],
@@ -240,8 +275,31 @@ class PatientDetailScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   // Allergy Alert
   // ---------------------------------------------------------------------------
-  Widget _buildAllergyAlert(BuildContext context) {
-      final colors = Theme.of(context).colorScheme;
+  Widget _buildAllergyAlert(BuildContext context, List<fhir.AllergyIntolerance> allergies) {
+    final colors = Theme.of(context).colorScheme;
+    if (allergies.isEmpty) {
+      return _buildEmptyStateCard(
+        context,
+        icon: LucideIcons.shieldCheck,
+        message: 'No allergies on record',
+      );
+    }
+
+    final primary = allergies.first;
+    final name = primary.code?.coding?.firstOrNull?.display ??
+        primary.code?.text ??
+        'Unknown allergen';
+    final reactions = primary.reaction
+            ?.map((r) => r.manifestation
+                .map((m) => m.text ?? m.coding?.firstOrNull?.display ?? '')
+                .where((s) => s.isNotEmpty)
+                .join(', '))
+            .where((s) => s.isNotEmpty)
+            .join('; ') ??
+        '';
+    final notes = primary.note?.map((n) => n.text?.value ?? '').where((s) => s.isNotEmpty).join(' • ') ?? '';
+    final subtitle = [reactions, notes].where((s) => s.isNotEmpty).join(' — ');
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -253,15 +311,11 @@ class PatientDetailScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: colors.primaryForeground,
-                size: 22,
-              ),
+              Icon(LucideIcons.triangleAlert, color: colors.primaryForeground, size: 22),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  'Penicillin',
+                  allergies.length > 1 ? '$name  (+${allergies.length - 1} more)' : name,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -269,48 +323,120 @@ class PatientDetailScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              PrimaryBadge(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.primaryForeground,
-                    borderRadius: AppRadius.chipRadius,
-                  ),
-                  child: Text(
-                    'ALLERGY ALERT',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: colors.primary,
-                      letterSpacing: 0.5,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
+                decoration: BoxDecoration(
+                  color: colors.primaryForeground,
+                  borderRadius: AppRadius.chipRadius,
+                ),
+                child: Text(
+                  'ALLERGY ALERT',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: colors.primary,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Severe reaction reported 2019. Avoid all Beta-lactam antibiotics. Patient carries EpiPen.',
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.primaryForeground.withValues(alpha: 0.85),
-              height: 1.5,
+          if (subtitle.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.primaryForeground.withValues(alpha: 0.85),
+                height: 1.5,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
+  Widget _buildEmptyStateCard(BuildContext context, {required IconData icon, required String message}) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+      borderRadius: AppRadius.cardRadius,
+      child: Center(
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: colors.mutedForeground.withValues(alpha: 0.5)),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              message,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Returns the latest value string for an Observation identified by LOINC code,
+  // formatted as "<value> <unit>" (e.g. "68.4 kg"). Null when no data.
+  static String? _latestObsValue(List<fhir.Observation> vitals, String loinc) {
+    final matches = vitals.where((o) =>
+        o.code.coding?.any((c) => c.code?.value == loinc) ?? false).toList();
+    if (matches.isEmpty) return null;
+    matches.sort((a, b) {
+      final aD = a.effectiveDateTime?.value;
+      final bD = b.effectiveDateTime?.value;
+      if (aD == null && bD == null) return 0;
+      if (aD == null) return 1;
+      if (bD == null) return -1;
+      return bD.compareTo(aD);
+    });
+    final q = matches.first.valueQuantity;
+    final v = q?.value?.value;
+    if (v == null) return null;
+    final display = v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+    final unit = q?.unit ?? '';
+    return unit.isEmpty ? display : '$display $unit';
+  }
+
   // ---------------------------------------------------------------------------
   // Vitals Trendline
   // ---------------------------------------------------------------------------
-  Widget _buildVitalsTrendline(BuildContext context) {
-      final colors = Theme.of(context).colorScheme;
+  Widget _buildVitalsTrendline(BuildContext context, List<fhir.Observation> vitals) {
+    final colors = Theme.of(context).colorScheme;
+
+    // Collect series from real observations.
+    final systolic = <DateTime, double>{};
+    final diastolic = <DateTime, double>{};
+    final heartRate = <DateTime, double>{};
+
+    for (final obs in vitals) {
+      final date = obs.effectiveDateTime?.value;
+      if (date == null) continue;
+      final isBP = obs.code.coding?.any((c) => c.code?.value == '85354-9') ?? false;
+      final isHR = obs.code.coding?.any((c) => c.code?.value == '8867-4') ?? false;
+      if (isBP) {
+        for (final comp in obs.component ?? []) {
+          final sys = comp.code.coding?.any((c) => c.code?.value == '8480-6') ?? false;
+          final dia = comp.code.coding?.any((c) => c.code?.value == '8462-4') ?? false;
+          final v = comp.valueQuantity?.value?.value;
+          if (v == null) continue;
+          if (sys) systolic[date] = v;
+          if (dia) diastolic[date] = v;
+        }
+      } else if (isHR) {
+        final v = obs.valueQuantity?.value?.value;
+        if (v != null) heartRate[date] = v;
+      }
+    }
+
+    final hasAny = systolic.isNotEmpty || diastolic.isNotEmpty || heartRate.isNotEmpty;
+    // Sparse = at least one data point exists but no series has ≥2 points,
+    // so we can't draw a trendline yet (a lone dot is misleading).
+    final hasTrend = systolic.length >= 2 || diastolic.length >= 2 || heartRate.length >= 2;
+    final isSparse = hasAny && !hasTrend;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,13 +450,26 @@ class PatientDetailScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Last 6 Months (BP & Heart Rate)',
+          'Recorded BP & Heart Rate',
           style: TextStyle(
             fontSize: 12,
             color: colors.mutedForeground,
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
+        if (!hasAny)
+          _buildEmptyStateCard(
+            context,
+            icon: LucideIcons.heartPulse,
+            message: 'No vitals recorded',
+          )
+        else if (isSparse)
+          _buildEmptyStateCard(
+            context,
+            icon: LucideIcons.trendingUp,
+            message: 'Add at least 2 vitals to see a trend',
+          )
+        else
         Card(
           padding: const EdgeInsets.all(AppSpacing.lg),
           fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
@@ -360,35 +499,19 @@ class PatientDetailScreen extends ConsumerWidget {
                       destructiveColor: colors.destructive,
                       successColor: colors.success,
                       borderColor: colors.border,
+                      systolicSeries: _seriesFrom(systolic),
+                      diastolicSeries: _seriesFrom(diastolic),
+                      heartRateSeries: _seriesFrom(heartRate),
                     ),
                     size: Size.infinite,
                   ),
                 ),
 
-                // X-axis labels
+                // X-axis labels (month of first/last observation)
                 const SizedBox(height: AppSpacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Jan',
-                        style: TextStyle(
-                            fontSize: 9, color: colors.mutedForeground)),
-                    Text('Feb',
-                        style: TextStyle(
-                            fontSize: 9, color: colors.mutedForeground)),
-                    Text('Mar',
-                        style: TextStyle(
-                            fontSize: 9, color: colors.mutedForeground)),
-                    Text('Apr',
-                        style: TextStyle(
-                            fontSize: 9, color: colors.mutedForeground)),
-                    Text('May',
-                        style: TextStyle(
-                            fontSize: 9, color: colors.mutedForeground)),
-                    Text('Jun',
-                        style: TextStyle(
-                            fontSize: 9, color: colors.mutedForeground)),
-                  ],
+                  children: _buildAxisLabels(context, systolic, diastolic, heartRate),
                 ),
               ],
             ),
@@ -396,6 +519,32 @@ class PatientDetailScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  // Converts a date->value map into an ascending-by-date list of values.
+  static List<double> _seriesFrom(Map<DateTime, double> map) {
+    final entries = map.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+    return entries.map((e) => e.value).toList();
+  }
+
+  List<Widget> _buildAxisLabels(
+    BuildContext context,
+    Map<DateTime, double> s,
+    Map<DateTime, double> d,
+    Map<DateTime, double> hr,
+  ) {
+    final colors = Theme.of(context).colorScheme;
+    final allDates = <DateTime>[...s.keys, ...d.keys, ...hr.keys]..sort();
+    if (allDates.isEmpty) return const [];
+    final first = allDates.first;
+    final last = allDates.last;
+    final fmt = DateFormat('MMM d');
+    final labels = first == last
+        ? [fmt.format(first)]
+        : [fmt.format(first), fmt.format(last)];
+    return labels
+        .map((t) => Text(t, style: TextStyle(fontSize: 9, color: colors.mutedForeground)))
+        .toList();
   }
 
   Widget _buildLegendDot(BuildContext context, Color color, String label) {
@@ -427,65 +576,55 @@ class PatientDetailScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   // Lab Results
   // ---------------------------------------------------------------------------
-  Widget _buildLabResults(BuildContext context) {
+  Widget _buildLabResults(BuildContext context, List<fhir.DiagnosticReport> labs) {
     final colors = Theme.of(context).colorScheme;
+
+    final sorted = [...labs]..sort((a, b) {
+      final aD = a.effectiveDateTime?.value ?? a.issued?.value;
+      final bD = b.effectiveDateTime?.value ?? b.issued?.value;
+      if (aD == null && bD == null) return 0;
+      if (aD == null) return 1;
+      if (bD == null) return -1;
+      return bD.compareTo(aD);
+    });
+    final recent = sorted.take(5).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Lab Results',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: colors.foreground,
-              ),
+        Text(
+          'Lab Results',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: colors.foreground,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        if (recent.isEmpty)
+          _buildEmptyStateCard(
+            context,
+            icon: LucideIcons.flaskConical,
+            message: 'No lab reports',
+          )
+        else
+          for (int i = 0; i < recent.length; i++) ...[
+            _buildLabResultItem(
+              context,
+              testName: recent[i].code.coding?.firstOrNull?.display ??
+                  recent[i].code.text ??
+                  'Lab report',
+              value: recent[i].conclusion ?? '',
+              status: 'FINAL',
+              statusColor: colors.primary,
+              date: recent[i].effectiveDateTime?.value != null
+                  ? DateFormat('d MMM yyyy').format(recent[i].effectiveDateTime!.value)
+                  : (recent[i].issued?.value != null
+                      ? DateFormat('d MMM yyyy').format(recent[i].issued!.value)
+                      : ''),
             ),
-            GhostButton(
-              density: ButtonDensity.compact,
-              onPressed: () {
-                showToast(
-                  context: context,
-                  builder: (ctx, overlay) => SurfaceCard(
-                    child: Basic(
-                      title: const Text('Loading all lab panels...'),
-                      subtitle: const Text(
-                          'Fetching complete lab history for Sarah J. Miller'),
-                      leading: const Icon(Icons.science_outlined, size: 18),
-                    ),
-                  ),
-                  location: ToastLocation.bottomRight,
-                );
-              },
-              child: Text(
-                'View All Panels',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: colors.primary,
-                ),
-              ),
-            ),
+            if (i < recent.length - 1) const SizedBox(height: AppSpacing.md),
           ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _buildLabResultItem(context, 
-          testName: 'Glucose, Fasting',
-          value: '104 mg/dL',
-          status: 'HIGH',
-          statusColor: colors.destructive,
-          date: '12 Jul 2023',
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _buildLabResultItem(context, 
-          testName: 'Hemoglobin A1c',
-          value: '5.4%',
-          status: 'Normal',
-          statusColor: colors.success,
-          date: '12 Jul 2023',
-        ),
       ],
     );
   }
@@ -511,7 +650,7 @@ class PatientDetailScreen extends ConsumerWidget {
               color: statusColor.withValues(alpha: 0.08),
               borderRadius: AppRadius.inputRadius,
             ),
-            child: Icon(Icons.science_outlined, color: statusColor, size: 18),
+            child: Icon(LucideIcons.flaskConical, color: statusColor, size: 18),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -528,7 +667,7 @@ class PatientDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$value  •  $date',
+                  [value, date].where((s) => s.isNotEmpty).join('  •  '),
                   style: TextStyle(
                     fontSize: 11,
                     color: colors.mutedForeground,
@@ -565,8 +704,21 @@ class PatientDetailScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   // Active Medications
   // ---------------------------------------------------------------------------
-  Widget _buildActiveMedications(BuildContext context) {
-      final colors = Theme.of(context).colorScheme;
+  Widget _buildActiveMedications(BuildContext context, List<fhir.MedicationRequest> meds) {
+    final colors = Theme.of(context).colorScheme;
+
+    final active = meds
+        .where((m) => (m.status?.value ?? 'active') == 'active')
+        .toList()
+      ..sort((a, b) {
+        final aD = a.authoredOn?.value;
+        final bD = b.authoredOn?.value;
+        if (aD == null && bD == null) return 0;
+        if (aD == null) return 1;
+        if (bD == null) return -1;
+        return bD.compareTo(aD);
+      });
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -579,17 +731,26 @@ class PatientDetailScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        _buildMedicationItem(context, 
-          name: 'Amoxicillin 500mg',
-          dosage: '3x daily • Oral',
-          prescriber: 'Dr. Marcus Thorne',
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _buildMedicationItem(context, 
-          name: 'Lisinopril 10mg',
-          dosage: '1x daily • Oral',
-          prescriber: 'Dr. Thorne',
-        ),
+        if (active.isEmpty)
+          _buildEmptyStateCard(
+            context,
+            icon: LucideIcons.pill,
+            message: 'No medications',
+          )
+        else
+          for (int i = 0; i < active.length; i++) ...[
+            _buildMedicationItem(
+              context,
+              name: active[i].medicationCodeableConcept?.coding?.firstOrNull?.display ??
+                  active[i].medicationCodeableConcept?.text ??
+                  'Medication',
+              dosage: active[i].dosageInstruction?.isNotEmpty == true
+                  ? (active[i].dosageInstruction!.first.text ?? '')
+                  : '',
+              prescriber: active[i].requester?.display ?? '',
+            ),
+            if (i < active.length - 1) const SizedBox(height: AppSpacing.md),
+          ],
       ],
     );
   }
@@ -614,7 +775,7 @@ class PatientDetailScreen extends ConsumerWidget {
               borderRadius: AppRadius.inputRadius,
             ),
             child: Icon(
-              Icons.medication_outlined,
+              LucideIcons.pill,
               color: colors.primary,
               size: 18,
             ),
@@ -634,7 +795,7 @@ class PatientDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$dosage  •  $prescriber',
+                  [dosage, prescriber].where((s) => s.isNotEmpty).join('  •  '),
                   style: TextStyle(
                     fontSize: 11,
                     color: colors.mutedForeground,
@@ -654,6 +815,110 @@ class PatientDetailScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Immunizations
+  // ---------------------------------------------------------------------------
+  Widget _buildImmunizations(
+      BuildContext context, List<fhir.Immunization> immunizations) {
+    final colors = Theme.of(context).colorScheme;
+
+    final sorted = [...immunizations]
+      ..sort((a, b) {
+        final aD = a.occurrenceDateTime?.value;
+        final bD = b.occurrenceDateTime?.value;
+        if (aD == null && bD == null) return 0;
+        if (aD == null) return 1;
+        if (bD == null) return -1;
+        return bD.compareTo(aD);
+      });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Immunizations',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: colors.foreground,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        if (sorted.isEmpty)
+          _buildEmptyStateCard(
+            context,
+            icon: LucideIcons.syringe,
+            message: 'No immunizations on record',
+          )
+        else
+          for (int i = 0; i < sorted.length; i++) ...[
+            _buildImmunizationItem(
+              context,
+              name: sorted[i].vaccineCode.coding?.firstOrNull?.display ??
+                  sorted[i].vaccineCode.text ??
+                  'Vaccine',
+              date: sorted[i].occurrenceDateTime?.value,
+              status: sorted[i].status?.value ?? 'completed',
+            ),
+            if (i < sorted.length - 1) const SizedBox(height: AppSpacing.md),
+          ],
+      ],
+    );
+  }
+
+  Widget _buildImmunizationItem(
+    BuildContext context, {
+    required String name,
+    required DateTime? date,
+    required String status,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final dateLabel = date != null
+        ? DateFormat('MMM d, yyyy').format(date)
+        : 'Date unknown';
+    return Card(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+      borderRadius: AppRadius.cardRadius,
+      child: Basic(
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: colors.warning.withValues(alpha: 0.12),
+            borderRadius: AppRadius.inputRadius,
+          ),
+          child: Icon(LucideIcons.syringe, color: colors.warning, size: 18),
+        ),
+        title: Text(
+          name,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: colors.foreground,
+          ),
+        ),
+        subtitle: Text(
+          dateLabel,
+          style: TextStyle(
+            fontSize: 11,
+            color: colors.mutedForeground,
+          ),
+        ),
+        trailing: SecondaryBadge(
+          child: Text(
+            status.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -721,7 +986,7 @@ class PatientDetailScreen extends ConsumerWidget {
             child: Center(
               child: Column(
                 children: [
-                  Icon(Icons.event_busy, size: 32, color: colors.mutedForeground.withValues(alpha: 0.5)),
+                  Icon(LucideIcons.calendarX, size: 32, color: colors.mutedForeground.withValues(alpha: 0.5)),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'No visit history yet',
@@ -769,11 +1034,11 @@ class PatientDetailScreen extends ConsumerWidget {
   IconData _appointmentIcon(String type) {
     switch (type) {
       case 'opd':
-        return Icons.person_rounded;
+        return LucideIcons.user;
       case 'telemedicine':
-        return Icons.videocam_rounded;
+        return LucideIcons.video;
       default:
-        return Icons.local_hospital_rounded;
+        return LucideIcons.hospital;
     }
   }
 
@@ -923,7 +1188,7 @@ class PatientDetailScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   // Action Buttons
   // ---------------------------------------------------------------------------
-  Widget _buildClinicalActions(BuildContext context, String patientRef, String patientName) {
+  Widget _buildClinicalActions(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -940,8 +1205,8 @@ class PatientDetailScreen extends ConsumerWidget {
           width: double.infinity,
           child: PrimaryButton(
             density: ButtonDensity.normal,
-            onPressed: () => _openCheckupSheet(context, patientRef, patientName),
-            leading: const Icon(Icons.medical_services, size: 20),
+            onPressed: () => _openCheckupSheet(context, ref, patientRef, patientName),
+            leading: const Icon(LucideIcons.briefcaseMedical, size: 20),
             child: const Text('Start Checkup',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
           ),
@@ -959,46 +1224,46 @@ class PatientDetailScreen extends ConsumerWidget {
                 Can(
                   permission: 'order.lab',
                   child: _ActionTile(
-                    icon: Icons.science_outlined,
+                    icon: LucideIcons.flaskConical,
                     label: 'Lab Report',
                     color: colors.primary,
                     width: tileWidth,
-                    onTap: () => _openLabReportDrawer(context, patientRef, patientName),
+                    onTap: () => _openLabReportDrawer(context, ref, patientRef, patientName),
                   ),
                 ),
                 _ActionTile(
-                  icon: Icons.assignment_outlined,
+                  icon: LucideIcons.clipboardList,
                   label: 'Diagnosis',
                   color: colors.warning,
                   width: tileWidth,
-                  onTap: () => _openDiagnosisDrawer(context, patientRef, patientName),
+                  onTap: () => _openDiagnosisDrawer(context, ref, patientRef, patientName),
                 ),
                 Can(
                   permission: 'prescription.issue',
                   child: _ActionTile(
-                    icon: Icons.medication_outlined,
+                    icon: LucideIcons.pill,
                     label: 'Prescription',
                     color: colors.success,
                     width: tileWidth,
-                    onTap: () => _openPrescriptionDrawer(context, patientRef, patientName),
+                    onTap: () => _openPrescriptionDrawer(context, ref, patientRef, patientName),
                   ),
                 ),
                 _ActionTile(
-                  icon: Icons.monitor_heart_outlined,
+                  icon: LucideIcons.heartPulse,
                   label: 'Vitals',
                   color: colors.destructive,
                   width: tileWidth,
-                  onTap: () => _openVitalsDrawer(context, patientRef, patientName),
+                  onTap: () => _openVitalsDrawer(context, ref, patientRef, patientName),
                 ),
                 _ActionTile(
-                  icon: Icons.note_add_outlined,
+                  icon: LucideIcons.filePlus,
                   label: 'Clinical Note',
                   color: const Color(0xFF7C3AED),
                   width: tileWidth,
-                  onTap: () => _openClinicalNoteDrawer(context, patientRef, patientName),
+                  onTap: () => _openClinicalNoteDrawer(context, ref, patientRef, patientName),
                 ),
                 _ActionTile(
-                  icon: Icons.picture_as_pdf_outlined,
+                  icon: LucideIcons.fileText,
                   label: 'Export PDF',
                   color: colors.mutedForeground,
                   width: tileWidth,
@@ -1008,7 +1273,7 @@ class PatientDetailScreen extends ConsumerWidget {
                       builder: (ctx, overlay) => SurfaceCard(
                         child: Basic(
                           title: const Text('Exporting PDF report...'),
-                          leading: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                          leading: const Icon(LucideIcons.fileText, size: 18),
                         ),
                       ),
                     );
@@ -1022,14 +1287,14 @@ class PatientDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openCheckupSheet(BuildContext context, String patientRef, String patientName) {
+  void _openCheckupSheet(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     openDrawer(
       context: context,
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1039,43 +1304,43 @@ class PatientDetailScreen extends ConsumerWidget {
             Text('Patient: $patientName', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
             const SizedBox(height: 20),
             _CheckupActionRow(
-              icon: Icons.monitor_heart_outlined,
+              icon: LucideIcons.heartPulse,
               label: 'Record Vitals',
               subtitle: 'BP, Heart Rate, Temp, SpO\u2082',
               color: colors.destructive,
-              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openVitalsDrawer(context, patientRef, patientName); }); },
+              onTap: () { closeDrawer(ctx); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openVitalsDrawer(context, ref, patientRef, patientName); }); },
             ),
             const SizedBox(height: 10),
             _CheckupActionRow(
-              icon: Icons.note_add_outlined,
+              icon: LucideIcons.filePlus,
               label: 'Clinical Note (SOAP)',
               subtitle: 'Subjective, Objective, Assessment, Plan',
               color: const Color(0xFF7C3AED),
-              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openClinicalNoteDrawer(context, patientRef, patientName); }); },
+              onTap: () { closeDrawer(ctx); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openClinicalNoteDrawer(context, ref, patientRef, patientName); }); },
             ),
             const SizedBox(height: 10),
             _CheckupActionRow(
-              icon: Icons.assignment_outlined,
+              icon: LucideIcons.clipboardList,
               label: 'Add Diagnosis',
               subtitle: 'ICD-10 code and clinical notes',
               color: colors.warning,
-              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openDiagnosisDrawer(context, patientRef, patientName); }); },
+              onTap: () { closeDrawer(ctx); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openDiagnosisDrawer(context, ref, patientRef, patientName); }); },
             ),
             const SizedBox(height: 10),
             _CheckupActionRow(
-              icon: Icons.medication_outlined,
+              icon: LucideIcons.pill,
               label: 'Prescribe Medication',
               subtitle: 'E-Prescribe with dosage instructions',
               color: colors.success,
-              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openPrescriptionDrawer(context, patientRef, patientName); }); },
+              onTap: () { closeDrawer(ctx); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openPrescriptionDrawer(context, ref, patientRef, patientName); }); },
             ),
             const SizedBox(height: 10),
             _CheckupActionRow(
-              icon: Icons.science_outlined,
+              icon: LucideIcons.flaskConical,
               label: 'Order Lab Test',
               subtitle: 'Request diagnostic report',
               color: colors.primary,
-              onTap: () { closeDrawer(context); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openLabReportDrawer(context, patientRef, patientName); }); },
+              onTap: () { closeDrawer(ctx); WidgetsBinding.instance.addPostFrameCallback((_) { if (context.mounted) _openLabReportDrawer(context, ref, patientRef, patientName); }); },
             ),
             const SizedBox(height: 20),
             Divider(color: colors.border),
@@ -1084,10 +1349,10 @@ class PatientDetailScreen extends ConsumerWidget {
               width: double.infinity,
               child: OutlineButton(
                 onPressed: () {
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   context.push(RouteNames.clinicalStartEncounter);
                 },
-                leading: const Icon(Icons.open_in_new, size: 16),
+                leading: const Icon(LucideIcons.externalLink, size: 16),
                 child: const Text('Start Full Encounter'),
               ),
             ),
@@ -1097,7 +1362,7 @@ class PatientDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openLabReportDrawer(BuildContext context, String patientRef, String patientName) {
+  void _openLabReportDrawer(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     final testNameCtrl = TextEditingController();
     final resultCtrl = TextEditingController();
@@ -1108,7 +1373,7 @@ class PatientDetailScreen extends ConsumerWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1128,7 +1393,7 @@ class PatientDetailScreen extends ConsumerWidget {
               child: PrimaryButton(
                 onPressed: () async {
                   final testName = testNameCtrl.text.trim();
-                  if (testName.isEmpty) { closeDrawer(context); return; }
+                  if (testName.isEmpty) { closeDrawer(ctx); return; }
                   final now = DateTime.now();
                   final id = 'diag-${now.millisecondsSinceEpoch}';
 
@@ -1152,9 +1417,10 @@ class PatientDetailScreen extends ConsumerWidget {
                     ..isDownloadedOffline = true
                     ..lastUpdated = now
                     ..createdAt = now);
+                  ref.invalidate(patientLabsProvider(patientRef));
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('Lab report "$testName" saved'))));
                 },
                 child: const Text('Save Lab Report'),
@@ -1166,7 +1432,7 @@ class PatientDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openDiagnosisDrawer(BuildContext context, String patientRef, String patientName) {
+  void _openDiagnosisDrawer(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     final diagnosisCtrl = TextEditingController();
     final icdCtrl = TextEditingController();
@@ -1177,7 +1443,7 @@ class PatientDetailScreen extends ConsumerWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1197,7 +1463,7 @@ class PatientDetailScreen extends ConsumerWidget {
               child: PrimaryButton(
                 onPressed: () async {
                   final diagnosis = diagnosisCtrl.text.trim();
-                  if (diagnosis.isEmpty) { closeDrawer(context); return; }
+                  if (diagnosis.isEmpty) { closeDrawer(ctx); return; }
                   final now = DateTime.now();
                   final id = 'condition-${now.millisecondsSinceEpoch}';
 
@@ -1232,9 +1498,10 @@ class PatientDetailScreen extends ConsumerWidget {
                     ..isDownloadedOffline = true
                     ..lastUpdated = now
                     ..createdAt = now);
+                  ref.invalidate(patientRecordsProvider(patientRef));
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('Diagnosis "$diagnosis" saved'))));
                 },
                 child: const Text('Save Diagnosis'),
@@ -1246,7 +1513,7 @@ class PatientDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openPrescriptionDrawer(BuildContext context, String patientRef, String patientName) {
+  void _openPrescriptionDrawer(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     final medCtrl = TextEditingController();
     final dosageCtrl = TextEditingController();
@@ -1258,7 +1525,7 @@ class PatientDetailScreen extends ConsumerWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1280,7 +1547,7 @@ class PatientDetailScreen extends ConsumerWidget {
               child: PrimaryButton(
                 onPressed: () async {
                   final med = medCtrl.text.trim();
-                  if (med.isEmpty) { closeDrawer(context); return; }
+                  if (med.isEmpty) { closeDrawer(ctx); return; }
                   final now = DateTime.now();
                   final id = 'medreq-${now.millisecondsSinceEpoch}';
 
@@ -1305,9 +1572,19 @@ class PatientDetailScreen extends ConsumerWidget {
                     ..isDownloadedOffline = true
                     ..lastUpdated = now
                     ..createdAt = now);
+                  ref.invalidate(patientMedicationsProvider(patientRef));
+                  final prescriber = ref.read(authProvider).user;
+                  if (prescriber != null) {
+                    AuditLogger.prescriptionIssued(
+                      medicationRequestRef: 'MedicationRequest/$id',
+                      agentRef: 'Practitioner/${prescriber.fhirPractitionerId ?? prescriber.email}',
+                      agentName: prescriber.displayName,
+                      agentRole: prescriber.practitionerType,
+                    );
+                  }
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('Prescription "$med" saved'))));
                 },
                 child: const Text('Save Prescription'),
@@ -1319,7 +1596,7 @@ class PatientDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openVitalsDrawer(BuildContext context, String patientRef, String patientName) {
+  void _openVitalsDrawer(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     final sysCtrl = TextEditingController();
     final diaCtrl = TextEditingController();
@@ -1332,7 +1609,7 @@ class PatientDetailScreen extends ConsumerWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1443,8 +1720,12 @@ class PatientDetailScreen extends ConsumerWidget {
                     saved++;
                   }
 
+                  if (saved > 0) {
+                    ref.invalidate(patientVitalsProvider(patientRef));
+                  }
+
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   if (saved > 0) {
                     showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('$saved vital(s) saved for $patientName'))));
                   }
@@ -1458,7 +1739,7 @@ class PatientDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openClinicalNoteDrawer(BuildContext context, String patientRef, String patientName) {
+  void _openClinicalNoteDrawer(BuildContext context, WidgetRef ref, String patientRef, String patientName) {
     final colors = Theme.of(context).colorScheme;
     final complaintCtrl = TextEditingController();
     final findingsCtrl = TextEditingController();
@@ -1470,7 +1751,7 @@ class PatientDetailScreen extends ConsumerWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1499,7 +1780,7 @@ class PatientDetailScreen extends ConsumerWidget {
                     if (planCtrl.text.trim().isNotEmpty) 'P: ${planCtrl.text.trim()}',
                   ].join('\n');
 
-                  if (noteText.isEmpty) { closeDrawer(context); return; }
+                  if (noteText.isEmpty) { closeDrawer(ctx); return; }
 
                   final obsId = 'obs-note-${now.millisecondsSinceEpoch}';
                   final obs = fhir.Observation(
@@ -1524,9 +1805,10 @@ class PatientDetailScreen extends ConsumerWidget {
                     ..isDownloadedOffline = true
                     ..lastUpdated = now
                     ..createdAt = now);
+                  ref.invalidate(patientRecordsProvider(patientRef));
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('Clinical note saved for $patientName'))));
                 },
                 child: const Text('Save Note'),
@@ -1618,7 +1900,7 @@ class _CheckupActionRow extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: 18, color: colors.mutedForeground),
+            Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
           ],
         ),
       ),
@@ -1634,12 +1916,18 @@ class _VitalsTrendPainter extends CustomPainter {
   final Color destructiveColor;
   final Color successColor;
   final Color borderColor;
+  final List<double> systolicSeries;
+  final List<double> diastolicSeries;
+  final List<double> heartRateSeries;
 
   _VitalsTrendPainter({
     required this.primaryColor,
     required this.destructiveColor,
     required this.successColor,
     required this.borderColor,
+    required this.systolicSeries,
+    required this.diastolicSeries,
+    required this.heartRateSeries,
   });
 
   @override
@@ -1674,75 +1962,41 @@ class _VitalsTrendPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
 
-    final xStep = size.width / 5; // 6 data points
+    _drawSeries(canvas, size, systolicSeries, systolicPaint, primaryColor, dotPaint);
+    _drawSeries(canvas, size, heartRateSeries, heartRatePaint, destructiveColor, dotPaint);
+    _drawSeries(canvas, size, diastolicSeries, diastolicPaint, successColor, dotPaint);
+  }
 
-    // Systolic BP data (normalized 110-140 range mapped to canvas height)
-    final systolicData = [128.0, 132.0, 125.0, 130.0, 122.0, 126.0];
-    final systolicPath = Path();
-    for (int i = 0; i < systolicData.length; i++) {
-      final x = xStep * i;
-      final y = size.height - ((systolicData[i] - 60) / 100) * size.height;
+  void _drawSeries(Canvas canvas, Size size, List<double> data, Paint linePaint, Color dotColor, Paint dotPaint) {
+    if (data.isEmpty) return;
+    final maxStep = data.length > 1 ? data.length - 1 : 1;
+    final xStep = size.width / maxStep;
+    // Auto-scale: map values to canvas, with small vertical padding.
+    final minV = data.reduce((a, b) => a < b ? a : b);
+    final maxV = data.reduce((a, b) => a > b ? a : b);
+    final range = (maxV - minV).abs() < 0.001 ? 1.0 : (maxV - minV);
+    final path = Path();
+    for (int i = 0; i < data.length; i++) {
+      final x = data.length == 1 ? size.width / 2 : xStep * i;
+      final y = size.height - ((data[i] - minV) / range) * size.height * 0.9 - size.height * 0.05;
       if (i == 0) {
-        systolicPath.moveTo(x, y);
+        path.moveTo(x, y);
       } else {
-        systolicPath.lineTo(x, y);
+        path.lineTo(x, y);
       }
     }
-    canvas.drawPath(systolicPath, systolicPaint);
-
-    // Draw dots for systolic
-    dotPaint.color = primaryColor;
-    for (int i = 0; i < systolicData.length; i++) {
-      final x = xStep * i;
-      final y = size.height - ((systolicData[i] - 60) / 100) * size.height;
-      canvas.drawCircle(Offset(x, y), 3, dotPaint);
-    }
-
-    // Heart Rate data (60-100 range)
-    final hrData = [74.0, 78.0, 72.0, 80.0, 76.0, 73.0];
-    final hrPath = Path();
-    for (int i = 0; i < hrData.length; i++) {
-      final x = xStep * i;
-      final y = size.height - ((hrData[i] - 60) / 100) * size.height;
-      if (i == 0) {
-        hrPath.moveTo(x, y);
-      } else {
-        hrPath.lineTo(x, y);
-      }
-    }
-    canvas.drawPath(hrPath, heartRatePaint);
-
-    // Draw dots for HR
-    dotPaint.color = destructiveColor;
-    for (int i = 0; i < hrData.length; i++) {
-      final x = xStep * i;
-      final y = size.height - ((hrData[i] - 60) / 100) * size.height;
-      canvas.drawCircle(Offset(x, y), 3, dotPaint);
-    }
-
-    // Diastolic BP data (70-90 range)
-    final diastolicData = [82.0, 85.0, 80.0, 83.0, 78.0, 81.0];
-    final diastolicPath = Path();
-    for (int i = 0; i < diastolicData.length; i++) {
-      final x = xStep * i;
-      final y = size.height - ((diastolicData[i] - 60) / 100) * size.height;
-      if (i == 0) {
-        diastolicPath.moveTo(x, y);
-      } else {
-        diastolicPath.lineTo(x, y);
-      }
-    }
-    canvas.drawPath(diastolicPath, diastolicPaint);
-
-    // Draw dots for diastolic
-    dotPaint.color = successColor;
-    for (int i = 0; i < diastolicData.length; i++) {
-      final x = xStep * i;
-      final y = size.height - ((diastolicData[i] - 60) / 100) * size.height;
+    canvas.drawPath(path, linePaint);
+    dotPaint.color = dotColor;
+    for (int i = 0; i < data.length; i++) {
+      final x = data.length == 1 ? size.width / 2 : xStep * i;
+      final y = size.height - ((data[i] - minV) / range) * size.height * 0.9 - size.height * 0.05;
       canvas.drawCircle(Offset(x, y), 3, dotPaint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _VitalsTrendPainter oldDelegate) =>
+      oldDelegate.systolicSeries != systolicSeries ||
+      oldDelegate.diastolicSeries != diastolicSeries ||
+      oldDelegate.heartRateSeries != heartRateSeries;
 }

@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
@@ -82,7 +81,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final topPad = MediaQuery.of(context).padding.top;
     final ambulancePos = _routePoints[_currentPointIndex];
@@ -147,7 +146,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                           border: Border.all(
                               color: Colors.white, width: 2),
                         ),
-                        child: const Icon(Icons.location_on,
+                        child: const Icon(LucideIcons.mapPin,
                             color: Colors.white, size: 22),
                       ),
                     ),
@@ -172,7 +171,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                           border: Border.all(
                               color: Colors.white, width: 2),
                         ),
-                        child: const Icon(Icons.local_shipping,
+                        child: const Icon(LucideIcons.truck,
                             color: Colors.white, size: 24),
                       ),
                     ),
@@ -192,8 +191,8 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [SurfaceTheme.ambientShadow],
               ),
-              child: IconButton(
-                icon: Icon(Icons.arrow_back,
+              child: IconButton.ghost(
+                icon: Icon(LucideIcons.arrowLeft,
                     color: colors.foreground, size: 22),
                 onPressed: () => context.pop(),
               ),
@@ -219,8 +218,8 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                 children: [
                   Icon(
                     _status == 'Arrived'
-                        ? Icons.check_circle
-                        : Icons.timer,
+                        ? LucideIcons.circleCheck
+                        : LucideIcons.timer,
                     color: Colors.white,
                     size: 16,
                   ),
@@ -272,7 +271,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                 children: [
                   Row(
                     children: [
-                      const shadcn.Avatar(initials: 'RB', size: 48),
+                      const Avatar(initials: 'RB', size: 48),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
@@ -289,7 +288,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                const Icon(Icons.star,
+                                const Icon(LucideIcons.star,
                                     color: Color(0xFFFACC15), size: 14),
                                 const SizedBox(width: 3),
                                 Text('4.8',
@@ -333,14 +332,14 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: shadcn.Button.primary(
+                        child: Button.primary(
                           onPressed: () {
-                            shadcn.showToast(
+                            showToast(
                               context: context,
                               builder: (ctx, overlay) =>
-                                  shadcn.SurfaceCard(
-                                child: shadcn.Basic(
-                                  leading: Icon(Icons.call,
+                                  SurfaceCard(
+                                child: Basic(
+                                  leading: Icon(LucideIcons.phone,
                                       color: colors.primary),
                                   title: const Text('Calling driver...'),
                                   subtitle: const Text(
@@ -352,7 +351,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.call, size: 18),
+                              Icon(LucideIcons.phone, size: 18),
                               SizedBox(width: AppSpacing.sm),
                               Text('Call Driver'),
                             ],
@@ -361,14 +360,14 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
-                        child: shadcn.Button.outline(
+                        child: Button.outline(
                           onPressed: () {
-                            shadcn.showToast(
+                            showToast(
                               context: context,
                               builder: (ctx, overlay) =>
-                                  shadcn.SurfaceCard(
-                                child: shadcn.Basic(
-                                  leading: Icon(Icons.chat_bubble_outline,
+                                  SurfaceCard(
+                                child: Basic(
+                                  leading: Icon(LucideIcons.messageCircle,
                                       color: colors.primary),
                                   title: const Text('Opening chat...'),
                                   subtitle:
@@ -380,7 +379,7 @@ class _AmbulanceTrackingScreenState extends State<AmbulanceTrackingScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat_bubble_outline, size: 18),
+                              Icon(LucideIcons.messageCircle, size: 18),
                               SizedBox(width: AppSpacing.sm),
                               Text('Message'),
                             ],

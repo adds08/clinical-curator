@@ -1,0 +1,6 @@
+### DTO returned by FhirSyncEndpoint.since. Non-persisted — pure transport shape.
+class: FhirSyncBatchDto
+fields:
+  resources: List<FhirResourceRecord>
+  nextSince: DateTime
+  hasMore: bool

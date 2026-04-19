@@ -6,6 +6,7 @@ import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class BookingSuccessScreen extends ConsumerWidget {
   const BookingSuccessScreen({super.key});
@@ -40,7 +41,7 @@ class BookingSuccessScreen extends ConsumerWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.check_circle_rounded,
+                LucideIcons.circleCheck,
                 size: 44,
                 color: colors.success,
               ),
@@ -126,6 +127,10 @@ class BookingSuccessScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+                  if (booking.selectedDoctor != null) ...[
+                    const Gap(4),
+                    PractitionerVerifiedBadge(practitionerRef: booking.selectedDoctor!.practitionerRef),
+                  ],
 
                   const Gap(AppSpacing.xl),
                   const Divider(),
@@ -135,7 +140,7 @@ class BookingSuccessScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.calendar_today_rounded,
+                        Icon(LucideIcons.calendar,
                             size: 16, color: colors.mutedForeground),
                         const Gap(8),
                         Text(
@@ -153,7 +158,7 @@ class BookingSuccessScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.access_time_rounded,
+                        Icon(LucideIcons.clock,
                             size: 16, color: colors.mutedForeground),
                         const Gap(8),
                         Text(
@@ -184,7 +189,7 @@ class BookingSuccessScreen extends ConsumerWidget {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_month_rounded, size: 18),
+                    Icon(LucideIcons.calendar, size: 18),
                     Gap(8),
                     Text(
                       'View My Appointments',

@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_core/router/route_names.dart';
 import 'package:cc_fhir_models/collections/appointment_collection.dart';
+import 'package:cc_fhir_models/collections/practitioner_role_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
+import '../../../domain/providers/practitioner_role_provider.dart';
+import '../../../domain/providers/slot_availability_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class TelemedicineScreen extends ConsumerStatefulWidget {
   const TelemedicineScreen({super.key});
@@ -24,42 +27,12 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
   int _selectedCategory = 0;
 
   static const List<String> _specialties = [
+    'All',
     'Cardiology',
     'Dermatology',
     'Neurology',
     'Ophthalmology',
     'Internal Med',
-  ];
-
-  static const List<_DoctorMock> _doctors = [
-    _DoctorMock(
-      name: 'Dr. Arpan K. Sharma',
-      initials: 'AS',
-      specialty: 'Cardiology',
-      rating: '4.9',
-      nextSlot: 'Today, 3:00 PM',
-    ),
-    _DoctorMock(
-      name: 'Dr. Priya Thapa',
-      initials: 'PT',
-      specialty: 'Dermatology',
-      rating: '4.8',
-      nextSlot: 'Today, 4:30 PM',
-    ),
-    _DoctorMock(
-      name: 'Dr. Rajesh Koirala',
-      initials: 'RK',
-      specialty: 'Neurology',
-      rating: '4.7',
-      nextSlot: 'Tomorrow, 10:00 AM',
-    ),
-    _DoctorMock(
-      name: 'Dr. Sita Gurung',
-      initials: 'SG',
-      specialty: 'Ophthalmology',
-      rating: '4.8',
-      nextSlot: 'Today, 5:00 PM',
-    ),
   ];
 
   @override
@@ -68,9 +41,63 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
     super.dispose();
   }
 
+  List<PractitionerRoleLocal> _filterDoctors(List<PractitionerRoleLocal> all) {
+    final selectedSpecialty = _specialties[_selectedCategory];
+    final query = _searchController.text.trim().toLowerCase();
+
+    return all.where((r) {
+      // Only doctors (practitionerType == 'doctor') if available, else all active
+      // PractitionerRoleLocal doesn't carry practitionerType directly — the
+      // collection models a role; filter by active which is already applied
+      // in the provider.
+      if (selectedSpecialty != 'All' && r.specialty != selectedSpecialty) {
+        return false;
+      }
+      if (query.isNotEmpty) {
+        final name = (r.practitionerName ?? '').toLowerCase();
+        final spec = (r.specialty ?? '').toLowerCase();
+        if (!name.contains(query) && !spec.contains(query)) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  String _initials(String name) {
+    final clean = name.replaceAll(RegExp(r'^Dr\.\s*'), '');
+    final parts = clean.trim().split(' ').where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    return parts.isNotEmpty ? parts.first[0].toUpperCase() : '?';
+  }
+
+  String _formatSlotLabel(DateTime date, String startTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    String prefix;
+    if (dateOnly == today) {
+      prefix = 'Today';
+    } else if (dateOnly == tomorrow) {
+      prefix = 'Tomorrow';
+    } else {
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+      prefix = '${months[date.month - 1]} ${date.day}';
+    }
+    return '$prefix, $startTime';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
+    final allRoles = ref.watch(allPractitionerRolesProvider);
+    final doctors = _filterDoctors(allRoles);
+
     return SubPageScaffold(
       title: 'Telemedicine',
       child: SingleChildScrollView(
@@ -79,12 +106,13 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // -- Search bar --
-            shadcn.TextField(
+            TextField(
               controller: _searchController,
               placeholder: const Text('Search specialists...'),
+              onChanged: (_) => setState(() {}),
               features: [
-                shadcn.InputFeature.leading(
-                  Icon(Icons.search,
+                InputFeature.leading(
+                  Icon(LucideIcons.search,
                       color: colors.mutedForeground, size: 20),
                 ),
               ],
@@ -101,7 +129,7 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
                     const SizedBox(width: AppSpacing.sm),
                 itemBuilder: (context, i) {
                   final selected = i == _selectedCategory;
-                  return shadcn.Chip(
+                  return Chip(
                     onPressed: () =>
                         setState(() => _selectedCategory = i),
                     child: Text(
@@ -132,24 +160,49 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // -- Specialists grid --
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: AppSpacing.md,
-                crossAxisSpacing: AppSpacing.md,
-                childAspectRatio: 0.68,
+            // -- Specialists grid or empty state --
+            if (doctors.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.xxxl),
+                decoration: BoxDecoration(
+                  color: colors.card,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    Icon(LucideIcons.stethoscope,
+                        size: 40,
+                        color: colors.mutedForeground.withValues(alpha: 0.4)),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'No specialists available',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: colors.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: AppSpacing.md,
+                  crossAxisSpacing: AppSpacing.md,
+                  childAspectRatio: 0.68,
+                ),
+                itemCount: doctors.length,
+                itemBuilder: (context, i) => _buildDoctorCard(doctors[i]),
               ),
-              itemCount: _doctors.length,
-              itemBuilder: (context, i) =>
-                  _buildDoctorCard(_doctors[i]),
-            ),
             const SizedBox(height: AppSpacing.xxl),
 
             // -- Quick consult section --
-            shadcn.Card(
+            Card(
               padding: const EdgeInsets.all(AppSpacing.xl),
               fillColor: colors.primary.withValues(alpha: 0.06),
               child: Column(
@@ -157,7 +210,7 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.flash_on,
+                      Icon(LucideIcons.zap,
                           color: colors.primary, size: 22),
                       SizedBox(width: AppSpacing.sm),
                       Text(
@@ -182,29 +235,46 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   SizedBox(
                     width: double.infinity,
-                    child: shadcn.Button.primary(
-                      onPressed: () {
-                        shadcn.showToast(
-                          context: context,
-                          builder: (ctx, overlay) => shadcn.SurfaceCard(
-                            child: shadcn.Basic(
-                              leading: Icon(Icons.videocam,
-                                  color: colors.primary),
-                              title: Text('Finding available specialist...'),
-                              subtitle: Text(
-                                  'You will be connected shortly'),
-                            ),
-                          ),
-                        );
-                        Future.delayed(
-                            const Duration(milliseconds: 1200), () {
-                          if (mounted) {
-                            // ignore: use_build_context_synchronously
-                            context.push(RouteNames.serviceTelemedicineCall);
-                          }
-                        });
-                      },
-                      leading: const Icon(Icons.videocam, size: 20),
+                    child: Button.primary(
+                      onPressed: doctors.isEmpty
+                          ? null
+                          : () {
+                              final next = doctors.first;
+                              showToast(
+                                context: context,
+                                builder: (ctx, overlay) => SurfaceCard(
+                                  child: Basic(
+                                    leading: Icon(LucideIcons.video,
+                                        color: colors.primary),
+                                    title: const Text(
+                                        'Finding available specialist...'),
+                                    subtitle: const Text(
+                                        'You will be connected shortly'),
+                                  ),
+                                ),
+                              );
+                              Future.delayed(
+                                  const Duration(milliseconds: 1200), () {
+                                if (mounted) {
+                                  final name = next.practitionerName != null
+                                      ? 'Dr. ${next.practitionerName}'
+                                      : null;
+                                  final params = <String, String>{};
+                                  if (name != null) params['name'] = name;
+                                  if (next.specialty != null) {
+                                    params['specialty'] = next.specialty!;
+                                  }
+                                  final uri = Uri(
+                                    path: RouteNames.serviceTelemedicineCall,
+                                    queryParameters:
+                                        params.isEmpty ? null : params,
+                                  );
+                                  // ignore: use_build_context_synchronously
+                                  context.push(uri.toString());
+                                }
+                              });
+                            },
+                      leading: const Icon(LucideIcons.video, size: 20),
                       child: const Text('Start Quick Consult'),
                     ),
                   ),
@@ -218,18 +288,26 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
     );
   }
 
-  Widget _buildDoctorCard(_DoctorMock doctor) {
-    final colors = shadcn.Theme.of(context).colorScheme;
-    return shadcn.Card(
+  Widget _buildDoctorCard(PractitionerRoleLocal doctor) {
+    final colors = Theme.of(context).colorScheme;
+    final name = doctor.practitionerName ?? 'Unknown';
+    final displayName = name.startsWith('Dr.') ? name : 'Dr. $name';
+    final specialty = doctor.specialty ?? 'General';
+    final slots = ref.watch(availableSlotsProvider(doctor.practitionerRef));
+    final nextSlotLabel = slots.isNotEmpty
+        ? _formatSlotLabel(slots.first.date, slots.first.startTime)
+        : null;
+
+    return Card(
       padding: const EdgeInsets.all(AppSpacing.md),
       fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          shadcn.Avatar(initials: doctor.initials, size: 56),
+          Avatar(initials: _initials(name), size: 56),
           const SizedBox(height: AppSpacing.md),
           Text(
-            doctor.name,
+            displayName,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -239,77 +317,79 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
               color: colors.foreground,
             ),
           ),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.star, color: Color(0xFFFACC15), size: 13),
-              const SizedBox(width: 3),
-              Text(
-                doctor.rating,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: colors.mutedForeground,
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 4),
           Text(
-            doctor.specialty,
+            specialty,
             style: TextStyle(
               fontSize: 11,
               color: colors.mutedForeground,
             ),
           ),
+          const SizedBox(height: 4),
+          PractitionerVerifiedBadge(practitionerRef: doctor.practitionerRef),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Next: ${doctor.nextSlot}',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: colors.primary,
+          if (nextSlotLabel != null)
+            Text(
+              'Next: $nextSlotLabel',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: colors.primary,
+              ),
+            )
+          else
+            Text(
+              'No slots available',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: colors.mutedForeground,
+              ),
             ),
-          ),
           const Spacer(),
           SizedBox(
             width: double.infinity,
-            child: shadcn.Button.primary(
-              onPressed: () async {
-                final user = ref.read(authProvider).user;
-                final patientRef = user?.fhirPatientId ?? user?.id ?? '';
-                final patientName = user?.displayName ?? 'Patient';
+            child: Button.primary(
+              onPressed: slots.isEmpty
+                  ? null
+                  : () async {
+                      final user = ref.read(authProvider).user;
+                      final patientRef =
+                          user?.fhirPatientId ?? user?.id ?? '';
+                      final patientName = user?.displayName ?? 'Patient';
+                      final slot = slots.first;
 
-                final appointment = AppointmentLocal()
-                  ..patientRef = patientRef
-                  ..practitionerRef = 'practitioner-${doctor.initials.toLowerCase()}'
-                  ..practitionerName = doctor.name
-                  ..patientName = patientName
-                  ..appointmentType = 'telemedicine'
-                  ..status = 'booked'
-                  ..scheduledAt = DateTime.now().add(const Duration(hours: 2))
-                  ..durationMinutes = 30
-                  ..specialty = doctor.specialty
-                  ..createdAt = DateTime.now()
-                  ..syncStatus = 1;
+                      final appointment = AppointmentLocal()
+                        ..patientRef = patientRef
+                        ..practitionerRef = doctor.practitionerRef
+                        ..practitionerName = displayName
+                        ..patientName = patientName
+                        ..appointmentType = 'telemedicine'
+                        ..status = 'booked'
+                        ..scheduledAt = slot.date
+                        ..durationMinutes = 30
+                        ..specialty = specialty
+                        ..createdAt = DateTime.now()
+                        ..syncStatus = 1;
 
-                await DatabaseService.appointments.add(appointment);
+                      await DatabaseService.appointments.add(appointment);
 
-                if (!context.mounted) return;
-                shadcn.showToast(
-                  // ignore: use_build_context_synchronously
-                  context: context,
-                  builder: (ctx, overlay) => shadcn.SurfaceCard(
-                    child: shadcn.Basic(
-                      leading: Icon(Icons.check_circle, color: colors.success),
-                      title: Text('Booking confirmed with ${doctor.name}'),
-                      subtitle: Text(doctor.nextSlot),
-                    ),
-                  ),
-                );
-              },
+                      if (!context.mounted) return;
+                      showToast(
+                        // ignore: use_build_context_synchronously
+                        context: context,
+                        builder: (ctx, overlay) => SurfaceCard(
+                          child: Basic(
+                            leading: Icon(LucideIcons.circleCheck,
+                                color: colors.success),
+                            title: Text('Booking confirmed with $displayName'),
+                            subtitle: Text(nextSlotLabel ?? ''),
+                          ),
+                        ),
+                      );
+                    },
               child: const Text(
                 'Book Now',
                 style: TextStyle(
@@ -323,19 +403,4 @@ class _TelemedicineScreenState extends ConsumerState<TelemedicineScreen> {
       ),
     );
   }
-}
-
-class _DoctorMock {
-  final String name;
-  final String initials;
-  final String specialty;
-  final String rating;
-  final String nextSlot;
-  const _DoctorMock({
-    required this.name,
-    required this.initials,
-    required this.specialty,
-    required this.rating,
-    required this.nextSlot,
-  });
 }

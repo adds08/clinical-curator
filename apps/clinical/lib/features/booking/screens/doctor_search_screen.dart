@@ -6,6 +6,7 @@ import 'package:cc_core/constants/app_spacing.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
 import '../../../domain/providers/doctor_search_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class DoctorSearchScreen extends ConsumerStatefulWidget {
   final String? prefilterSpecialty;
@@ -126,7 +127,7 @@ class _DoctorSearchScreenState extends ConsumerState<DoctorSearchScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.search_off_rounded,
+                        Icon(LucideIcons.searchX,
                             size: 48, color: colors.mutedForeground),
                         const Gap(AppSpacing.md),
                         Text(
@@ -304,10 +305,12 @@ class _DoctorCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                  const Gap(4),
+                  PractitionerVerifiedBadge(practitionerRef: practitionerRef),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
+            Icon(LucideIcons.chevronRight,
                 size: 14, color: colors.mutedForeground),
           ],
         ),

@@ -8,6 +8,7 @@ import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_fhir_models/collections/appointment_collection.dart';
 import '../../../domain/providers/appointment_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class AppointmentDetailScreen extends ConsumerStatefulWidget {
   final String appointmentKey;
@@ -124,6 +125,8 @@ class _AppointmentDetailScreenState
                             color: colors.primary,
                           ),
                         ),
+                        const Gap(4),
+                        PractitionerVerifiedBadge(practitionerRef: appointment.practitionerRef),
                       ],
                     ),
                   ),
@@ -154,25 +157,25 @@ class _AppointmentDetailScreenState
               child: Column(
                 children: [
                   _DetailRow(
-                    icon: Icons.calendar_today_rounded,
+                    icon: LucideIcons.calendar,
                     label: 'Date',
                     value: _formatFullDate(appointment.scheduledAt),
                   ),
                   const Divider(height: 24),
                   _DetailRow(
-                    icon: Icons.access_time_rounded,
+                    icon: LucideIcons.clock,
                     label: 'Time',
                     value: _formatTime(appointment.scheduledAt),
                   ),
                   const Divider(height: 24),
                   _DetailRow(
-                    icon: Icons.timer_rounded,
+                    icon: LucideIcons.timer,
                     label: 'Duration',
                     value: '${appointment.durationMinutes} minutes',
                   ),
                   const Divider(height: 24),
                   _DetailRow(
-                    icon: Icons.medical_services_rounded,
+                    icon: LucideIcons.briefcaseMedical,
                     label: 'Type',
                     value: _appointmentTypeLabel(appointment.appointmentType),
                   ),
@@ -238,7 +241,7 @@ class _AppointmentDetailScreenState
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.edit_calendar_rounded, size: 18),
+                      Icon(LucideIcons.calendarCog, size: 18),
                       Gap(8),
                       Text(
                         'Reschedule',
@@ -257,7 +260,7 @@ class _AppointmentDetailScreenState
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.cancel_rounded, size: 18),
+                      Icon(LucideIcons.circleX, size: 18),
                       Gap(8),
                       Text(
                         'Cancel Appointment',
@@ -438,7 +441,7 @@ class _StatusTimeline extends StatelessWidget {
                         : null,
                   ),
                   child: isCompleted
-                      ? Icon(Icons.check_rounded,
+                      ? Icon(LucideIcons.check,
                           size: 16, color: colors.primary)
                       : null,
                 ),

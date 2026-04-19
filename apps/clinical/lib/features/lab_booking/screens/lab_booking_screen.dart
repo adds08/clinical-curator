@@ -78,7 +78,7 @@ class _LabBookingScreenState extends ConsumerState<LabBookingScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.shopping_cart_outlined, size: 16, color: Colors.white),
+                  const Icon(LucideIcons.shoppingCart, size: 16, color: Colors.white),
                   const SizedBox(width: 4),
                   Text('${_cart.length}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
                 ],
@@ -142,7 +142,7 @@ class _LabBookingScreenState extends ConsumerState<LabBookingScreen> {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +191,7 @@ class _LabBookingScreenState extends ConsumerState<LabBookingScreen> {
                   await DatabaseService.labBookings.add(booking);
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   setState(() => _cart.clear());
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: const Text('Booking confirmed! You will receive an SMS with details.'))));
                 },
@@ -243,7 +243,7 @@ class _LabTestCard extends StatelessWidget {
                   children: [
                     Text(test.category, style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
                     const SizedBox(width: 8),
-                    Icon(Icons.schedule, size: 12, color: colors.mutedForeground),
+                    Icon(LucideIcons.clock, size: 12, color: colors.mutedForeground),
                     const SizedBox(width: 2),
                     Text(test.turnaround, style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
                     if (test.fastingRequired) ...[

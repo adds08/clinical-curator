@@ -68,7 +68,7 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
+                  Icon(LucideIcons.info,
                       size: 20, color: colors.warning),
                   const Gap(AppSpacing.md),
                   Expanded(
@@ -185,7 +185,7 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.event_busy_rounded,
+                        Icon(LucideIcons.calendarX,
                             size: 48, color: colors.mutedForeground),
                         const Gap(AppSpacing.md),
                         Text(
@@ -231,7 +231,7 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.access_time_rounded,
+                                Icon(LucideIcons.clock,
                                     size: 20,
                                     color: isSelected
                                         ? colors.primary
@@ -264,7 +264,7 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
                                   ),
                                 ),
                                 if (isSelected)
-                                  Icon(Icons.check_circle_rounded,
+                                  Icon(LucideIcons.circleCheck,
                                       color: colors.primary, size: 22),
                               ],
                             ),

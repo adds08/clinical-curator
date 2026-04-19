@@ -8,6 +8,7 @@ import '../../../domain/providers/booking_flow_provider.dart';
 import '../../../domain/providers/practitioner_role_provider.dart';
 import '../../../domain/providers/slot_availability_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class DoctorProfileScreen extends ConsumerWidget {
   final String practitionerRef;
@@ -97,24 +98,26 @@ class DoctorProfileScreen extends ConsumerWidget {
                       color: colors.primary,
                     ),
                   ),
+                  const Gap(AppSpacing.sm),
+                  PractitionerVerifiedBadge(practitionerRef: practitionerRef),
                   const Gap(AppSpacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _StatBadge(
-                        icon: Icons.star_rounded,
+                        icon: LucideIcons.star,
                         label: '4.8',
                         color: colors.warning,
                       ),
                       const Gap(AppSpacing.md),
                       _StatBadge(
-                        icon: Icons.people_rounded,
+                        icon: LucideIcons.users,
                         label: '500+ patients',
                         color: colors.success,
                       ),
                       const Gap(AppSpacing.md),
                       _StatBadge(
-                        icon: Icons.calendar_today_rounded,
+                        icon: LucideIcons.calendar,
                         label: nextSlotDate != null
                             ? 'Next: ${_formatShortDate(nextSlotDate)}'
                             : 'No slots',
@@ -164,7 +167,7 @@ class DoctorProfileScreen extends ConsumerWidget {
                       child: Row(
                         children: [
                           Icon(
-                            Icons.local_hospital_rounded,
+                            LucideIcons.hospital,
                             color: isSelected
                                 ? colors.primary
                                 : colors.mutedForeground,
@@ -184,7 +187,7 @@ class DoctorProfileScreen extends ConsumerWidget {
                             ),
                           ),
                           if (isSelected)
-                            Icon(Icons.check_circle_rounded,
+                            Icon(LucideIcons.circleCheck,
                                 color: colors.primary, size: 20),
                         ],
                       ),
@@ -228,7 +231,7 @@ class DoctorProfileScreen extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.event_busy_rounded,
+                    Icon(LucideIcons.calendarX,
                         size: 32, color: colors.mutedForeground),
                     const Gap(AppSpacing.sm),
                     Text(
@@ -262,7 +265,7 @@ class DoctorProfileScreen extends ConsumerWidget {
                               color: colors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.access_time_rounded,
+                            child: Icon(LucideIcons.clock,
                                 color: colors.primary, size: 20),
                           ),
                           const Gap(AppSpacing.md),
@@ -312,7 +315,7 @@ class DoctorProfileScreen extends ConsumerWidget {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_month_rounded, size: 18),
+                    Icon(LucideIcons.calendar, size: 18),
                     Gap(8),
                     Text(
                       'Select Time Slot',

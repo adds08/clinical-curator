@@ -6,6 +6,7 @@ import 'package:cc_core/router/route_names.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_fhir_models/models/user_role.dart';
 import '../../../domain/providers/ambulance_provider.dart';
+import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/role_provider.dart';
 
 class _NavItem {
@@ -25,26 +26,26 @@ class AppScaffold extends ConsumerWidget {
     switch (role) {
       case UserRole.patient:
         return const [
-          _NavItem(selectedIcon: Icons.home_rounded, unselectedIcon: Icons.home_outlined, label: 'Home'),
-          _NavItem(selectedIcon: Icons.folder_shared_rounded, unselectedIcon: Icons.folder_shared_outlined, label: 'Records'),
-          _NavItem(selectedIcon: Icons.medical_services_rounded, unselectedIcon: Icons.medical_services_outlined, label: 'Services'),
-          _NavItem(selectedIcon: Icons.notifications_rounded, unselectedIcon: Icons.notifications_outlined, label: 'Alerts'),
-          _NavItem(selectedIcon: Icons.person_rounded, unselectedIcon: Icons.person_outline, label: 'Profile'),
+          _NavItem(selectedIcon: LucideIcons.house, unselectedIcon: LucideIcons.house, label: 'Home'),
+          _NavItem(selectedIcon: LucideIcons.folder, unselectedIcon: LucideIcons.folder, label: 'Records'),
+          _NavItem(selectedIcon: LucideIcons.briefcaseMedical, unselectedIcon: LucideIcons.briefcaseMedical, label: 'Services'),
+          _NavItem(selectedIcon: LucideIcons.bell, unselectedIcon: LucideIcons.bell, label: 'Alerts'),
+          _NavItem(selectedIcon: LucideIcons.user, unselectedIcon: LucideIcons.user, label: 'Profile'),
         ];
       case UserRole.clinician:
         return const [
-          _NavItem(selectedIcon: Icons.dashboard_rounded, unselectedIcon: Icons.dashboard_outlined, label: 'Dashboard'),
-          _NavItem(selectedIcon: Icons.people_rounded, unselectedIcon: Icons.people_outline, label: 'Patients'),
-          _NavItem(selectedIcon: Icons.calendar_month_rounded, unselectedIcon: Icons.calendar_month_outlined, label: 'Schedule'),
-          _NavItem(selectedIcon: Icons.medical_services_rounded, unselectedIcon: Icons.medical_services_outlined, label: 'Services'),
-          _NavItem(selectedIcon: Icons.notifications_rounded, unselectedIcon: Icons.notifications_outlined, label: 'Alerts'),
-          _NavItem(selectedIcon: Icons.person_rounded, unselectedIcon: Icons.person_outline, label: 'Profile'),
+          _NavItem(selectedIcon: LucideIcons.layoutDashboard, unselectedIcon: LucideIcons.layoutDashboard, label: 'Dashboard'),
+          _NavItem(selectedIcon: LucideIcons.users, unselectedIcon: LucideIcons.users, label: 'Patients'),
+          _NavItem(selectedIcon: LucideIcons.calendar, unselectedIcon: LucideIcons.calendar, label: 'Schedule'),
+          _NavItem(selectedIcon: LucideIcons.briefcaseMedical, unselectedIcon: LucideIcons.briefcaseMedical, label: 'Services'),
+          _NavItem(selectedIcon: LucideIcons.bell, unselectedIcon: LucideIcons.bell, label: 'Alerts'),
+          _NavItem(selectedIcon: LucideIcons.user, unselectedIcon: LucideIcons.user, label: 'Profile'),
         ];
       case UserRole.admin:
         return const [
-          _NavItem(selectedIcon: Icons.verified_user_rounded, unselectedIcon: Icons.verified_user_outlined, label: 'Verify'),
-          _NavItem(selectedIcon: Icons.business_rounded, unselectedIcon: Icons.business_outlined, label: 'Facilities'),
-          _NavItem(selectedIcon: Icons.lightbulb_rounded, unselectedIcon: Icons.lightbulb_outline, label: 'Health Tips'),
+          _NavItem(selectedIcon: LucideIcons.shieldCheck, unselectedIcon: LucideIcons.shieldCheck, label: 'Verify'),
+          _NavItem(selectedIcon: LucideIcons.building, unselectedIcon: LucideIcons.building, label: 'Facilities'),
+          _NavItem(selectedIcon: LucideIcons.lightbulb, unselectedIcon: LucideIcons.lightbulb, label: 'Health Tips'),
         ];
     }
   }
@@ -64,8 +65,13 @@ class AppScaffold extends ConsumerWidget {
 
   Widget _buildMobile(BuildContext context, WidgetRef ref, List<_NavItem> items, int idx) {
     final activeAmbulance = ref.watch(activeAmbulanceRequestProvider);
+    final user = ref.watch(authProvider).user;
+    final showBanner = user != null && user.isPractitioner && !user.isVerified;
 
     return Scaffold(
+      headers: [
+        if (showBanner) const _UnverifiedBanner(),
+      ],
       footers: [
         if (activeAmbulance != null)
           _ActiveAmbulanceCard(request: activeAmbulance),
@@ -147,6 +153,8 @@ class AppScaffold extends ConsumerWidget {
   Widget _buildDesktop(BuildContext context, WidgetRef ref, List<_NavItem> items, int idx) {
     final colors = Theme.of(context).colorScheme;
     final activeAmbulance = ref.watch(activeAmbulanceRequestProvider);
+    final user = ref.watch(authProvider).user;
+    final showBanner = user != null && user.isPractitioner && !user.isVerified;
 
     return Scaffold(
       child: Row(
@@ -161,7 +169,7 @@ class AppScaffold extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                   child: Row(
                     children: [
-                      Icon(Icons.local_hospital_rounded, color: colors.primary, size: 28),
+                      Icon(LucideIcons.hospital, color: colors.primary, size: 28),
                       const SizedBox(width: 10),
                       Text(
                         'Clinical\nCurator',
@@ -204,7 +212,14 @@ class AppScaffold extends ConsumerWidget {
               ],
             ),
           ),
-          Expanded(child: navigationShell),
+          Expanded(
+            child: Column(
+              children: [
+                if (showBanner) const _UnverifiedBanner(),
+                Expanded(child: navigationShell),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -251,20 +266,19 @@ class _ActiveAmbulanceCard extends StatelessWidget {
   IconData get _statusIcon {
     switch (request.status) {
       case 'arrived':
-        return Icons.where_to_vote;
+        return LucideIcons.mapPinCheck;
       case 'enroute':
-        return Icons.local_shipping;
+        return LucideIcons.truck;
       case 'dispatched':
-        return Icons.check_circle_outline;
+        return LucideIcons.circleCheck;
       default:
-        return Icons.access_time;
+        return LucideIcons.clock;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-
     final cardColor = _isArrived ? colors.success : colors.destructive;
 
     return GestureDetector(
@@ -345,13 +359,49 @@ class _ActiveAmbulanceCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 4),
-                  Icon(Icons.arrow_forward_ios_rounded,
+                  Icon(LucideIcons.chevronRight,
                       size: 10, color: Colors.white),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _UnverifiedBanner extends StatelessWidget {
+  const _UnverifiedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.warning.withValues(alpha: 0.08),
+        border: Border(
+          bottom: BorderSide(color: colors.warning.withValues(alpha: 0.3)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(LucideIcons.shieldAlert, size: 16, color: colors.warning),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Identity not verified \u2014 consent sharing restricted',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: colors.warning,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

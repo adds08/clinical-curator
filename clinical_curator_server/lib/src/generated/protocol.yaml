@@ -15,6 +15,9 @@ admin:
   - rejectPractitioner:
   - getDashboardStats:
   - listVerifiedPractitioners:
+  - listAllUsers:
+  - setUserVerified:
+  - getAnalytics:
 ambulance:
   - request:
   - updateStatus:
@@ -31,6 +34,10 @@ appointment:
   - listForPractitioner:
   - listTodayForPractitioner:
   - getById:
+audit:
+  - list:
+  - recent:
+  - record:
 auth:
   - login:
   - signup:
@@ -48,11 +55,18 @@ fhirResource:
   - searchByPatient:
   - searchByPractitioner:
   - getChangesSince:
+fhirSync:
+  - since:
+  - push:
+  - purgeDemoData:
 healthTip:
   - listAll:
+  - listAllAdmin:
   - listByCategory:
   - getById:
   - create:
+  - update:
+  - delete:
 insurance:
   - submitClaim:
   - listClaims:
@@ -70,16 +84,24 @@ notification:
   - markAllAsRead:
   - getUnreadCount:
 organization:
+  - listAll:
   - listHospitals:
   - listPharmacies:
   - search:
   - getById:
   - create:
+  - update:
+  - delete:
 pharmacy:
   - createOrder:
   - listOrders:
   - updateStatus:
   - getById:
+rbac:
+  - listAll:
+  - listForRole:
+  - setPermission:
+  - deletePermission:
 schedule:
   - createSlot:
   - updateSlot:
@@ -87,5 +109,8 @@ schedule:
   - listSlots:
   - listAvailableSlots:
   - bookSlot:
+webrtcSignaling:
+  - subscribe:
+  - send:
 greeting:
   - hello:

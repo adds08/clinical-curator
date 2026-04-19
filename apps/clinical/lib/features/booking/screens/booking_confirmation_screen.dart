@@ -8,6 +8,7 @@ import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
 import '../../../domain/providers/schedule_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {
   const BookingConfirmationScreen({super.key});
@@ -110,6 +111,9 @@ class _BookingConfirmationScreenState
                             ),
                           ),
                         ],
+                        const Gap(4),
+                        if (booking.selectedDoctor != null)
+                          PractitionerVerifiedBadge(practitionerRef: booking.selectedDoctor!.practitionerRef),
                       ],
                     ),
                   ),
@@ -141,13 +145,13 @@ class _BookingConfirmationScreenState
               child: Column(
                 children: [
                   _DetailRow(
-                    icon: Icons.calendar_today_rounded,
+                    icon: LucideIcons.calendar,
                     label: 'Date',
                     value: date != null ? _formatFullDate(date) : '--',
                   ),
                   const Divider(height: 24),
                   _DetailRow(
-                    icon: Icons.access_time_rounded,
+                    icon: LucideIcons.clock,
                     label: 'Time',
                     value: slot != null
                         ? '${slot.startTime} - ${slot.endTime}'
@@ -155,7 +159,7 @@ class _BookingConfirmationScreenState
                   ),
                   const Divider(height: 24),
                   _DetailRow(
-                    icon: Icons.timer_rounded,
+                    icon: LucideIcons.timer,
                     label: 'Duration',
                     value: slot != null
                         ? '${slot.slotDurationMinutes} minutes'
@@ -163,14 +167,14 @@ class _BookingConfirmationScreenState
                   ),
                   const Divider(height: 24),
                   _DetailRow(
-                    icon: Icons.person_rounded,
+                    icon: LucideIcons.user,
                     label: 'Patient',
                     value: patientName,
                   ),
                   if (slot?.isTelehealth == true) ...[
                     const Divider(height: 24),
                     _DetailRow(
-                      icon: Icons.videocam_rounded,
+                      icon: LucideIcons.video,
                       label: 'Type',
                       value: 'Telemedicine',
                     ),
@@ -217,7 +221,7 @@ class _BookingConfirmationScreenState
                     : const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle_rounded, size: 18),
+                          Icon(LucideIcons.circleCheck, size: 18),
                           Gap(8),
                           Text(
                             'Confirm Booking',

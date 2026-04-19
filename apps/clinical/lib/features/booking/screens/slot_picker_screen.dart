@@ -148,7 +148,7 @@ class _SlotPickerScreenState extends ConsumerState<SlotPickerScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.event_busy_rounded,
+                        Icon(LucideIcons.calendarX,
                             size: 48, color: colors.mutedForeground),
                         const Gap(AppSpacing.md),
                         Text(
@@ -214,7 +214,7 @@ class _SlotPickerScreenState extends ConsumerState<SlotPickerScreen> {
                                         BorderRadius.circular(12),
                                   ),
                                   child: Icon(
-                                    Icons.access_time_rounded,
+                                    LucideIcons.clock,
                                     color: isSelected
                                         ? colors.primary
                                         : colors.mutedForeground,
@@ -282,7 +282,7 @@ class _SlotPickerScreenState extends ConsumerState<SlotPickerScreen> {
                                   ),
                                 ),
                                 if (isSelected)
-                                  Icon(Icons.check_circle_rounded,
+                                  Icon(LucideIcons.circleCheck,
                                       color: colors.primary, size: 22),
                               ],
                             ),

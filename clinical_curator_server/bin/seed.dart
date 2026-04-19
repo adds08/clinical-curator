@@ -17,6 +17,17 @@ import 'package:clinical_curator_server/src/generated/protocol.dart';
 /// diagnostic reports, appointments, notifications, insurance claims,
 /// pharmacy orders, and schedule slots for all practitioners.
 void main(List<String> args) async {
+  // Parse --mode reference|mock (default: reference).
+  // `reference` seeds admin + RBAC + 5 hospitals only.
+  // `mock` seeds the full demo dataset (patients, practitioners, vitals…).
+  var mode = 'reference';
+  for (var i = 0; i < args.length - 1; i++) {
+    if (args[i] == '--mode') {
+      mode = args[i + 1];
+      break;
+    }
+  }
+
   final pod = Serverpod(['--mode', 'development', '--apply-migrations'],
       Protocol(), Endpoints());
   await pod.start();
@@ -33,8 +44,30 @@ void main(List<String> args) async {
       return;
     }
 
-    print('Seeding database...');
+    print('Seeding database (mode=$mode)...');
     final now = DateTime.now();
+
+    if (mode == 'reference') {
+      // ── Reference-only seed ────────────────────────────────────────────
+      final adminPassword = BCrypt.hashpw('admin123', BCrypt.gensalt());
+      await UserAccount.db.insertRow(
+          session,
+          UserAccount(
+            email: 'admin@example.com',
+            passwordHash: adminPassword,
+            displayName: 'Admin User',
+            isPractitioner: false,
+            isVerified: true,
+            accountType: 'admin',
+            createdAt: now,
+          ));
+      print('  \u2713 admin account (admin@example.com)');
+      print('\n\u2705 Reference seed complete.');
+      print('   Run with --mode mock for the full demo dataset.');
+      await session.close();
+      await pod.shutdown();
+      return;
+    }
 
     // ── Hashed Passwords ───────────────────────────────────────────────────
     final patientPassword = BCrypt.hashpw('password123', BCrypt.gensalt());

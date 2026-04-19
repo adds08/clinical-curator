@@ -1,9 +1,10 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../errors/app_exceptions.dart';
 import '../generated/protocol.dart';
 
 class HealthTipEndpoint extends Endpoint {
-  /// List all active health tips.
+  /// List active health tips.
   Future<List<HealthTip>> listAll(
     Session session, {
     int? limit,
@@ -19,7 +20,15 @@ class HealthTipEndpoint extends Endpoint {
     );
   }
 
-  /// List active health tips by category.
+  /// Admin view: list every health tip regardless of `isActive`.
+  Future<List<HealthTip>> listAllAdmin(Session session) async {
+    return await HealthTip.db.find(
+      session,
+      orderBy: (t) => t.publishedAt,
+      orderDescending: true,
+    );
+  }
+
   Future<List<HealthTip>> listByCategory(
     Session session,
     String category, {
@@ -36,17 +45,29 @@ class HealthTipEndpoint extends Endpoint {
     );
   }
 
-  /// Get a health tip by ID.
   Future<HealthTip?> getById(Session session, int id) async {
     return await HealthTip.db.findById(session, id);
   }
 
-  /// Create a health tip (admin).
   Future<HealthTip> create(Session session, HealthTip tip) async {
     final record = tip.copyWith(
-      isActive: true,
-      createdAt: DateTime.now(),
+      isActive: tip.isActive,
+      createdAt: tip.createdAt,
     );
     return await HealthTip.db.insertRow(session, record);
+  }
+
+  Future<HealthTip> update(Session session, HealthTip tip) async {
+    if (tip.id == null) {
+      throw ValidationException('HealthTip.id is required for update.');
+    }
+    return await HealthTip.db.updateRow(session, tip);
+  }
+
+  Future<bool> delete(Session session, int id) async {
+    final existing = await HealthTip.db.findById(session, id);
+    if (existing == null) return false;
+    await HealthTip.db.deleteRow(session, existing);
+    return true;
   }
 }

@@ -8,6 +8,7 @@ import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_fhir_models/collections/appointment_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
 import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class MyAppointmentsScreen extends ConsumerStatefulWidget {
   const MyAppointmentsScreen({super.key});
@@ -113,7 +114,7 @@ class _MyAppointmentsScreenState
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.calendar_today_rounded,
+                        Icon(LucideIcons.calendar,
                             size: 48, color: colors.mutedForeground),
                         const Gap(AppSpacing.md),
                         Text(
@@ -224,6 +225,8 @@ class _AppointmentCard extends StatelessWidget {
                           color: colors.primary,
                         ),
                       ),
+                      const Gap(4),
+                      PractitionerVerifiedBadge(practitionerRef: appointment.practitionerRef),
                     ],
                   ),
                 ),
@@ -248,7 +251,7 @@ class _AppointmentCard extends StatelessWidget {
             const Gap(AppSpacing.md),
             Row(
               children: [
-                Icon(Icons.calendar_today_rounded,
+                Icon(LucideIcons.calendar,
                     size: 14, color: colors.mutedForeground),
                 const Gap(6),
                 Text(
@@ -259,7 +262,7 @@ class _AppointmentCard extends StatelessWidget {
                   ),
                 ),
                 const Gap(AppSpacing.lg),
-                Icon(Icons.access_time_rounded,
+                Icon(LucideIcons.clock,
                     size: 14, color: colors.mutedForeground),
                 const Gap(6),
                 Text(
@@ -270,7 +273,7 @@ class _AppointmentCard extends StatelessWidget {
                   ),
                 ),
                 const Gap(AppSpacing.lg),
-                Icon(Icons.timer_rounded,
+                Icon(LucideIcons.timer,
                     size: 14, color: colors.mutedForeground),
                 const Gap(6),
                 Text(

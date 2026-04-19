@@ -13,6 +13,7 @@ import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_fhir_models/collections/appointment_collection.dart';
 import 'package:cc_fhir_models/collections/fhir_resource_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
+import '../../shared/widgets/sync_chip.dart';
 import 'package:cc_data/providers/practitioner_data_provider.dart';
 
 class DoctorDashboardScreen extends ConsumerWidget {
@@ -40,19 +41,32 @@ class DoctorDashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
-              Text('Good morning,',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: colors.mutedForeground)),
-              const SizedBox(height: 2),
-              Text('Dr. $doctorName',
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: colors.foreground,
-                      letterSpacing: -0.3)),
+              // Greeting + sync chip
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Good morning,',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: colors.mutedForeground)),
+                        const SizedBox(height: 2),
+                        Text('Dr. $doctorName',
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: colors.foreground,
+                                letterSpacing: -0.3)),
+                      ],
+                    ),
+                  ),
+                  const SyncChip(),
+                ],
+              ),
 
               const SizedBox(height: 24),
               _StatsRow(
@@ -99,7 +113,7 @@ class _StatsRow extends StatelessWidget {
       children: [
         Expanded(
             child: _StatCard(
-                icon: Icons.people_outline,
+                icon: LucideIcons.users,
                 value: '$patientCount',
                 label: 'Patients',
                 bg: colors.oxygenBg,
@@ -107,7 +121,7 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
             child: _StatCard(
-                icon: Icons.event_note,
+                icon: LucideIcons.calendarDays,
                 value: '$opdCount',
                 label: 'OPD Today',
                 bg: colors.stepsBg,
@@ -115,7 +129,7 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
             child: _StatCard(
-                icon: Icons.check_circle_outline,
+                icon: LucideIcons.circleCheck,
                 value: '$completedCount',
                 label: 'Completed',
                 bg: colors.sleepBg,
@@ -311,7 +325,7 @@ class _ScheduleCard extends StatelessWidget {
             ])
           else if (isComplete)
             Row(children: [
-              Icon(Icons.check, size: 12, color: colors.mutedForeground),
+              Icon(LucideIcons.check, size: 12, color: colors.mutedForeground),
               const SizedBox(width: 4),
               Text('Done',
                   style: TextStyle(
@@ -361,7 +375,7 @@ class _PatientQueue extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: colors.primary)),
                 const SizedBox(width: 2),
-                Icon(Icons.chevron_right_rounded,
+                Icon(LucideIcons.chevronRight,
                     size: 16, color: colors.primary),
               ]),
             ),
@@ -482,7 +496,7 @@ class _QueueCard extends StatelessWidget {
                 ),
                 SecondaryBadge(
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.schedule, size: 12),
+                  const Icon(LucideIcons.clock, size: 12),
                   const SizedBox(width: 4),
                   Text(time,
                       style: const TextStyle(
@@ -499,7 +513,7 @@ class _QueueCard extends StatelessWidget {
                   child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.mic, size: 14),
+                        Icon(LucideIcons.mic, size: 14),
                         SizedBox(width: 4),
                         Text('Start Record',
                             style: TextStyle(
@@ -513,7 +527,7 @@ class _QueueCard extends StatelessWidget {
                   child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.monitor_heart_outlined, size: 14),
+                        Icon(LucideIcons.heartPulse, size: 14),
                         SizedBox(width: 4),
                         Text('Vitals',
                             style: TextStyle(
@@ -540,7 +554,7 @@ class _QueueCard extends StatelessWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,7 +605,7 @@ class _QueueCard extends StatelessWidget {
                   ].join('\n');
 
                   if (noteText.isEmpty) {
-                    closeDrawer(context);
+                    closeDrawer(ctx);
                     return;
                   }
 
@@ -626,7 +640,7 @@ class _QueueCard extends StatelessWidget {
                   await DatabaseService.fhirResources.add(resource);
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(
                       context: context,
                       builder: (c, o) => SurfaceCard(
@@ -657,7 +671,7 @@ class _QueueCard extends StatelessWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -854,7 +868,7 @@ class _QueueCard extends StatelessWidget {
                   }
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(
                       context: context,
                       builder: (c, o) => SurfaceCard(
@@ -892,12 +906,12 @@ class _PendingConsults extends StatelessWidget {
                   color: colors.primaryForeground)),
           const SizedBox(height: 16),
           _ConsultItem(
-              icon: Icons.image_outlined,
+              icon: LucideIcons.image,
               title: 'Radiology',
               subtitle: 'MRI Review - Ward 4B'),
           const SizedBox(height: 12),
           _ConsultItem(
-              icon: Icons.monitor_heart_outlined,
+              icon: LucideIcons.heartPulse,
               title: 'Cardiology',
               subtitle: 'ECG Interpretation'),
           const SizedBox(height: 16),
@@ -956,7 +970,7 @@ class _ConsultItem extends StatelessWidget {
                         colors.primaryForeground.withValues(alpha: 0.7))),
           ],
         )),
-        Icon(Icons.chevron_right,
+        Icon(LucideIcons.chevronRight,
             color: colors.primaryForeground.withValues(alpha: 0.5),
             size: 18),
       ],
@@ -988,11 +1002,11 @@ class _QuickTools extends StatelessWidget {
           childAspectRatio: 2.4,
           children: [
             _ToolCard(
-                icon: Icons.person_search_outlined,
+                icon: LucideIcons.userSearch,
                 label: 'Find Patient',
                 onTap: () => context.go(RouteNames.clinicianPatients)),
             _ToolCard(
-                icon: Icons.send_outlined,
+                icon: LucideIcons.send,
                 label: 'New Referral',
                 onTap: () => _openFormDrawer(context, 'New Referral', [
                       'Referring to (Specialist name)',
@@ -1001,7 +1015,7 @@ class _QuickTools extends StatelessWidget {
                       'Urgency (Routine / Urgent)'
                     ])),
             _ToolCard(
-                icon: Icons.medication_outlined,
+                icon: LucideIcons.pill,
                 label: 'E-Prescribe',
                 onTap: () => _openFormDrawer(context, 'E-Prescribe', [
                       'Medication name',
@@ -1010,7 +1024,7 @@ class _QuickTools extends StatelessWidget {
                       'Special instructions'
                     ])),
             _ToolCard(
-                icon: Icons.science_outlined,
+                icon: LucideIcons.flaskConical,
                 label: 'Lab Orders',
                 onTap: () => _openFormDrawer(context, 'Lab Order', [
                       'Test name(s)',
@@ -1032,7 +1046,7 @@ class _QuickTools extends StatelessWidget {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1052,7 +1066,7 @@ class _QuickTools extends StatelessWidget {
               width: double.infinity,
               child: Button.primary(
                 onPressed: () {
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   showToast(
                       context: context,
                       builder: (c, o) => SurfaceCard(

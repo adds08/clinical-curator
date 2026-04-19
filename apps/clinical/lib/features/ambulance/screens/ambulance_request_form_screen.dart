@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
@@ -48,11 +47,13 @@ class _AmbulanceRequestFormScreenState
 
   Future<void> _openLocationPicker() async {
     final result = await Navigator.of(context).push<PickedLocation>(
-      MaterialPageRoute(
-        builder: (_) => LocationPickerScreen(
+      PageRouteBuilder<PickedLocation>(
+        pageBuilder: (_, _, _) => LocationPickerScreen(
           initialLocation: _pickedLocation?.latLng,
           initialAddress: _pickedLocation?.displayName,
         ),
+        transitionsBuilder: (_, animation, _, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
     if (result != null && mounted) {
@@ -62,7 +63,7 @@ class _AmbulanceRequestFormScreenState
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return SubPageScaffold(
       title: 'Request Ambulance',
       child: SingleChildScrollView(
@@ -71,7 +72,7 @@ class _AmbulanceRequestFormScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // -- Header alert card --
-            shadcn.Alert(
+            Alert(
               leading: Container(
                 width: 44,
                 height: 44,
@@ -79,7 +80,7 @@ class _AmbulanceRequestFormScreenState
                   color: colors.destructive.withValues(alpha: 0.15),
                   borderRadius: AppRadius.inputRadius,
                 ),
-                child: Icon(Icons.emergency,
+                child: Icon(LucideIcons.siren,
                     color: colors.destructive, size: 24),
               ),
               title: const Text('Emergency Dispatch'),
@@ -140,7 +141,7 @@ class _AmbulanceRequestFormScreenState
                                                 width: 2),
                                           ),
                                           child: const Icon(
-                                              Icons.location_on,
+                                              LucideIcons.mapPin,
                                               color: Colors.white,
                                               size: 18),
                                         ),
@@ -177,8 +178,8 @@ class _AmbulanceRequestFormScreenState
                         children: [
                           Icon(
                             _pickedLocation != null
-                                ? Icons.location_on
-                                : Icons.my_location,
+                                ? LucideIcons.mapPin
+                                : LucideIcons.locateFixed,
                             color: _pickedLocation != null
                                 ? colors.destructive
                                 : colors.primary,
@@ -202,7 +203,7 @@ class _AmbulanceRequestFormScreenState
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Icon(Icons.chevron_right,
+                          Icon(LucideIcons.chevronRight,
                               size: 18,
                               color: colors.mutedForeground),
                         ],
@@ -219,7 +220,7 @@ class _AmbulanceRequestFormScreenState
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               width: double.infinity,
-              child: shadcn.Select<String>(
+              child: Select<String>(
                 value: _selectedEmergencyType,
                 onChanged: (val) {
                   if (val != null) {
@@ -228,10 +229,10 @@ class _AmbulanceRequestFormScreenState
                 },
                 itemBuilder: (context, item) => Text(item),
                 // ignore: implicit_call_tearoffs
-                popup: shadcn.SelectPopup(
-                  items: shadcn.SelectItemList(
+                popup: SelectPopup(
+                  items: SelectItemList(
                     children: _emergencyTypes
-                        .map((t) => shadcn.SelectItemButton(
+                        .map((t) => SelectItemButton(
                               value: t,
                               child: Text(t),
                             ))
@@ -246,12 +247,12 @@ class _AmbulanceRequestFormScreenState
             // -- Patient name --
             _buildLabel(context, 'Patient Name'),
             const SizedBox(height: AppSpacing.sm),
-            shadcn.TextField(
+            TextField(
               controller: _patientNameController,
               placeholder: const Text('Full name'),
               features: [
-                shadcn.InputFeature.leading(
-                  Icon(Icons.person_outline,
+                InputFeature.leading(
+                  Icon(LucideIcons.user,
                       color: colors.mutedForeground, size: 20),
                 ),
               ],
@@ -261,12 +262,12 @@ class _AmbulanceRequestFormScreenState
             // -- Contact number --
             _buildLabel(context, 'Contact Number'),
             const SizedBox(height: AppSpacing.sm),
-            shadcn.TextField(
+            TextField(
               controller: _contactController,
               placeholder: const Text('+977-XXXXXXXXXX'),
               features: [
-                shadcn.InputFeature.leading(
-                  Icon(Icons.phone,
+                InputFeature.leading(
+                  Icon(LucideIcons.phone,
                       color: colors.mutedForeground, size: 20),
                 ),
               ],
@@ -276,14 +277,14 @@ class _AmbulanceRequestFormScreenState
             // -- Submit button --
             SizedBox(
               width: double.infinity,
-              child: shadcn.Button.destructive(
+              child: Button.destructive(
                 onPressed: () async {
                   if (_patientNameController.text.trim().isEmpty) {
-                    shadcn.showToast(
+                    showToast(
                       context: context,
-                      builder: (ctx, overlay) => shadcn.SurfaceCard(
-                        child: shadcn.Basic(
-                          leading: Icon(Icons.warning_amber,
+                      builder: (ctx, overlay) => SurfaceCard(
+                        child: Basic(
+                          leading: Icon(LucideIcons.triangleAlert,
                               color: colors.warning),
                           title: const Text('Please enter patient name'),
                         ),
@@ -292,11 +293,11 @@ class _AmbulanceRequestFormScreenState
                     return;
                   }
                   if (_contactController.text.trim().isEmpty) {
-                    shadcn.showToast(
+                    showToast(
                       context: context,
-                      builder: (ctx, overlay) => shadcn.SurfaceCard(
-                        child: shadcn.Basic(
-                          leading: Icon(Icons.warning_amber,
+                      builder: (ctx, overlay) => SurfaceCard(
+                        child: Basic(
+                          leading: Icon(LucideIcons.triangleAlert,
                               color: colors.warning),
                           title:
                               const Text('Please enter contact number'),
@@ -325,7 +326,7 @@ class _AmbulanceRequestFormScreenState
                   // ignore: use_build_context_synchronously
                   context.push(RouteNames.serviceAmbulanceConfirmation);
                 },
-                leading: const Icon(Icons.local_shipping, size: 20),
+                leading: const Icon(LucideIcons.truck, size: 20),
                 child: const Text(
                   'Request Ambulance',
                   style: TextStyle(
@@ -343,7 +344,7 @@ class _AmbulanceRequestFormScreenState
   }
 
   Widget _buildLabel(BuildContext context, String text) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Text(
       text,
       style: TextStyle(

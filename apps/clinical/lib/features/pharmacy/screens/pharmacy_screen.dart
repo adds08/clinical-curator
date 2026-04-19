@@ -121,7 +121,7 @@ class _PharmacyScreenState extends ConsumerState<PharmacyScreen> {
           child: Basic(
             title: Text('${med.name} ordered'),
             subtitle: const Text('Your order has been placed'),
-            leading: Icon(Icons.check_circle, size: 18, color: Theme.of(context).colorScheme.success),
+            leading: Icon(LucideIcons.circleCheck, size: 18, color: Theme.of(context).colorScheme.success),
           ),
         ),
       );
@@ -173,7 +173,7 @@ class _PharmacyCard extends StatelessWidget {
               Container(
                 width: 40, height: 40,
                 decoration: BoxDecoration(color: colors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-                child: Icon(Icons.local_pharmacy_rounded, color: colors.success, size: 20),
+                child: Icon(LucideIcons.pill, color: colors.success, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -198,16 +198,16 @@ class _PharmacyCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(Icons.location_on_outlined, size: 13, color: colors.mutedForeground),
+              Icon(LucideIcons.mapPin, size: 13, color: colors.mutedForeground),
               const SizedBox(width: 3),
               Text(pharmacy.distance, style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
               const SizedBox(width: 12),
-              Icon(Icons.schedule, size: 13, color: colors.mutedForeground),
+              Icon(LucideIcons.clock, size: 13, color: colors.mutedForeground),
               const SizedBox(width: 3),
               Text(pharmacy.hours, style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
               if (pharmacy.hasDelivery) ...[
                 const SizedBox(width: 12),
-                Icon(Icons.delivery_dining_rounded, size: 13, color: colors.primary),
+                Icon(LucideIcons.bike, size: 13, color: colors.primary),
                 const SizedBox(width: 3),
                 Text('Delivery', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary)),
               ],

@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
@@ -43,7 +42,7 @@ class _ScheduleTimesheetScreenState
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final user = ref.watch(authProvider).user;
     final practRef = user?.fhirPractitionerId ?? '';
 
@@ -102,12 +101,12 @@ class _ScheduleTimesheetScreenState
                       ),
                     ],
                   ),
-                  shadcn.Button.primary(
+                  Button.primary(
                     onPressed: () => context.push(RouteNames.scheduleEntry),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.add, size: 16),
+                        Icon(LucideIcons.plus, size: 16),
                         SizedBox(width: 4),
                         Text('Add Slot',
                             style: TextStyle(
@@ -141,14 +140,14 @@ class _ScheduleTimesheetScreenState
                       letterSpacing: -0.3,
                     ),
                   ),
-                  shadcn.PrimaryBadge(
+                  PrimaryBadge(
                     child: Text('${opdAppts.length} PATIENTS'),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
               if (opdAppts.isEmpty)
-                _buildEmptyState('No OPD patients today', Icons.event_available)
+                _buildEmptyState('No OPD patients today', LucideIcons.calendarCheck)
               else
                 ...opdAppts.map((a) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -170,7 +169,7 @@ class _ScheduleTimesheetScreenState
                       letterSpacing: -0.3,
                     ),
                   ),
-                  shadcn.SecondaryBadge(
+                  SecondaryBadge(
                     child: Text('${todayAppts.length} TOTAL'),
                   ),
                 ],
@@ -178,7 +177,7 @@ class _ScheduleTimesheetScreenState
               const SizedBox(height: AppSpacing.lg),
               if (todayAppts.isEmpty)
                 _buildEmptyState(
-                    'No appointments scheduled', Icons.calendar_today)
+                    'No appointments scheduled', LucideIcons.calendar)
               else
                 ...todayAppts.map((a) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -213,7 +212,7 @@ class _ScheduleTimesheetScreenState
 
   // -- Date strip --
   Widget _buildDateStrip() {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final now = DateTime.now();
     return SizedBox(
       height: 72,
@@ -285,8 +284,8 @@ class _ScheduleTimesheetScreenState
   // -- Summary card --
   Widget _buildSummaryCard(
       int total, int completed, int checkedIn, int booked) {
-    final colors = shadcn.Theme.of(context).colorScheme;
-    return shadcn.Card(
+    final colors = Theme.of(context).colorScheme;
+    return Card(
       padding: const EdgeInsets.all(AppSpacing.xl),
       fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
       child: Column(
@@ -304,7 +303,7 @@ class _ScheduleTimesheetScreenState
                   letterSpacing: 1,
                 ),
               ),
-              shadcn.SecondaryBadge(
+              SecondaryBadge(
                 child: Text(DateFormat('MMM d').format(DateTime.now())),
               ),
             ],
@@ -321,7 +320,7 @@ class _ScheduleTimesheetScreenState
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          shadcn.Progress(
+          Progress(
               progress: total > 0 ? completed / total : 0),
           const SizedBox(height: AppSpacing.lg),
           _buildStatRow('Completed', '$completed', colors.success),
@@ -335,7 +334,7 @@ class _ScheduleTimesheetScreenState
   }
 
   Widget _buildStatRow(String label, String value, Color dotColor) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Row(
       children: [
         Container(
@@ -362,7 +361,7 @@ class _ScheduleTimesheetScreenState
 
   // -- OPD Card --
   Widget _buildOpdCard(AppointmentLocal appt) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final timeStr = DateFormat('hh:mm a').format(appt.scheduledAt);
 
     Color statusColor;
@@ -397,7 +396,7 @@ class _ScheduleTimesheetScreenState
         final patientId = appt.patientRef.replaceFirst('Patient/', '');
         context.push('/patient-detail/$patientId');
       },
-      child: shadcn.Card(
+      child: Card(
         padding: const EdgeInsets.all(AppSpacing.lg),
         fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
         child: Row(
@@ -426,7 +425,7 @@ class _ScheduleTimesheetScreenState
             ),
             const SizedBox(width: AppSpacing.md),
             // Avatar
-            shadcn.Avatar(initials: initials, size: 36),
+            Avatar(initials: initials, size: 36),
             const SizedBox(width: AppSpacing.md),
             // Patient info
             Expanded(
@@ -480,19 +479,19 @@ class _ScheduleTimesheetScreenState
 
   // -- Agenda block (all appointment types) --
   Widget _buildAgendaBlock(AppointmentLocal appt) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final timeStr = DateFormat('hh:mm a').format(appt.scheduledAt);
 
     IconData icon;
     switch (appt.appointmentType) {
       case 'telemedicine':
-        icon = Icons.videocam;
+        icon = LucideIcons.video;
         break;
       case 'opd':
-        icon = Icons.person;
+        icon = LucideIcons.user;
         break;
       default:
-        icon = Icons.local_hospital;
+        icon = LucideIcons.hospital;
     }
 
     Widget? badge;
@@ -529,7 +528,7 @@ class _ScheduleTimesheetScreenState
         break;
       case 'booked':
         if (appt.appointmentType == 'telemedicine') {
-          badge = shadcn.PrimaryBadge(child: const Text('VIRTUAL'));
+          badge = PrimaryBadge(child: const Text('VIRTUAL'));
         }
         break;
       default:
@@ -541,7 +540,7 @@ class _ScheduleTimesheetScreenState
         final patientId = appt.patientRef.replaceFirst('Patient/', '');
         context.push('/patient-detail/$patientId');
       },
-      child: shadcn.Card(
+      child: Card(
         padding: const EdgeInsets.all(AppSpacing.lg),
         fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
         child: Row(
@@ -613,10 +612,10 @@ class _ScheduleTimesheetScreenState
 
   // -- Slot card --
   Widget _buildSlotCard(ScheduleSlotLocal slot) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final dateStr = DateFormat('EEE, MMM d').format(slot.date);
     final remaining = slot.maxPatients - slot.bookedCount;
-    return shadcn.Card(
+    return Card(
       padding: const EdgeInsets.all(AppSpacing.lg),
       fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
       child: Row(
@@ -629,7 +628,7 @@ class _ScheduleTimesheetScreenState
               borderRadius: AppRadius.inputRadius,
             ),
             child:
-                Icon(Icons.calendar_month, color: colors.primary, size: 20),
+                Icon(LucideIcons.calendar, color: colors.primary, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -678,8 +677,8 @@ class _ScheduleTimesheetScreenState
 
   // -- Empty state --
   Widget _buildEmptyState(String message, IconData icon) {
-    final colors = shadcn.Theme.of(context).colorScheme;
-    return shadcn.Card(
+    final colors = Theme.of(context).colorScheme;
+    return Card(
       padding: const EdgeInsets.all(AppSpacing.xxl),
       fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
       child: Center(

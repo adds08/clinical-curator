@@ -29,7 +29,7 @@ Add unit tests and key widget tests for v1 (integration tests deferred). Set up 
 - `pubspec.yaml` — Flutter project with all dependencies
 - `analysis_options.yaml` — lint rules
 - `docker-compose.yaml` — PostgreSQL + Redis for Serverpod
-- `Makefile` — `db-up`, `server-start`, `seed`, `all` targets
+- `Makefile` — `db-up`, `server`, `server-migrate`, `seed`, `all` targets
 - `clinical_curator_server/` — Serverpod project with `dart_test.yaml`
 
 ### CI/CD

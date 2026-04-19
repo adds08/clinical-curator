@@ -109,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
-                              Icons.medical_services,
+                              LucideIcons.briefcaseMedical,
                               color: Colors.white,
                               size: 32,
                             ),
@@ -150,7 +150,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Alert(
                               destructive: true,
                               leading: const Icon(
-                                Icons.error_outline,
+                                LucideIcons.circleAlert,
                                 size: 18,
                               ),
                               title: Text(authState.errorMessage!),
@@ -167,7 +167,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             placeholder: Row(
                               children: [
                                 Icon(
-                                  Icons.email_outlined,
+                                  LucideIcons.mail,
                                   size: 16,
                                   color: colors.mutedForeground,
                                 ),
@@ -199,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             placeholder: Row(
                               children: [
                                 Icon(
-                                  Icons.lock_outline,
+                                  LucideIcons.lock,
                                   size: 16,
                                   color: colors.mutedForeground,
                                 ),
@@ -343,7 +343,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.verified_user_outlined,
+                          LucideIcons.shieldCheck,
                           size: 14,
                           color: colors.mutedForeground.withValues(alpha: 0.6),
                         ),

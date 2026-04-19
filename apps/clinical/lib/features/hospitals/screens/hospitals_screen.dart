@@ -107,7 +107,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
       trailing: [
         IconButton.ghost(
           icon: Icon(
-            _showMap ? Icons.list_rounded : Icons.map_rounded,
+            _showMap ? LucideIcons.list : LucideIcons.map,
             size: 22,
           ),
           onPressed: () => setState(() => _showMap = !_showMap),
@@ -215,7 +215,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.local_hospital_rounded,
+                  child: const Icon(LucideIcons.hospital,
                       color: Colors.white, size: 20),
                 ),
               ),
@@ -255,7 +255,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,7 +304,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
                                   color: Colors.white, width: 2),
                             ),
                             child: const Icon(
-                                Icons.local_hospital_rounded,
+                                LucideIcons.hospital,
                                 color: Colors.white,
                                 size: 18),
                           ),
@@ -318,7 +318,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
             const SizedBox(height: 16),
 
             Row(children: [
-              Icon(Icons.phone_rounded,
+              Icon(LucideIcons.phone,
                   size: 16, color: colors.primary),
               const SizedBox(width: 6),
               Text(hospital.phone,
@@ -327,7 +327,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
                       fontWeight: FontWeight.w600,
                       color: colors.primary)),
               const SizedBox(width: 16),
-              Icon(Icons.star_rounded,
+              Icon(LucideIcons.star,
                   size: 16, color: const Color(0xFFFACC15)),
               const SizedBox(width: 4),
               Text('${hospital.rating}',
@@ -385,7 +385,7 @@ class _HospitalsScreenState extends ConsumerState<HospitalsScreen> {
             SizedBox(
               width: double.infinity,
               child: Button.primary(
-                onPressed: () => closeDrawer(context),
+                onPressed: () => closeDrawer(ctx),
                 child: const Text('Close'),
               ),
             ),
@@ -426,7 +426,7 @@ class _HospitalCard extends StatelessWidget {
                     color: const Color(0xFF0D9488).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.local_hospital_rounded,
+                  child: const Icon(LucideIcons.hospital,
                       color: Color(0xFF0D9488), size: 22),
                 ),
                 const SizedBox(width: 12),
@@ -455,11 +455,11 @@ class _HospitalCard extends StatelessWidget {
             Row(
               children: [
                 _InfoChip(
-                    icon: Icons.location_on_outlined,
+                    icon: LucideIcons.mapPin,
                     label: hospital.distance),
                 const SizedBox(width: 8),
                 _InfoChip(
-                    icon: Icons.star_rounded,
+                    icon: LucideIcons.star,
                     label: '${hospital.rating}'),
                 const SizedBox(width: 8),
                 Container(

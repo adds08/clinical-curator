@@ -19,46 +19,50 @@ import 'care_plan.dart' as _i6;
 import 'condition.dart' as _i7;
 import 'encounter.dart' as _i8;
 import 'fhir_resource.dart' as _i9;
-import 'greetings/greeting.dart' as _i10;
-import 'health_tip.dart' as _i11;
-import 'healthcare_service.dart' as _i12;
-import 'immunization.dart' as _i13;
-import 'insurance_claim.dart' as _i14;
-import 'lab_booking.dart' as _i15;
-import 'location.dart' as _i16;
-import 'medication_request.dart' as _i17;
-import 'notification_record.dart' as _i18;
-import 'organization.dart' as _i19;
-import 'payment.dart' as _i20;
-import 'pharmacy_order.dart' as _i21;
-import 'practitioner_role.dart' as _i22;
-import 'procedure.dart' as _i23;
-import 'rbac_permission.dart' as _i24;
-import 'schedule_slot.dart' as _i25;
-import 'service_request.dart' as _i26;
-import 'slot.dart' as _i27;
-import 'user_account.dart' as _i28;
-import 'package:clinical_curator_client/src/protocol/user_account.dart' as _i29;
+import 'fhir_sync_batch.dart' as _i10;
+import 'greetings/greeting.dart' as _i11;
+import 'health_tip.dart' as _i12;
+import 'healthcare_service.dart' as _i13;
+import 'immunization.dart' as _i14;
+import 'insurance_claim.dart' as _i15;
+import 'lab_booking.dart' as _i16;
+import 'location.dart' as _i17;
+import 'medication_request.dart' as _i18;
+import 'notification_record.dart' as _i19;
+import 'organization.dart' as _i20;
+import 'payment.dart' as _i21;
+import 'pharmacy_order.dart' as _i22;
+import 'practitioner_role.dart' as _i23;
+import 'procedure.dart' as _i24;
+import 'rbac_permission.dart' as _i25;
+import 'schedule_slot.dart' as _i26;
+import 'service_request.dart' as _i27;
+import 'slot.dart' as _i28;
+import 'user_account.dart' as _i29;
+import 'package:clinical_curator_client/src/protocol/user_account.dart' as _i30;
 import 'package:clinical_curator_client/src/protocol/ambulance_request.dart'
-    as _i30;
-import 'package:clinical_curator_client/src/protocol/appointment.dart' as _i31;
+    as _i31;
+import 'package:clinical_curator_client/src/protocol/appointment.dart' as _i32;
+import 'package:clinical_curator_client/src/protocol/audit_event.dart' as _i33;
 import 'package:clinical_curator_client/src/protocol/fhir_resource.dart'
-    as _i32;
-import 'package:clinical_curator_client/src/protocol/health_tip.dart' as _i33;
-import 'package:clinical_curator_client/src/protocol/insurance_claim.dart'
     as _i34;
-import 'package:clinical_curator_client/src/protocol/lab_booking.dart' as _i35;
-import 'package:clinical_curator_client/src/protocol/notification_record.dart'
+import 'package:clinical_curator_client/src/protocol/health_tip.dart' as _i35;
+import 'package:clinical_curator_client/src/protocol/insurance_claim.dart'
     as _i36;
-import 'package:clinical_curator_client/src/protocol/organization.dart' as _i37;
-import 'package:clinical_curator_client/src/protocol/pharmacy_order.dart'
+import 'package:clinical_curator_client/src/protocol/lab_booking.dart' as _i37;
+import 'package:clinical_curator_client/src/protocol/notification_record.dart'
     as _i38;
-import 'package:clinical_curator_client/src/protocol/schedule_slot.dart'
-    as _i39;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:clinical_curator_client/src/protocol/organization.dart' as _i39;
+import 'package:clinical_curator_client/src/protocol/pharmacy_order.dart'
     as _i40;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:clinical_curator_client/src/protocol/rbac_permission.dart'
     as _i41;
+import 'package:clinical_curator_client/src/protocol/schedule_slot.dart'
+    as _i42;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i43;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i44;
 export 'allergy_intolerance.dart';
 export 'ambulance_request.dart';
 export 'appointment.dart';
@@ -67,6 +71,7 @@ export 'care_plan.dart';
 export 'condition.dart';
 export 'encounter.dart';
 export 'fhir_resource.dart';
+export 'fhir_sync_batch.dart';
 export 'greetings/greeting.dart';
 export 'health_tip.dart';
 export 'healthcare_service.dart';
@@ -146,62 +151,65 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i9.FhirResourceRecord) {
       return _i9.FhirResourceRecord.fromJson(data) as T;
     }
-    if (t == _i10.Greeting) {
-      return _i10.Greeting.fromJson(data) as T;
+    if (t == _i10.FhirSyncBatchDto) {
+      return _i10.FhirSyncBatchDto.fromJson(data) as T;
     }
-    if (t == _i11.HealthTip) {
-      return _i11.HealthTip.fromJson(data) as T;
+    if (t == _i11.Greeting) {
+      return _i11.Greeting.fromJson(data) as T;
     }
-    if (t == _i12.HealthcareService) {
-      return _i12.HealthcareService.fromJson(data) as T;
+    if (t == _i12.HealthTip) {
+      return _i12.HealthTip.fromJson(data) as T;
     }
-    if (t == _i13.Immunization) {
-      return _i13.Immunization.fromJson(data) as T;
+    if (t == _i13.HealthcareService) {
+      return _i13.HealthcareService.fromJson(data) as T;
     }
-    if (t == _i14.InsuranceClaim) {
-      return _i14.InsuranceClaim.fromJson(data) as T;
+    if (t == _i14.Immunization) {
+      return _i14.Immunization.fromJson(data) as T;
     }
-    if (t == _i15.LabBooking) {
-      return _i15.LabBooking.fromJson(data) as T;
+    if (t == _i15.InsuranceClaim) {
+      return _i15.InsuranceClaim.fromJson(data) as T;
     }
-    if (t == _i16.Location) {
-      return _i16.Location.fromJson(data) as T;
+    if (t == _i16.LabBooking) {
+      return _i16.LabBooking.fromJson(data) as T;
     }
-    if (t == _i17.MedicationRequest) {
-      return _i17.MedicationRequest.fromJson(data) as T;
+    if (t == _i17.Location) {
+      return _i17.Location.fromJson(data) as T;
     }
-    if (t == _i18.NotificationRecord) {
-      return _i18.NotificationRecord.fromJson(data) as T;
+    if (t == _i18.MedicationRequest) {
+      return _i18.MedicationRequest.fromJson(data) as T;
     }
-    if (t == _i19.Organization) {
-      return _i19.Organization.fromJson(data) as T;
+    if (t == _i19.NotificationRecord) {
+      return _i19.NotificationRecord.fromJson(data) as T;
     }
-    if (t == _i20.Payment) {
-      return _i20.Payment.fromJson(data) as T;
+    if (t == _i20.Organization) {
+      return _i20.Organization.fromJson(data) as T;
     }
-    if (t == _i21.PharmacyOrder) {
-      return _i21.PharmacyOrder.fromJson(data) as T;
+    if (t == _i21.Payment) {
+      return _i21.Payment.fromJson(data) as T;
     }
-    if (t == _i22.PractitionerRole) {
-      return _i22.PractitionerRole.fromJson(data) as T;
+    if (t == _i22.PharmacyOrder) {
+      return _i22.PharmacyOrder.fromJson(data) as T;
     }
-    if (t == _i23.Procedure) {
-      return _i23.Procedure.fromJson(data) as T;
+    if (t == _i23.PractitionerRole) {
+      return _i23.PractitionerRole.fromJson(data) as T;
     }
-    if (t == _i24.RbacPermission) {
-      return _i24.RbacPermission.fromJson(data) as T;
+    if (t == _i24.Procedure) {
+      return _i24.Procedure.fromJson(data) as T;
     }
-    if (t == _i25.ScheduleSlot) {
-      return _i25.ScheduleSlot.fromJson(data) as T;
+    if (t == _i25.RbacPermission) {
+      return _i25.RbacPermission.fromJson(data) as T;
     }
-    if (t == _i26.ServiceRequest) {
-      return _i26.ServiceRequest.fromJson(data) as T;
+    if (t == _i26.ScheduleSlot) {
+      return _i26.ScheduleSlot.fromJson(data) as T;
     }
-    if (t == _i27.Slot) {
-      return _i27.Slot.fromJson(data) as T;
+    if (t == _i27.ServiceRequest) {
+      return _i27.ServiceRequest.fromJson(data) as T;
     }
-    if (t == _i28.UserAccount) {
-      return _i28.UserAccount.fromJson(data) as T;
+    if (t == _i28.Slot) {
+      return _i28.Slot.fromJson(data) as T;
+    }
+    if (t == _i29.UserAccount) {
+      return _i29.UserAccount.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AllergyIntolerance?>()) {
       return (data != null ? _i2.AllergyIntolerance.fromJson(data) : null) as T;
@@ -227,67 +235,76 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i9.FhirResourceRecord?>()) {
       return (data != null ? _i9.FhirResourceRecord.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.Greeting?>()) {
-      return (data != null ? _i10.Greeting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.FhirSyncBatchDto?>()) {
+      return (data != null ? _i10.FhirSyncBatchDto.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.HealthTip?>()) {
-      return (data != null ? _i11.HealthTip.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.Greeting?>()) {
+      return (data != null ? _i11.Greeting.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.HealthcareService?>()) {
-      return (data != null ? _i12.HealthcareService.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.HealthTip?>()) {
+      return (data != null ? _i12.HealthTip.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.Immunization?>()) {
-      return (data != null ? _i13.Immunization.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.HealthcareService?>()) {
+      return (data != null ? _i13.HealthcareService.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.InsuranceClaim?>()) {
-      return (data != null ? _i14.InsuranceClaim.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i14.Immunization?>()) {
+      return (data != null ? _i14.Immunization.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.LabBooking?>()) {
-      return (data != null ? _i15.LabBooking.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.InsuranceClaim?>()) {
+      return (data != null ? _i15.InsuranceClaim.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.Location?>()) {
-      return (data != null ? _i16.Location.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i16.LabBooking?>()) {
+      return (data != null ? _i16.LabBooking.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.MedicationRequest?>()) {
-      return (data != null ? _i17.MedicationRequest.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i17.Location?>()) {
+      return (data != null ? _i17.Location.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i18.NotificationRecord?>()) {
-      return (data != null ? _i18.NotificationRecord.fromJson(data) : null)
+    if (t == _i1.getType<_i18.MedicationRequest?>()) {
+      return (data != null ? _i18.MedicationRequest.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i19.NotificationRecord?>()) {
+      return (data != null ? _i19.NotificationRecord.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i19.Organization?>()) {
-      return (data != null ? _i19.Organization.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i20.Organization?>()) {
+      return (data != null ? _i20.Organization.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i20.Payment?>()) {
-      return (data != null ? _i20.Payment.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i21.Payment?>()) {
+      return (data != null ? _i21.Payment.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i21.PharmacyOrder?>()) {
-      return (data != null ? _i21.PharmacyOrder.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i22.PharmacyOrder?>()) {
+      return (data != null ? _i22.PharmacyOrder.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i22.PractitionerRole?>()) {
-      return (data != null ? _i22.PractitionerRole.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i23.PractitionerRole?>()) {
+      return (data != null ? _i23.PractitionerRole.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i23.Procedure?>()) {
-      return (data != null ? _i23.Procedure.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i24.Procedure?>()) {
+      return (data != null ? _i24.Procedure.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i24.RbacPermission?>()) {
-      return (data != null ? _i24.RbacPermission.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i25.RbacPermission?>()) {
+      return (data != null ? _i25.RbacPermission.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i25.ScheduleSlot?>()) {
-      return (data != null ? _i25.ScheduleSlot.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i26.ScheduleSlot?>()) {
+      return (data != null ? _i26.ScheduleSlot.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i26.ServiceRequest?>()) {
-      return (data != null ? _i26.ServiceRequest.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i27.ServiceRequest?>()) {
+      return (data != null ? _i27.ServiceRequest.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i27.Slot?>()) {
-      return (data != null ? _i27.Slot.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i28.Slot?>()) {
+      return (data != null ? _i28.Slot.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i28.UserAccount?>()) {
-      return (data != null ? _i28.UserAccount.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i29.UserAccount?>()) {
+      return (data != null ? _i29.UserAccount.fromJson(data) : null) as T;
     }
-    if (t == List<_i29.UserAccount>) {
+    if (t == List<_i9.FhirResourceRecord>) {
       return (data as List)
-              .map((e) => deserialize<_i29.UserAccount>(e))
+              .map((e) => deserialize<_i9.FhirResourceRecord>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i30.UserAccount>) {
+      return (data as List)
+              .map((e) => deserialize<_i30.UserAccount>(e))
               .toList()
           as T;
     }
@@ -297,67 +314,83 @@ class Protocol extends _i1.SerializationManager {
           )
           as T;
     }
-    if (t == List<_i30.AmbulanceRequest>) {
+    if (t == List<_i31.AmbulanceRequest>) {
       return (data as List)
-              .map((e) => deserialize<_i30.AmbulanceRequest>(e))
+              .map((e) => deserialize<_i31.AmbulanceRequest>(e))
               .toList()
           as T;
     }
-    if (t == List<_i31.Appointment>) {
+    if (t == List<_i32.Appointment>) {
       return (data as List)
-              .map((e) => deserialize<_i31.Appointment>(e))
+              .map((e) => deserialize<_i32.Appointment>(e))
               .toList()
           as T;
     }
-    if (t == List<_i32.FhirResourceRecord>) {
+    if (t == List<_i33.AuditEvent>) {
+      return (data as List).map((e) => deserialize<_i33.AuditEvent>(e)).toList()
+          as T;
+    }
+    if (t == List<_i34.FhirResourceRecord>) {
       return (data as List)
-              .map((e) => deserialize<_i32.FhirResourceRecord>(e))
+              .map((e) => deserialize<_i34.FhirResourceRecord>(e))
               .toList()
           as T;
     }
-    if (t == List<_i33.HealthTip>) {
-      return (data as List).map((e) => deserialize<_i33.HealthTip>(e)).toList()
+    if (t == List<_i35.HealthTip>) {
+      return (data as List).map((e) => deserialize<_i35.HealthTip>(e)).toList()
           as T;
     }
-    if (t == List<_i34.InsuranceClaim>) {
+    if (t == List<_i36.InsuranceClaim>) {
       return (data as List)
-              .map((e) => deserialize<_i34.InsuranceClaim>(e))
+              .map((e) => deserialize<_i36.InsuranceClaim>(e))
               .toList()
           as T;
     }
-    if (t == List<_i35.LabBooking>) {
-      return (data as List).map((e) => deserialize<_i35.LabBooking>(e)).toList()
+    if (t == List<_i37.LabBooking>) {
+      return (data as List).map((e) => deserialize<_i37.LabBooking>(e)).toList()
           as T;
     }
-    if (t == List<_i36.NotificationRecord>) {
+    if (t == List<_i38.NotificationRecord>) {
       return (data as List)
-              .map((e) => deserialize<_i36.NotificationRecord>(e))
+              .map((e) => deserialize<_i38.NotificationRecord>(e))
               .toList()
           as T;
     }
-    if (t == List<_i37.Organization>) {
+    if (t == List<_i39.Organization>) {
       return (data as List)
-              .map((e) => deserialize<_i37.Organization>(e))
+              .map((e) => deserialize<_i39.Organization>(e))
               .toList()
           as T;
     }
-    if (t == List<_i38.PharmacyOrder>) {
+    if (t == List<_i40.PharmacyOrder>) {
       return (data as List)
-              .map((e) => deserialize<_i38.PharmacyOrder>(e))
+              .map((e) => deserialize<_i40.PharmacyOrder>(e))
               .toList()
           as T;
     }
-    if (t == List<_i39.ScheduleSlot>) {
+    if (t == List<_i41.RbacPermission>) {
       return (data as List)
-              .map((e) => deserialize<_i39.ScheduleSlot>(e))
+              .map((e) => deserialize<_i41.RbacPermission>(e))
               .toList()
+          as T;
+    }
+    if (t == List<_i42.ScheduleSlot>) {
+      return (data as List)
+              .map((e) => deserialize<_i42.ScheduleSlot>(e))
+              .toList()
+          as T;
+    }
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
           as T;
     }
     try {
-      return _i40.Protocol().deserialize<T>(data, t);
+      return _i43.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i41.Protocol().deserialize<T>(data, t);
+      return _i44.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -372,25 +405,26 @@ class Protocol extends _i1.SerializationManager {
       _i7.Condition => 'Condition',
       _i8.Encounter => 'Encounter',
       _i9.FhirResourceRecord => 'FhirResourceRecord',
-      _i10.Greeting => 'Greeting',
-      _i11.HealthTip => 'HealthTip',
-      _i12.HealthcareService => 'HealthcareService',
-      _i13.Immunization => 'Immunization',
-      _i14.InsuranceClaim => 'InsuranceClaim',
-      _i15.LabBooking => 'LabBooking',
-      _i16.Location => 'Location',
-      _i17.MedicationRequest => 'MedicationRequest',
-      _i18.NotificationRecord => 'NotificationRecord',
-      _i19.Organization => 'Organization',
-      _i20.Payment => 'Payment',
-      _i21.PharmacyOrder => 'PharmacyOrder',
-      _i22.PractitionerRole => 'PractitionerRole',
-      _i23.Procedure => 'Procedure',
-      _i24.RbacPermission => 'RbacPermission',
-      _i25.ScheduleSlot => 'ScheduleSlot',
-      _i26.ServiceRequest => 'ServiceRequest',
-      _i27.Slot => 'Slot',
-      _i28.UserAccount => 'UserAccount',
+      _i10.FhirSyncBatchDto => 'FhirSyncBatchDto',
+      _i11.Greeting => 'Greeting',
+      _i12.HealthTip => 'HealthTip',
+      _i13.HealthcareService => 'HealthcareService',
+      _i14.Immunization => 'Immunization',
+      _i15.InsuranceClaim => 'InsuranceClaim',
+      _i16.LabBooking => 'LabBooking',
+      _i17.Location => 'Location',
+      _i18.MedicationRequest => 'MedicationRequest',
+      _i19.NotificationRecord => 'NotificationRecord',
+      _i20.Organization => 'Organization',
+      _i21.Payment => 'Payment',
+      _i22.PharmacyOrder => 'PharmacyOrder',
+      _i23.PractitionerRole => 'PractitionerRole',
+      _i24.Procedure => 'Procedure',
+      _i25.RbacPermission => 'RbacPermission',
+      _i26.ScheduleSlot => 'ScheduleSlot',
+      _i27.ServiceRequest => 'ServiceRequest',
+      _i28.Slot => 'Slot',
+      _i29.UserAccount => 'UserAccount',
       _ => null,
     };
   }
@@ -424,52 +458,57 @@ class Protocol extends _i1.SerializationManager {
         return 'Encounter';
       case _i9.FhirResourceRecord():
         return 'FhirResourceRecord';
-      case _i10.Greeting():
+      case _i10.FhirSyncBatchDto():
+        return 'FhirSyncBatchDto';
+      case _i11.Greeting():
         return 'Greeting';
-      case _i11.HealthTip():
+      case _i12.HealthTip():
         return 'HealthTip';
-      case _i12.HealthcareService():
+      case _i13.HealthcareService():
         return 'HealthcareService';
-      case _i13.Immunization():
+      case _i14.Immunization():
         return 'Immunization';
-      case _i14.InsuranceClaim():
+      case _i15.InsuranceClaim():
         return 'InsuranceClaim';
-      case _i15.LabBooking():
+      case _i16.LabBooking():
         return 'LabBooking';
-      case _i16.Location():
+      case _i17.Location():
         return 'Location';
-      case _i17.MedicationRequest():
+      case _i18.MedicationRequest():
         return 'MedicationRequest';
-      case _i18.NotificationRecord():
+      case _i19.NotificationRecord():
         return 'NotificationRecord';
-      case _i19.Organization():
+      case _i20.Organization():
         return 'Organization';
-      case _i20.Payment():
+      case _i21.Payment():
         return 'Payment';
-      case _i21.PharmacyOrder():
+      case _i22.PharmacyOrder():
         return 'PharmacyOrder';
-      case _i22.PractitionerRole():
+      case _i23.PractitionerRole():
         return 'PractitionerRole';
-      case _i23.Procedure():
+      case _i24.Procedure():
         return 'Procedure';
-      case _i24.RbacPermission():
+      case _i25.RbacPermission():
         return 'RbacPermission';
-      case _i25.ScheduleSlot():
+      case _i26.ScheduleSlot():
         return 'ScheduleSlot';
-      case _i26.ServiceRequest():
+      case _i27.ServiceRequest():
         return 'ServiceRequest';
-      case _i27.Slot():
+      case _i28.Slot():
         return 'Slot';
-      case _i28.UserAccount():
+      case _i29.UserAccount():
         return 'UserAccount';
     }
-    className = _i40.Protocol().getClassNameForObject(data);
+    className = _i43.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i41.Protocol().getClassNameForObject(data);
+    className = _i44.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
+    }
+    if (data is Map<String, dynamic>) {
+      return 'Map<String,dynamic>';
     }
     return null;
   }
@@ -504,70 +543,76 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'FhirResourceRecord') {
       return deserialize<_i9.FhirResourceRecord>(data['data']);
     }
+    if (dataClassName == 'FhirSyncBatchDto') {
+      return deserialize<_i10.FhirSyncBatchDto>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i10.Greeting>(data['data']);
+      return deserialize<_i11.Greeting>(data['data']);
     }
     if (dataClassName == 'HealthTip') {
-      return deserialize<_i11.HealthTip>(data['data']);
+      return deserialize<_i12.HealthTip>(data['data']);
     }
     if (dataClassName == 'HealthcareService') {
-      return deserialize<_i12.HealthcareService>(data['data']);
+      return deserialize<_i13.HealthcareService>(data['data']);
     }
     if (dataClassName == 'Immunization') {
-      return deserialize<_i13.Immunization>(data['data']);
+      return deserialize<_i14.Immunization>(data['data']);
     }
     if (dataClassName == 'InsuranceClaim') {
-      return deserialize<_i14.InsuranceClaim>(data['data']);
+      return deserialize<_i15.InsuranceClaim>(data['data']);
     }
     if (dataClassName == 'LabBooking') {
-      return deserialize<_i15.LabBooking>(data['data']);
+      return deserialize<_i16.LabBooking>(data['data']);
     }
     if (dataClassName == 'Location') {
-      return deserialize<_i16.Location>(data['data']);
+      return deserialize<_i17.Location>(data['data']);
     }
     if (dataClassName == 'MedicationRequest') {
-      return deserialize<_i17.MedicationRequest>(data['data']);
+      return deserialize<_i18.MedicationRequest>(data['data']);
     }
     if (dataClassName == 'NotificationRecord') {
-      return deserialize<_i18.NotificationRecord>(data['data']);
+      return deserialize<_i19.NotificationRecord>(data['data']);
     }
     if (dataClassName == 'Organization') {
-      return deserialize<_i19.Organization>(data['data']);
+      return deserialize<_i20.Organization>(data['data']);
     }
     if (dataClassName == 'Payment') {
-      return deserialize<_i20.Payment>(data['data']);
+      return deserialize<_i21.Payment>(data['data']);
     }
     if (dataClassName == 'PharmacyOrder') {
-      return deserialize<_i21.PharmacyOrder>(data['data']);
+      return deserialize<_i22.PharmacyOrder>(data['data']);
     }
     if (dataClassName == 'PractitionerRole') {
-      return deserialize<_i22.PractitionerRole>(data['data']);
+      return deserialize<_i23.PractitionerRole>(data['data']);
     }
     if (dataClassName == 'Procedure') {
-      return deserialize<_i23.Procedure>(data['data']);
+      return deserialize<_i24.Procedure>(data['data']);
     }
     if (dataClassName == 'RbacPermission') {
-      return deserialize<_i24.RbacPermission>(data['data']);
+      return deserialize<_i25.RbacPermission>(data['data']);
     }
     if (dataClassName == 'ScheduleSlot') {
-      return deserialize<_i25.ScheduleSlot>(data['data']);
+      return deserialize<_i26.ScheduleSlot>(data['data']);
     }
     if (dataClassName == 'ServiceRequest') {
-      return deserialize<_i26.ServiceRequest>(data['data']);
+      return deserialize<_i27.ServiceRequest>(data['data']);
     }
     if (dataClassName == 'Slot') {
-      return deserialize<_i27.Slot>(data['data']);
+      return deserialize<_i28.Slot>(data['data']);
     }
     if (dataClassName == 'UserAccount') {
-      return deserialize<_i28.UserAccount>(data['data']);
+      return deserialize<_i29.UserAccount>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i40.Protocol().deserializeByClassName(data);
+      return _i43.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i41.Protocol().deserializeByClassName(data);
+      return _i44.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName == 'Map<String,dynamic>') {
+      return deserialize<Map<String, dynamic>>(data['data']);
     }
     return super.deserializeByClassName(data);
   }
@@ -582,10 +627,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i40.Protocol().mapRecordToJson(record);
+      return _i43.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i41.Protocol().mapRecordToJson(record);
+      return _i44.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

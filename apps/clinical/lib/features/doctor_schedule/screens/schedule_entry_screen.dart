@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_data/database/isar_service.dart';
@@ -55,7 +54,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return SubPageScaffold(
       title: 'Add Schedule',
       child: SingleChildScrollView(
@@ -66,12 +65,12 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             // -- Date field --
             _buildLabel('Date'),
             const SizedBox(height: AppSpacing.sm),
-            shadcn.TextField(
+            TextField(
               controller: _dateController,
               placeholder: const Text('Select date'),
               features: [
-                shadcn.InputFeature.trailing(
-                  Icon(Icons.calendar_today,
+                InputFeature.trailing(
+                  Icon(LucideIcons.calendar,
                       color: colors.mutedForeground, size: 18),
                 ),
               ],
@@ -83,17 +82,17 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               width: double.infinity,
-              child: shadcn.Select<String>(
+              child: Select<String>(
                 value: _selectedFacility,
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedFacility = val);
                 },
                 itemBuilder: (context, item) => Text(item),
                 // ignore: implicit_call_tearoffs
-                popup: shadcn.SelectPopup(
-                  items: shadcn.SelectItemList(
+                popup: SelectPopup(
+                  items: SelectItemList(
                     children: _facilities
-                        .map((f) => shadcn.SelectItemButton(
+                        .map((f) => SelectItemButton(
                               value: f,
                               child: Text(f),
                             ))
@@ -114,12 +113,12 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                     children: [
                       _buildLabel('Start Time'),
                       const SizedBox(height: AppSpacing.sm),
-                      shadcn.TextField(
+                      TextField(
                         controller: _startTimeController,
                         placeholder: const Text('08:00 AM'),
                         features: [
-                          shadcn.InputFeature.trailing(
-                            Icon(Icons.access_time,
+                          InputFeature.trailing(
+                            Icon(LucideIcons.clock,
                                 color: colors.mutedForeground, size: 18),
                           ),
                         ],
@@ -134,12 +133,12 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                     children: [
                       _buildLabel('End Time'),
                       const SizedBox(height: AppSpacing.sm),
-                      shadcn.TextField(
+                      TextField(
                         controller: _endTimeController,
                         placeholder: const Text('04:00 PM'),
                         features: [
-                          shadcn.InputFeature.trailing(
-                            Icon(Icons.access_time,
+                          InputFeature.trailing(
+                            Icon(LucideIcons.clock,
                                 color: colors.mutedForeground, size: 18),
                           ),
                         ],
@@ -158,7 +157,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
               spacing: AppSpacing.sm,
               children: List.generate(_durations.length, (i) {
                 final isSelected = i == _selectedDurationIndex;
-                return shadcn.Chip(
+                return Chip(
                   onPressed: () =>
                       setState(() => _selectedDurationIndex = i),
                   child: Text(
@@ -180,7 +179,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               width: 120,
-              child: shadcn.TextField(
+              child: TextField(
                 controller: _bufferController,
                 placeholder: const Text('5'),
                 onChanged: (_) => setState(() {}),
@@ -194,9 +193,9 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
               label: 'Allow Emergency Override Slots',
               onChanged: (v) {
                 setState(() => _allowEmergencyOverride = v);
-                shadcn.showToast(
+                showToast(
                   context: context,
-                  builder: (ctx, overlay) => shadcn.SurfaceCard(
+                  builder: (ctx, overlay) => SurfaceCard(
                     child: Text(v
                         ? 'Emergency override enabled'
                         : 'Emergency override disabled'),
@@ -210,9 +209,9 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
               label: 'Enable Telehealth',
               onChanged: (v) {
                 setState(() => _enableTelehealth = v);
-                shadcn.showToast(
+                showToast(
                   context: context,
-                  builder: (ctx, overlay) => shadcn.SurfaceCard(
+                  builder: (ctx, overlay) => SurfaceCard(
                     child: Text(
                         v ? 'Telehealth enabled' : 'Telehealth disabled'),
                   ),
@@ -222,12 +221,12 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             const SizedBox(height: AppSpacing.xxl),
 
             // -- Live preview card --
-            shadcn.Card(
+            Card(
               padding: const EdgeInsets.all(AppSpacing.xl),
               fillColor: colors.primary.withValues(alpha: 0.06),
               child: Row(
                 children: [
-                  Icon(Icons.preview, color: colors.primary, size: 24),
+                  Icon(LucideIcons.eye, color: colors.primary, size: 24),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
@@ -262,17 +261,17 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             // -- Save button --
             SizedBox(
               width: double.infinity,
-              child: shadcn.Button.primary(
+              child: Button.primary(
                 onPressed: () async {
                   // Validate required fields
                   if (_dateController.text.trim().isEmpty ||
                       _startTimeController.text.trim().isEmpty ||
                       _endTimeController.text.trim().isEmpty) {
-                    shadcn.showToast(
+                    showToast(
                       context: context,
-                      builder: (ctx, overlay) => shadcn.SurfaceCard(
-                        child: shadcn.Basic(
-                          leading: Icon(Icons.warning_amber, color: colors.warning),
+                      builder: (ctx, overlay) => SurfaceCard(
+                        child: Basic(
+                          leading: Icon(LucideIcons.triangleAlert, color: colors.warning),
                           title: const Text('Please fill in all required fields'),
                         ),
                       ),
@@ -301,12 +300,12 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                   await DatabaseService.scheduleSlots.add(slot);
 
                   if (!mounted) return;
-                  shadcn.showToast(
+                  showToast(
                     // ignore: use_build_context_synchronously
                     context: context,
-                    builder: (ctx, overlay) => shadcn.SurfaceCard(
-                      child: shadcn.Basic(
-                        leading: Icon(Icons.check_circle, color: colors.success),
+                    builder: (ctx, overlay) => SurfaceCard(
+                      child: Basic(
+                        leading: Icon(LucideIcons.circleCheck, color: colors.success),
                         title: const Text('Schedule saved'),
                         subtitle: const Text('Your schedule entry has been created'),
                       ),
@@ -330,7 +329,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
   // -- Helpers --
 
   Widget _buildLabel(String text) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Text(
       text,
       style: TextStyle(
@@ -347,17 +346,17 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
     required String label,
     required ValueChanged<bool> onChanged,
   }) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Row(
         children: [
-          shadcn.Checkbox(
+          Checkbox(
             state: value
-                ? shadcn.CheckboxState.checked
-                : shadcn.CheckboxState.unchecked,
+                ? CheckboxState.checked
+                : CheckboxState.unchecked,
             onChanged: (state) {
-              onChanged(state == shadcn.CheckboxState.checked);
+              onChanged(state == CheckboxState.checked);
             },
           ),
           const SizedBox(width: AppSpacing.md),

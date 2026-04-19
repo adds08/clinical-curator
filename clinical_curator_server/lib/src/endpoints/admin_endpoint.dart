@@ -64,4 +64,99 @@ class AdminEndpoint extends Endpoint {
       orderBy: (t) => t.displayName,
     );
   }
+
+  /// List all users, optionally filtered by `accountType`
+  /// ('patient' | 'practitioner' | 'admin'). Pass null/empty for all.
+  Future<List<UserAccount>> listAllUsers(
+    Session session, {
+    String? accountType,
+  }) async {
+    if (accountType == null || accountType.isEmpty) {
+      return await UserAccount.db.find(
+        session,
+        orderBy: (t) => t.createdAt,
+        orderDescending: true,
+      );
+    }
+    return await UserAccount.db.find(
+      session,
+      where: (t) => t.accountType.equals(accountType),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+  }
+
+  /// Toggle a user's `isVerified` flag directly. Used by the admin
+  /// manage-users screen for quick flips outside the verification flow.
+  Future<UserAccount> setUserVerified(
+    Session session,
+    int id,
+    bool isVerified,
+  ) async {
+    final account = await UserAccount.db.findById(session, id);
+    if (account == null) throw NotFoundException('Account not found.');
+    final updated = account.copyWith(
+      isVerified: isVerified,
+      updatedAt: DateTime.now(),
+    );
+    return await UserAccount.db.updateRow(session, updated);
+  }
+
+  /// Aggregate dashboard counts. Superset of `getDashboardStats` —
+  /// includes patient/appointment/encounter counts in a single round-trip.
+  Future<Map<String, int>> getAnalytics(Session session) async {
+    final totalUsers = await UserAccount.db.count(session);
+    final totalPatients = await UserAccount.db.count(
+      session,
+      where: (t) => t.accountType.equals('patient'),
+    );
+    final totalPractitioners = await UserAccount.db.count(
+      session,
+      where: (t) => t.isPractitioner.equals(true),
+    );
+    final verifiedPractitioners = await UserAccount.db.count(
+      session,
+      where: (t) => t.isPractitioner.equals(true) & t.isVerified.equals(true),
+    );
+    final pending = await UserAccount.db.count(
+      session,
+      where: (t) => t.isPractitioner.equals(true) & t.isVerified.equals(false),
+    );
+
+    // Appointments today — server may or may not have rows populated.
+    final today = DateTime.now();
+    final dayStart = DateTime(today.year, today.month, today.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    int appointmentsToday = 0;
+    try {
+      appointmentsToday = await Appointment.db.count(
+        session,
+        where: (t) =>
+            t.scheduledAt.between(dayStart, dayEnd),
+      );
+    } catch (_) {
+      appointmentsToday = 0;
+    }
+
+    // Active encounters.
+    int activeEncounters = 0;
+    try {
+      activeEncounters = await Encounter.db.count(
+        session,
+        where: (t) => t.status.equals('in-progress'),
+      );
+    } catch (_) {
+      activeEncounters = 0;
+    }
+
+    return {
+      'totalUsers': totalUsers,
+      'totalPatients': totalPatients,
+      'totalPractitioners': totalPractitioners,
+      'verifiedPractitioners': verifiedPractitioners,
+      'pendingVerifications': pending,
+      'appointmentsToday': appointmentsToday,
+      'activeEncounters': activeEncounters,
+    };
+  }
 }

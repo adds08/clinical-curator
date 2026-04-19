@@ -76,7 +76,7 @@ class _EncounterWorkspaceScreenState
           backgroundColor: colors.background,
           leading: [
             IconButton.ghost(
-              icon: const Icon(Icons.arrow_back_rounded, size: 22),
+              icon: const Icon(LucideIcons.arrowLeft, size: 22),
               onPressed: () {
                 if (context.canPop()) context.pop();
               },
@@ -257,42 +257,42 @@ class _VitalsTabState extends State<_VitalsTab> {
               unit: 'bpm',
               value: _heartRate,
               onChanged: (v) => setState(() => _heartRate = v),
-              icon: Icons.favorite_rounded,
+              icon: LucideIcons.heart,
               color: colors.heartRate),
           _VitalInput(
               label: 'Systolic BP',
               unit: 'mmHg',
               value: _systolic,
               onChanged: (v) => setState(() => _systolic = v),
-              icon: Icons.water_drop_rounded,
+              icon: LucideIcons.droplet,
               color: colors.bloodPressure),
           _VitalInput(
               label: 'Diastolic BP',
               unit: 'mmHg',
               value: _diastolic,
               onChanged: (v) => setState(() => _diastolic = v),
-              icon: Icons.water_drop_outlined,
+              icon: LucideIcons.droplet,
               color: colors.bloodPressure),
           _VitalInput(
               label: 'Temperature',
               unit: '°C',
               value: _temperature,
               onChanged: (v) => setState(() => _temperature = v),
-              icon: Icons.thermostat_rounded,
+              icon: LucideIcons.thermometer,
               color: colors.temperature),
           _VitalInput(
               label: 'SpO2',
               unit: '%',
               value: _spo2,
               onChanged: (v) => setState(() => _spo2 = v),
-              icon: Icons.air_rounded,
+              icon: LucideIcons.wind,
               color: colors.oxygenSat),
           _VitalInput(
               label: 'Respiratory Rate',
               unit: '/min',
               value: _respRate,
               onChanged: (v) => setState(() => _respRate = v),
-              icon: Icons.waves_rounded,
+              icon: LucideIcons.waves,
               color: colors.primary),
           const SizedBox(height: AppSpacing.xxl),
           if (_saved)
@@ -300,7 +300,7 @@ class _VitalsTabState extends State<_VitalsTab> {
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_rounded,
+                  Icon(LucideIcons.circleCheck,
                       size: 16, color: colors.success),
                   const SizedBox(width: 6),
                   Text('Vitals saved',
@@ -479,7 +479,7 @@ class _ConditionsTab extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                       color: colors.foreground)),
               IconButton.ghost(
-                icon: const Icon(Icons.add_rounded, size: 20),
+                icon: const Icon(LucideIcons.plus, size: 20),
                 onPressed: () =>
                     context.push('/clinical/add-condition/${encounter.fhirId}'),
               ),
@@ -593,7 +593,7 @@ class _ProceduresTab extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                       color: colors.foreground)),
               IconButton.ghost(
-                icon: const Icon(Icons.add_rounded, size: 20),
+                icon: const Icon(LucideIcons.plus, size: 20),
                 onPressed: () => _addProcedure(context),
               ),
             ],
@@ -616,7 +616,7 @@ class _ProceduresTab extends ConsumerWidget {
                         SurfaceTheme.cardDecoration(context: context),
                     child: Row(
                       children: [
-                        Icon(Icons.medical_services_outlined,
+                        Icon(LucideIcons.briefcaseMedical,
                             size: 18, color: colors.primary),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -700,22 +700,22 @@ class _OrdersTab extends ConsumerWidget {
             runSpacing: AppSpacing.sm,
             children: [
               _OrderActionChip(
-                icon: Icons.science_outlined,
+                icon: LucideIcons.flaskConical,
                 label: 'Lab Order',
                 onTap: () => _addServiceRequest(context, 'laboratory'),
               ),
               _OrderActionChip(
-                icon: Icons.image_outlined,
+                icon: LucideIcons.image,
                 label: 'Imaging',
                 onTap: () => _addServiceRequest(context, 'imaging'),
               ),
               _OrderActionChip(
-                icon: Icons.swap_horiz_rounded,
+                icon: LucideIcons.arrowLeftRight,
                 label: 'Referral',
                 onTap: () => _addServiceRequest(context, 'referral'),
               ),
               _OrderActionChip(
-                icon: Icons.medication_outlined,
+                icon: LucideIcons.pill,
                 label: 'Prescribe',
                 onTap: () => _addMedication(context),
               ),
@@ -741,10 +741,10 @@ class _OrdersTab extends ConsumerWidget {
                       children: [
                         Icon(
                           o.category == 'laboratory'
-                              ? Icons.science_outlined
+                              ? LucideIcons.flaskConical
                               : o.category == 'imaging'
-                                  ? Icons.image_outlined
-                                  : Icons.swap_horiz_rounded,
+                                  ? LucideIcons.image
+                                  : LucideIcons.arrowLeftRight,
                           size: 18,
                           color: colors.primary,
                         ),
@@ -920,7 +920,7 @@ class _NotesTabState extends State<_NotesTab> {
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_rounded,
+                  Icon(LucideIcons.circleCheck,
                       size: 16, color: colors.success),
                   const SizedBox(width: 6),
                   Text('Notes saved',

@@ -41,7 +41,7 @@ class BookingHubScreen extends ConsumerWidget {
 
             // Find a Doctor
             _BookingPathCard(
-              icon: Icons.person_search_rounded,
+              icon: LucideIcons.userSearch,
               title: 'Find a Doctor',
               description:
                   'Search by name, specialty, or availability. Book directly with your preferred practitioner.',
@@ -58,7 +58,7 @@ class BookingHubScreen extends ConsumerWidget {
 
             // Find a Hospital
             _BookingPathCard(
-              icon: Icons.local_hospital_rounded,
+              icon: LucideIcons.hospital,
               title: 'Find a Hospital',
               description:
                   'Browse hospitals first, then choose from doctors available at that facility.',
@@ -75,7 +75,7 @@ class BookingHubScreen extends ConsumerWidget {
 
             // Describe Symptoms
             _BookingPathCard(
-              icon: Icons.psychology_rounded,
+              icon: LucideIcons.brain,
               title: 'Describe Symptoms',
               description:
                   'Tell us what you\'re experiencing and we\'ll recommend the right specialist for you.',
@@ -83,8 +83,7 @@ class BookingHubScreen extends ConsumerWidget {
                 const Color(0xFF7C3AED),
                 const Color(0xFF7C3AED).withValues(alpha: 0.8),
               ],
-              isComingSoon: true,
-              onTap: () {},
+              onTap: () => context.push('/booking/ai-triage'),
             ),
 
             const Gap(AppSpacing.xxxl),
@@ -108,7 +107,7 @@ class BookingHubScreen extends ConsumerWidget {
                         color: colors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.calendar_month_rounded,
+                      child: Icon(LucideIcons.calendar,
                           color: colors.primary, size: 22),
                     ),
                     const Gap(14),
@@ -135,7 +134,7 @@ class BookingHubScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios_rounded,
+                    Icon(LucideIcons.chevronRight,
                         size: 14, color: colors.mutedForeground),
                   ],
                 ),
@@ -155,7 +154,6 @@ class _BookingPathCard extends StatelessWidget {
   final String description;
   final List<Color> gradient;
   final VoidCallback onTap;
-  final bool isComingSoon;
 
   const _BookingPathCard({
     required this.icon,
@@ -163,15 +161,14 @@ class _BookingPathCard extends StatelessWidget {
     required this.description,
     required this.gradient,
     required this.onTap,
-    this.isComingSoon = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isComingSoon ? null : onTap,
+      onTap: onTap,
       child: Opacity(
-        opacity: isComingSoon ? 0.6 : 1.0,
+        opacity: 1.0,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.xl),
@@ -198,26 +195,8 @@ class _BookingPathCard extends StatelessWidget {
                     child: Icon(icon, color: Colors.white, size: 24),
                   ),
                   const Spacer(),
-                  if (isComingSoon)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Coming Soon',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )
-                  else
-                    Icon(Icons.arrow_forward_rounded,
-                        color: Colors.white.withValues(alpha: 0.7), size: 22),
+                  Icon(LucideIcons.arrowRight,
+                      color: Colors.white.withValues(alpha: 0.7), size: 22),
                 ],
               ),
               const Gap(AppSpacing.lg),

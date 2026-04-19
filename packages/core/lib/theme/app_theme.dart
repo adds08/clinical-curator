@@ -4,6 +4,28 @@ import '../constants/app_colors.dart';
 import '../constants/app_typography.dart';
 import '../constants/app_radius.dart';
 
+/// Fallback font families applied to every shadcn `Typography.sans` style —
+/// lets the engine render Devanagari (Nepali) input + emoji without the
+/// "Could not find a set of Noto fonts" warning. Order matters: Devanagari
+/// first (user-entered Nepali patient names/notes), then broad multi-script
+/// coverage for anything else.
+const List<String> _appFontFallback = <String>[
+  'Noto Sans Devanagari',
+  'Noto Sans',
+  'Noto Color Emoji',
+  'Apple Color Emoji',
+];
+
+shadcn.Typography _sansFallbackTypography() {
+  return const shadcn.Typography.geist(
+    sans: TextStyle(
+      fontFamily: 'GeistSans',
+      package: 'shadcn_flutter',
+      fontFamilyFallback: _appFontFallback,
+    ),
+  );
+}
+
 /// Builds the shadcn_flutter theme data with Clinical Precision Framework tokens.
 ///
 /// Key mapping notes (light theme):
@@ -69,6 +91,7 @@ class AppTheme {
         chart4: const Color(0xFFAF57DB),
         chart5: const Color(0xFF2EB88A),
       ),
+      typography: _sansFallbackTypography(),
       radius: 0.75, // soft corners — warm friendly feel
     );
   }
@@ -124,6 +147,7 @@ class AppTheme {
         chart4: const Color(0xFFC084FC),
         chart5: const Color(0xFF34D399),
       ),
+      typography: _sansFallbackTypography(),
       radius: 0.75,
     );
   }

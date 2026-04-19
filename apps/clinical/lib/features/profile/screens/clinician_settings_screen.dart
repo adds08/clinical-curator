@@ -61,15 +61,28 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                                 const SizedBox(height: AppSpacing.md),
                                 Row(
                                   children: [
+                                    if (user?.isVerified == true)
                                     const PrimaryBadge(
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.verified,
+                                          Icon(LucideIcons.badgeCheck,
                                               size: 12,
                                               color: Colors.white),
                                           SizedBox(width: 4),
                                           Text('Identity Verified'),
+                                        ],
+                                      ),
+                                    )
+                                else
+                                    const SecondaryBadge(
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(LucideIcons.shieldAlert,
+                                              size: 12),
+                                          SizedBox(width: 4),
+                                          Text('Not Verified'),
                                         ],
                                       ),
                                     ),
@@ -87,7 +100,7 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                                               subtitle: const Text(
                                                   'Profile editor opening...'),
                                               leading: const Icon(
-                                                  Icons.edit,
+                                                  LucideIcons.pencil,
                                                   size: 18),
                                             ),
                                           ),
@@ -95,7 +108,7 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                                               .bottomRight,
                                         );
                                       },
-                                      child: const Icon(Icons.edit,
+                                      child: const Icon(LucideIcons.pencil,
                                           size: 16),
                                     ),
                                   ],
@@ -249,7 +262,7 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                                     const Text('Exporting Data'),
                                 subtitle: const Text(
                                     'Clinician data export in progress...'),
-                                leading: const Icon(Icons.download,
+                                leading: const Icon(LucideIcons.download,
                                     size: 18),
                               ),
                             ),
@@ -259,7 +272,7 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.download, size: 16),
+                            Icon(LucideIcons.download, size: 16),
                             SizedBox(width: 6),
                             Text('Export Clinician Data'),
                           ],
@@ -342,17 +355,17 @@ class ClinicianSettingsScreen extends ConsumerWidget {
             Row(
               children: [
                 if (staff != null) ...[
-                  _buildMiniStat(context, Icons.people, '$staff staff'),
+                  _buildMiniStat(context, LucideIcons.users, '$staff staff'),
                   const SizedBox(width: AppSpacing.lg),
                 ],
                 if (patients != null) ...[
                   _buildMiniStat(
-                      context, Icons.person, '$patients patients'),
+                      context, LucideIcons.user, '$patients patients'),
                   const SizedBox(width: AppSpacing.lg),
                 ],
                 if (alerts != null)
                   _buildMiniStat(
-                      context, Icons.warning_amber, '$alerts alerts',
+                      context, LucideIcons.triangleAlert, '$alerts alerts',
                       color: colors.warning),
               ],
             ),
@@ -368,7 +381,7 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                     subtitle: const Text(
                         'Opening facility management...'),
                     leading:
-                        const Icon(Icons.business, size: 18),
+                        const Icon(LucideIcons.building, size: 18),
                   ),
                 ),
                 location: ToastLocation.bottomRight,
@@ -386,7 +399,7 @@ class ClinicianSettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(width: 4),
-                Icon(Icons.chevron_right,
+                Icon(LucideIcons.chevronRight,
                     color: colors.primary, size: 16),
               ],
             ),
@@ -510,7 +523,7 @@ class _ClinicianNotificationTogglesState
                     title: Text(
                         'Vital signs alerts ${v ? "enabled" : "disabled"}'),
                     leading:
-                        const Icon(Icons.notifications, size: 18),
+                        const Icon(LucideIcons.bell, size: 18),
                   ),
                 ),
                 location: ToastLocation.bottomRight,
@@ -530,7 +543,7 @@ class _ClinicianNotificationTogglesState
                     title: Text(
                         'Lab results alerts ${v ? "enabled" : "disabled"}'),
                     leading:
-                        const Icon(Icons.notifications, size: 18),
+                        const Icon(LucideIcons.bell, size: 18),
                   ),
                 ),
                 location: ToastLocation.bottomRight,
@@ -549,7 +562,7 @@ class _ClinicianNotificationTogglesState
                   child: Basic(
                     title: Text(
                         'Daily summary emails ${v ? "enabled" : "disabled"}'),
-                    leading: const Icon(Icons.email, size: 18),
+                    leading: const Icon(LucideIcons.mail, size: 18),
                   ),
                 ),
                 location: ToastLocation.bottomRight,

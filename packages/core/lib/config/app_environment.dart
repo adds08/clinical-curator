@@ -1,25 +1,30 @@
-/// Compile-time environment configuration.
+import 'app_config.dart';
+
+/// Compile-time / runtime environment configuration.
 ///
-/// Switch environments with: `flutter run --dart-define=ENV=dev|staging|prod`
+/// Reads `ENV` from `.env` (via [AppConfig]) first, then falls back to
+/// `--dart-define=ENV=dev|staging|prod`. Both Flutter apps load the same
+/// `.env` at startup so this returns the same value in clinical + admin.
 enum Environment { dev, staging, prod }
 
 class AppEnvironment {
   AppEnvironment._();
 
-  static const _envStr = String.fromEnvironment('ENV', defaultValue: 'dev');
-
-  static Environment get current => switch (_envStr) {
+  static Environment get current => switch (AppConfig.env) {
         'staging' => Environment.staging,
         'prod' => Environment.prod,
         _ => Environment.dev,
       };
 
-  /// Serverpod API base URL.
-  static String get apiBaseUrl => switch (current) {
-        Environment.dev => 'http://localhost:8080',
-        Environment.staging => 'https://api-staging.clinicalcurator.com',
-        Environment.prod => 'https://api.clinicalcurator.com',
-      };
+  /// Serverpod API base URL — delegates to [AppConfig.serverpodUrl] so
+  /// the clinical and admin apps always agree on the backend.
+  /// Returns a URL WITHOUT a trailing slash for callers that append
+  /// their own path segment. Use [AppConfig.serverpodUrl] when you
+  /// need the trailing-slash form Serverpod `Client(...)` expects.
+  static String get apiBaseUrl {
+    final url = AppConfig.serverpodUrl;
+    return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+  }
 
   /// FHIR R4 endpoint (dev uses public HAPI server).
   static String get fhirBaseUrl => switch (current) {

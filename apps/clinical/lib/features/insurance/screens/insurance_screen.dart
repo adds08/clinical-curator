@@ -93,7 +93,7 @@ class _InsuranceScreenState extends ConsumerState<InsuranceScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.add, size: 14, color: colors.primary),
+                        Icon(LucideIcons.plus, size: 14, color: colors.primary),
                         const SizedBox(width: 4),
                         Text('New Claim', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary)),
                       ],
@@ -110,7 +110,7 @@ class _InsuranceScreenState extends ConsumerState<InsuranceScreen> {
                 decoration: BoxDecoration(color: colors.muted, borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   children: [
-                    Icon(Icons.receipt_long_outlined, size: 32, color: colors.mutedForeground),
+                    Icon(LucideIcons.receipt, size: 32, color: colors.mutedForeground),
                     const SizedBox(height: 8),
                     Text('No claims yet', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.foreground)),
                     const SizedBox(height: 4),
@@ -163,7 +163,7 @@ class _InsuranceScreenState extends ConsumerState<InsuranceScreen> {
       position: OverlayPosition.bottom,
       showDragHandle: true,
       draggable: true,
-      builder: (_) => SingleChildScrollView(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +205,7 @@ class _InsuranceScreenState extends ConsumerState<InsuranceScreen> {
                   await DatabaseService.insuranceClaims.add(claim);
 
                   if (!context.mounted) return;
-                  closeDrawer(context);
+                  closeDrawer(ctx);
                   setState(() {}); // Rebuild to show new claim
                   showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: const Text('Claim submitted successfully!'))));
                 },
@@ -297,7 +297,7 @@ class _CoverageRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            covered ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            covered ? LucideIcons.circleCheck : LucideIcons.circleX,
             size: 18,
             color: covered ? colors.success : colors.destructive,
           ),

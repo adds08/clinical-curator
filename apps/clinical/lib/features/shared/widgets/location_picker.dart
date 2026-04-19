@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/theme/surface_theme.dart';
@@ -219,11 +218,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = shadcn.Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
-    return Material(
+    return Container(
       color: colors.background,
       child: Stack(
         children: [
@@ -270,7 +269,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.location_on,
+                            child: const Icon(LucideIcons.mapPin,
                                 color: Colors.white, size: 20),
                           ),
                           Container(
@@ -306,8 +305,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [SurfaceTheme.ambientShadow],
                       ),
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back,
+                      child: IconButton.ghost(
+                        icon: Icon(LucideIcons.arrowLeft,
                             color: colors.foreground, size: 22),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -321,13 +320,13 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           borderRadius: AppRadius.cardRadius,
                           boxShadow: [SurfaceTheme.ambientShadow],
                         ),
-                        child: shadcn.TextField(
+                        child: TextField(
                           controller: _searchController,
                           placeholder:
                               const Text('Search location...'),
                           onChanged: _onSearchChanged,
                           features: [
-                            shadcn.InputFeature.leading(
+                            InputFeature.leading(
                               _isSearching
                                   ? SizedBox(
                                       width: 18,
@@ -338,7 +337,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                                         color: colors.primary,
                                       ),
                                     )
-                                  : Icon(Icons.search,
+                                  : Icon(LucideIcons.search,
                                       color: colors.mutedForeground,
                                       size: 20),
                             ),
@@ -364,20 +363,20 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       itemCount: _searchResults.length,
-                      separatorBuilder: (_, _) => Divider(
+                      separatorBuilder: (_, _) => Container(
                         height: 1,
                         color: colors.border,
                       ),
                       itemBuilder: (_, i) {
                         final result = _searchResults[i];
-                        return InkWell(
+                        return GestureDetector(
                           onTap: () => _selectSearchResult(result),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 10),
                             child: Row(
                               children: [
-                                Icon(Icons.location_on_outlined,
+                                Icon(LucideIcons.mapPin,
                                     size: 18,
                                     color: colors.mutedForeground),
                                 const SizedBox(width: 10),
@@ -413,17 +412,16 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [SurfaceTheme.ambientShadow],
               ),
-              child: IconButton(
+              child: IconButton.ghost(
                 icon: _isLocating
                     ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
                           color: colors.primary,
                         ),
                       )
-                    : Icon(Icons.my_location,
+                    : Icon(LucideIcons.locateFixed,
                         color: colors.primary, size: 22),
                 onPressed: _isLocating ? null : _getCurrentLocation,
               ),
@@ -449,7 +447,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   if (_selectedAddress.isNotEmpty) ...[
                     Row(
                       children: [
-                        Icon(Icons.location_on,
+                        Icon(LucideIcons.mapPin,
                             size: 16, color: colors.destructive),
                         const SizedBox(width: 6),
                         Expanded(
@@ -470,7 +468,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   ],
                   SizedBox(
                     width: double.infinity,
-                    child: shadcn.Button.primary(
+                    child: Button.primary(
                       onPressed: () {
                         Navigator.of(context).pop(
                           PickedLocation(

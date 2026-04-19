@@ -68,7 +68,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
           child: Basic(
             title: const Text('Validation Error'),
             subtitle: const Text('Please enter the patient\'s full name.'),
-            leading: const Icon(Icons.error_outline, size: 18),
+            leading: const Icon(LucideIcons.circleAlert, size: 18),
           ),
         ),
         location: ToastLocation.bottomRight,
@@ -174,7 +174,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
           subtitle: Text(_bookOpdNow
               ? '$name added & OPD appointment created.'
               : '$name has been added to the directory.'),
-          leading: const Icon(Icons.check_circle_outline, size: 18),
+          leading: const Icon(LucideIcons.circleCheck, size: 18),
         ),
       ),
       location: ToastLocation.bottomRight,
@@ -240,7 +240,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
               filled: true,
               borderRadius: AppRadius.cardRadius,
               features: [
-                InputFeature.leading(Icon(Icons.person_outline,
+                InputFeature.leading(Icon(LucideIcons.user,
                     color: colors.mutedForeground, size: 20)),
               ],
             ),
@@ -255,7 +255,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
               filled: true,
               borderRadius: AppRadius.cardRadius,
               features: [
-                InputFeature.leading(Icon(Icons.calendar_today_outlined,
+                InputFeature.leading(Icon(LucideIcons.calendar,
                     color: colors.mutedForeground, size: 20)),
               ],
             ),
@@ -270,7 +270,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
             // Patient ID
             _buildSectionLabel('Patient ID'),
             const SizedBox(height: AppSpacing.sm),
-            _buildDisabledField(value: _patientId, icon: Icons.badge_outlined),
+            _buildDisabledField(value: _patientId, icon: LucideIcons.badge),
             const SizedBox(height: AppSpacing.xs),
             Text('Auto-generated. Cannot be modified.',
                 style: TextStyle(
@@ -342,7 +342,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
                         ],
                       ),
                     ),
-                    Icon(Icons.event_available,
+                    Icon(LucideIcons.calendarCheck,
                         color: _bookOpdNow
                             ? colors.primary
                             : colors.mutedForeground,
@@ -355,7 +355,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
 
             // Data protection notice
             Alert(
-              leading: const Icon(Icons.shield_outlined, size: 18),
+              leading: const Icon(LucideIcons.shield, size: 18),
               title: const Text('Data Protection Notice'),
               content: const Text(
                   'Data will be encrypted and synced with National Health Registry.'),
@@ -410,7 +410,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
                   fontWeight: FontWeight.w600,
                   color: colors.mutedForeground)),
           const Spacer(),
-          Icon(Icons.lock_outline, size: 16, color: colors.mutedForeground),
+          Icon(LucideIcons.lock, size: 16, color: colors.mutedForeground),
         ],
       ),
     );
@@ -453,7 +453,7 @@ class _AddPatientScreenState extends ConsumerState<AddPatientScreen> {
                             width: 2),
                       ),
                       child: isSelected
-                          ? Icon(Icons.check,
+                          ? Icon(LucideIcons.check,
                               size: 12, color: colors.primaryForeground)
                           : null,
                     ),

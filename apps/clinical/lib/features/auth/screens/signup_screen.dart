@@ -214,7 +214,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     density: ButtonDensity.icon,
                     onPressed: () => context.go(RouteNames.login),
                     child: Icon(
-                      Icons.arrow_back,
+                      LucideIcons.arrowLeft,
                       size: 20,
                       color: colors.primary,
                     ),
@@ -252,7 +252,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           Alert(
                             destructive: true,
                             leading: const Icon(
-                              Icons.error_outline,
+                              LucideIcons.circleAlert,
                               size: 18,
                             ),
                             title: Text(authState.errorMessage!),

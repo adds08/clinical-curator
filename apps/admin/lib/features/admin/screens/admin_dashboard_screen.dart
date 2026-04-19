@@ -1,14 +1,33 @@
-import 'package:fl_chart/fl_chart.dart';
+import 'package:cc_repositories/cc_repositories.dart';
+import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import 'package:cc_core/config/app_config.dart';
 import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_data/providers/admin_analytics_provider.dart';
+
+import '../../../domain/providers/admin_auth_provider.dart';
+import '../../../domain/providers/repository_providers.dart';
+import '../../../domain/providers/serverpod_provider.dart';
+import '../widgets/theme_toggle_button.dart';
+
+String get _kEnv => AppConfig.env;
+
+final _analyticsProvider = FutureProvider.autoDispose<AnalyticsSnapshot>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(analyticsRepositoryProvider).getSnapshot();
+});
+
+final _recentAuditProvider =
+    FutureProvider.autoDispose<List<AuditEvent>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(auditRepositoryProvider).recent(limit: 5);
+});
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -16,13 +35,11 @@ class AdminDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    final totalPatients = ref.watch(totalPatientsProvider);
-    final totalPractitioners = ref.watch(totalPractitionersProvider);
-    final appointmentsToday = ref.watch(appointmentsTodayCountProvider);
-    final pendingVerifications = ref.watch(pendingVerificationCountProvider);
-    final activeEncounters = ref.watch(activeEncountersCountProvider);
-    final recentAudit = ref.watch(recentAuditEventsProvider);
-    final appointmentTrend = ref.watch(appointmentTrendProvider);
+    final analyticsAsync = ref.watch(_analyticsProvider);
+    final auditAsync = ref.watch(_recentAuditProvider);
+
+    final snapshot = analyticsAsync.valueOrNull ?? const AnalyticsSnapshot();
+    final recentAudit = auditAsync.valueOrNull ?? const <AuditEvent>[];
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -32,42 +49,61 @@ class AdminDashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Admin Dashboard',
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: colors.foreground,
-                      letterSpacing: -0.3)),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Admin Dashboard',
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: colors.foreground,
+                            letterSpacing: -0.3)),
+                  ),
+                  IconButton.ghost(
+                    icon: const Icon(LucideIcons.refreshCw, size: 18),
+                    onPressed: () => bumpRepos(ref),
+                  ),
+                  const ThemeToggleButton(),
+                  const SizedBox(width: 4),
+                  IconButton.ghost(
+                    icon: const Icon(LucideIcons.logOut, size: 18),
+                    onPressed: () =>
+                        ref.read(adminAuthProvider.notifier).logout(),
+                  ),
+                ],
+              ),
               const SizedBox(height: AppSpacing.xxl),
 
-              // Stats row
+              if (analyticsAsync.hasError)
+                _errorBanner(context, analyticsAsync.error!),
+
               Wrap(
                 spacing: AppSpacing.md,
                 runSpacing: AppSpacing.md,
                 children: [
                   _StatCard(
                       label: 'Patients',
-                      value: '$totalPatients',
+                      value: '${snapshot.totalPatients}',
                       icon: Icons.people_outline_rounded,
                       color: colors.primary),
                   _StatCard(
                       label: 'Practitioners',
-                      value: '$totalPractitioners',
+                      value: '${snapshot.totalPractitioners}',
                       icon: Icons.medical_services_outlined,
                       color: colors.success),
                   _StatCard(
                       label: 'Appts Today',
-                      value: '$appointmentsToday',
+                      value: '${snapshot.appointmentsToday}',
                       icon: Icons.calendar_today_rounded,
                       color: colors.warning),
                   _StatCard(
                       label: 'Pending',
-                      value: '$pendingVerifications',
+                      value: '${snapshot.pendingVerifications}',
                       icon: Icons.pending_actions_rounded,
                       color: colors.destructive),
                   _StatCard(
                       label: 'Active Enc.',
-                      value: '$activeEncounters',
+                      value: '${snapshot.activeEncounters}',
                       icon: Icons.local_hospital_rounded,
                       color: colors.oxygenSat),
                 ],
@@ -75,80 +111,6 @@ class AdminDashboardScreen extends ConsumerWidget {
 
               const SizedBox(height: AppSpacing.xxxl),
 
-              // Appointment trend chart
-              Text('Appointment Trend (7 days)',
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: colors.foreground)),
-              const SizedBox(height: AppSpacing.lg),
-              Container(
-                height: 180,
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: SurfaceTheme.cardDecoration(context: context),
-                child: appointmentTrend.isEmpty
-                    ? Center(
-                        child: Text('No data',
-                            style: TextStyle(
-                                color: colors.mutedForeground)))
-                    : BarChart(
-                        BarChartData(
-                          gridData: const FlGridData(show: false),
-                          borderData: FlBorderData(show: false),
-                          titlesData: FlTitlesData(
-                            topTitles: const AxisTitles(
-                                sideTitles:
-                                    SideTitles(showTitles: false)),
-                            rightTitles: const AxisTitles(
-                                sideTitles:
-                                    SideTitles(showTitles: false)),
-                            leftTitles: const AxisTitles(
-                                sideTitles:
-                                    SideTitles(showTitles: false)),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  final idx = value.toInt();
-                                  if (idx < 0 ||
-                                      idx >= appointmentTrend.length) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Text(
-                                    DateFormat('E')
-                                        .format(appointmentTrend[idx].date),
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        color: colors.mutedForeground),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          barGroups: appointmentTrend
-                              .asMap()
-                              .entries
-                              .map((e) => BarChartGroupData(
-                                    x: e.key,
-                                    barRods: [
-                                      BarChartRodData(
-                                        toY: e.value.count.toDouble(),
-                                        color: colors.primary,
-                                        width: 16,
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                                top: Radius.circular(4)),
-                                      ),
-                                    ],
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-              ),
-
-              const SizedBox(height: AppSpacing.xxxl),
-
-              // Quick actions
               Text('Quick Actions',
                   style: TextStyle(
                       fontSize: 15,
@@ -171,16 +133,35 @@ class AdminDashboardScreen extends ConsumerWidget {
                       label: 'Permissions',
                       icon: Icons.security_rounded,
                       onTap: () => context.push('/admin/rbac')),
-                  _QuickAction(
-                      label: 'Encounters',
-                      icon: Icons.medical_services_rounded,
-                      onTap: () => context.push('/clinical/encounters')),
                 ],
               ),
 
+              if (_kEnv == 'mock') ...[
+                const SizedBox(height: AppSpacing.xxl),
+                Text('Demo Controls',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: colors.foreground)),
+                const SizedBox(height: AppSpacing.md),
+                SizedBox(
+                  width: double.infinity,
+                  child: Button.destructive(
+                    onPressed: () => _confirmClearDemoData(context, ref),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.trash2, size: 16),
+                        SizedBox(width: 8),
+                        Text('Clear Demo Data'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: AppSpacing.xxxl),
 
-              // Recent activity
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -200,57 +181,155 @@ class AdminDashboardScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              ...recentAudit.take(5).map((event) => Padding(
-                    padding:
-                        const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: SurfaceTheme.cardDecoration(
-                          context: context),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _iconForAction(event.action),
-                            size: 16,
-                            color: colors.mutedForeground,
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${event.agentName} · ${event.action}',
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: colors.foreground),
-                                ),
-                                if (event.detail != null)
+              if (recentAudit.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: SurfaceTheme.cardDecoration(context: context),
+                  child: Text('No activity yet',
+                      style: TextStyle(
+                          fontSize: 12, color: colors.mutedForeground)),
+                )
+              else
+                ...recentAudit.map((event) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration:
+                            SurfaceTheme.cardDecoration(context: context),
+                        child: Row(
+                          children: [
+                            Icon(_iconForAction(event.action),
+                                size: 16, color: colors.mutedForeground),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    event.detail!,
+                                    '${event.agentName} · ${event.action}',
                                     style: TextStyle(
-                                        fontSize: 12,
-                                        color: colors.mutedForeground),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: colors.foreground),
                                   ),
-                              ],
+                                  if (event.detail != null)
+                                    Text(
+                                      event.detail!,
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: colors.mutedForeground),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Text(
-                            DateFormat('HH:mm').format(event.recorded),
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: colors.mutedForeground),
-                          ),
-                        ],
+                            Text(
+                              DateFormat('HH:mm').format(event.recorded),
+                              style: TextStyle(
+                                  fontSize: 11, color: colors.mutedForeground),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  )),
+                    )),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorBanner(BuildContext context, Object error) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: colors.destructive.withValues(alpha: 0.08),
+          borderRadius: AppRadius.cardRadius,
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, size: 18, color: colors.destructive),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text('Could not reach server: $error',
+                  style:
+                      TextStyle(fontSize: 12, color: colors.destructive)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmClearDemoData(
+      BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear demo data?'),
+        content: const Text(
+          'This will permanently delete all demo patient data on the server. Continue?',
+        ),
+        actions: [
+          OutlineButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel')),
+          DestructiveButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Clear')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    int serverDeleted = 0;
+    String? errorMsg;
+
+    try {
+      final adminEmail = ref.read(adminAuthProvider).email;
+      final client = ref.read(serverpodClientProvider);
+      serverDeleted =
+          await client.fhirSync.purgeDemoData(adminEmail: adminEmail);
+
+      final now = DateTime.now();
+      await ref.read(auditRepositoryProvider).record(AuditEvent(
+            fhirId: 'audit-${now.microsecondsSinceEpoch}',
+            type: 'rest',
+            action: 'delete',
+            recorded: now,
+            agentRef: 'User/${adminEmail ?? 'admin'}',
+            agentName: adminEmail ?? 'admin',
+            entityType: 'Bundle',
+            outcome: 'success',
+            detail: 'purge-demo-data server=$serverDeleted',
+            createdAt: now,
+            syncVersion: 0,
+          ));
+      bumpRepos(ref);
+    } catch (e) {
+      errorMsg = e.toString();
+    }
+
+    if (!context.mounted) return;
+    showToast(
+      context: context,
+      builder: (c, o) => SurfaceCard(
+        child: Basic(
+          leading: Icon(
+            errorMsg == null ? LucideIcons.trash2 : LucideIcons.circleAlert,
+            size: 18,
+          ),
+          title: Text(errorMsg == null
+              ? 'Cleared $serverDeleted server records'
+              : 'Server purge failed'),
+          subtitle: errorMsg == null
+              ? const Text('Demo patients removed.')
+              : Text(errorMsg),
         ),
       ),
     );

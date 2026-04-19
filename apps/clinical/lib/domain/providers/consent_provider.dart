@@ -6,6 +6,8 @@ import 'package:fhir/r4.dart' as fhir;
 import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_fhir_models/collections/fhir_resource_collection.dart';
 
+import '../services/audit_logger.dart';
+
 /// Returns all FHIR Consent resources for a given patient reference.
 final patientConsentsProvider =
     Provider.family<List<fhir.Consent>, String>((ref, patientRef) {
@@ -28,7 +30,13 @@ final patientConsentsProvider =
 });
 
 /// Toggles a Consent resource between active and inactive status in Hive.
-Future<void> toggleConsentStatus(String consentId, bool activate) async {
+/// Pass [agentEmail]/[agentName] to emit the corresponding AuditEvent.
+Future<void> toggleConsentStatus(
+  String consentId,
+  bool activate, {
+  String? agentEmail,
+  String? agentName,
+}) async {
   final box = DatabaseService.fhirResources;
 
   for (int i = 0; i < box.length; i++) {
@@ -41,17 +49,49 @@ Future<void> toggleConsentStatus(String consentId, bool activate) async {
         r.lastUpdated = DateTime.now();
         r.syncStatus = 1; // pendingUpload
         await r.save();
+
+        final agentRef = 'User/${agentEmail ?? 'unknown'}';
+        final who = agentName ?? (agentEmail ?? 'unknown');
+        if (activate) {
+          await AuditLogger.consentGranted(
+            consentRef: 'Consent/$consentId',
+            agentRef: agentRef,
+            agentName: who,
+          );
+        } else {
+          await AuditLogger.consentRevoked(
+            consentRef: 'Consent/$consentId',
+            agentRef: agentRef,
+            agentName: who,
+          );
+        }
       } catch (_) {}
       break;
     }
   }
 }
 
+/// Warning message for UI when attempting consent with an unverified practitioner.
+String consentWarningForUnverified(String practitionerName) =>
+    'Dr. $practitionerName is not yet verified. '
+    'Consent sharing is restricted until their identity is verified by an administrator.';
+
 /// Creates a new FHIR Consent resource and stores it in Hive.
+/// Throws [StateError] if the practitioner is not verified.
 Future<void> createConsent({
   required String patientRef,
   required String practitionerRef,
+  required bool isPractitionerVerified,
+  String? agentEmail,
+  String? agentName,
 }) async {
+  if (!isPractitionerVerified) {
+    throw StateError(
+      'Cannot create consent for unverified practitioner. '
+      'Practitioner must be verified before receiving patient data.',
+    );
+  }
+
   final now = DateTime.now();
   final id = 'consent-${now.millisecondsSinceEpoch}';
 
@@ -114,4 +154,10 @@ Future<void> createConsent({
     ..createdAt = now;
 
   await DatabaseService.fhirResources.add(resource);
+
+  await AuditLogger.consentGranted(
+    consentRef: 'Consent/$id',
+    agentRef: 'User/${agentEmail ?? 'unknown'}',
+    agentName: agentName ?? (agentEmail ?? 'unknown'),
+  );
 }

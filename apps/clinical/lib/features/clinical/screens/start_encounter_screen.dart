@@ -146,7 +146,7 @@ class _StartEncounterScreenState extends ConsumerState<StartEncounterScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.local_hospital_rounded,
+                            Icon(LucideIcons.hospital,
                                 size: 18, color: colors.primary),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
@@ -173,7 +173,7 @@ class _StartEncounterScreenState extends ConsumerState<StartEncounterScreen> {
                               ),
                             ),
                             if (_selectedOrgRef == role.organizationRef)
-                              Icon(Icons.check_circle_rounded,
+                              Icon(LucideIcons.circleCheck,
                                   size: 18, color: colors.primary),
                           ],
                         ),
@@ -376,7 +376,7 @@ class _PatientSelector extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.person_rounded, size: 20, color: colors.primary),
+            Icon(LucideIcons.user, size: 20, color: colors.primary),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
@@ -387,7 +387,7 @@ class _PatientSelector extends StatelessWidget {
                     color: colors.foreground),
               ),
             ),
-            Icon(Icons.check_circle_rounded,
+            Icon(LucideIcons.circleCheck,
                 size: 18, color: colors.primary),
           ],
         ),
@@ -426,7 +426,7 @@ class _PatientSelector extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.person_outline_rounded,
+                  Icon(LucideIcons.user,
                       size: 18, color: colors.mutedForeground),
                   const SizedBox(width: AppSpacing.sm),
                   Text(

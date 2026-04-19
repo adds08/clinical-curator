@@ -1,13 +1,18 @@
+import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
-import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
-import 'package:cc_fhir_models/collections/health_tip_collection.dart';
-import 'package:cc_data/providers/health_tip_provider.dart';
+
+import '../../../domain/providers/repository_providers.dart';
+
+final _tipsProvider = FutureProvider.autoDispose<List<HealthTip>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.read(healthTipRepositoryProvider).listAllAdmin();
+});
 
 class ManageHealthTipsScreen extends ConsumerWidget {
   const ManageHealthTipsScreen({super.key});
@@ -15,95 +20,108 @@ class ManageHealthTipsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    final allTips = ref.watch(allHealthTipsProvider);
-    final activeCount = allTips.where((t) => t.isActive).length;
+    final tipsAsync = ref.watch(_tipsProvider);
 
     return Scaffold(
       backgroundColor: colors.background,
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Health Tips',
-                          style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: colors.foreground,
-                              letterSpacing: -0.5)),
-                      const SizedBox(height: 2),
-                      Text(
-                          '$activeCount active of ${allTips.length} total',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: colors.mutedForeground)),
-                    ],
-                  ),
-                  Button.primary(
-                    onPressed: () => _openTipDrawer(context, ref, null),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add, size: 16),
-                        SizedBox(width: 4),
-                        Text('New Tip',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-
-              if (allTips.isEmpty)
-                Card(
-                  padding: const EdgeInsets.all(AppSpacing.xxl),
-                  fillColor:
-                      SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
-                  borderRadius: AppRadius.cardRadius,
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.lightbulb_outline,
-                            size: 36,
-                            color: colors.mutedForeground
-                                .withValues(alpha: 0.4)),
-                        const SizedBox(height: AppSpacing.md),
-                        Text('No health tips yet',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: colors.mutedForeground)),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ...allTips.map((tip) => Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: _buildTipCard(context, ref, tip),
-                    )),
-            ],
+        child: tipsAsync.when(
+          loading: () => const Center(
+              child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2))),
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Text('Failed to load health tips: $e',
+                  style: TextStyle(color: colors.destructive)),
+            ),
           ),
+          data: (tips) => _buildContent(context, ref, tips),
         ),
       ),
     );
   }
 
-  Widget _buildTipCard(
-      BuildContext context, WidgetRef ref, HealthTipLocal tip) {
+  Widget _buildContent(
+      BuildContext context, WidgetRef ref, List<HealthTip> tips) {
     final colors = Theme.of(context).colorScheme;
+    final activeCount = tips.where((t) => t.isActive).length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Health Tips',
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: colors.foreground,
+                          letterSpacing: -0.5)),
+                  const SizedBox(height: 2),
+                  Text('$activeCount active of ${tips.length} total',
+                      style: TextStyle(
+                          fontSize: 12, color: colors.mutedForeground)),
+                ],
+              ),
+              Button.primary(
+                onPressed: () => _openTipDrawer(context, ref, null),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 16),
+                    SizedBox(width: 4),
+                    Text('New Tip',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          if (tips.isEmpty)
+            Card(
+              padding: const EdgeInsets.all(AppSpacing.xxl),
+              fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+              borderRadius: AppRadius.cardRadius,
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.lightbulb_outline,
+                        size: 36,
+                        color: colors.mutedForeground.withValues(alpha: 0.4)),
+                    const SizedBox(height: AppSpacing.md),
+                    Text('No health tips yet',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colors.mutedForeground)),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...tips.map((tip) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: _buildTipCard(context, ref, tip),
+                )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipCard(BuildContext context, WidgetRef ref, HealthTip tip) {
+    final colors = Theme.of(context).colorScheme;
+    final repo = ref.read(healthTipRepositoryProvider);
 
     return Card(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -187,43 +205,35 @@ class ManageHealthTipsScreen extends ConsumerWidget {
                 child: tip.isActive
                     ? Button.secondary(
                         onPressed: () async {
-                          tip.isActive = false;
-                          await tip.save();
-                          ref
-                              .read(healthTipRefreshProvider.notifier)
-                              .state++;
+                          await repo.update(tip.copyWith(isActive: false));
+                          bumpRepos(ref);
                         },
                         child: const Text('Unpublish',
                             style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
+                                fontSize: 12, fontWeight: FontWeight.w600)),
                       )
                     : Button.primary(
                         onPressed: () async {
-                          tip.isActive = true;
-                          tip.publishedAt = DateTime.now();
-                          await tip.save();
-                          ref
-                              .read(healthTipRefreshProvider.notifier)
-                              .state++;
+                          await repo.update(tip.copyWith(
+                              isActive: true, publishedAt: DateTime.now()));
+                          bumpRepos(ref);
                         },
                         child: const Text('Publish',
                             style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
+                                fontSize: 12, fontWeight: FontWeight.w600)),
                       ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Button.destructive(
                 onPressed: () async {
-                  await tip.delete();
-                  ref.read(healthTipRefreshProvider.notifier).state++;
+                  if (tip.id == null) return;
+                  await repo.delete(tip.id!);
+                  bumpRepos(ref);
                   if (!context.mounted) return;
                   showToast(
                       context: context,
                       builder: (c, o) => SurfaceCard(
-                          child: Basic(
-                              title: Text('"${tip.title}" removed'))));
+                          child: Basic(title: Text('"${tip.title}" removed'))));
                 },
                 child: const Icon(Icons.delete_outline, size: 16),
               ),
@@ -235,16 +245,13 @@ class ManageHealthTipsScreen extends ConsumerWidget {
   }
 
   void _openTipDrawer(
-      BuildContext context, WidgetRef ref, HealthTipLocal? existing) {
+      BuildContext context, WidgetRef ref, HealthTip? existing) {
     final colors = Theme.of(context).colorScheme;
     final isEdit = existing != null;
     final titleCtrl = TextEditingController(text: existing?.title ?? '');
-    final summaryCtrl =
-        TextEditingController(text: existing?.summary ?? '');
-    final contentCtrl =
-        TextEditingController(text: existing?.content ?? '');
-    final authorCtrl =
-        TextEditingController(text: existing?.author ?? '');
+    final summaryCtrl = TextEditingController(text: existing?.summary ?? '');
+    final contentCtrl = TextEditingController(text: existing?.content ?? '');
+    final authorCtrl = TextEditingController(text: existing?.author ?? '');
     String category = existing?.category ?? 'wellness';
 
     final categories = [
@@ -274,8 +281,7 @@ class ManageHealthTipsScreen extends ConsumerWidget {
                       color: colors.foreground)),
               const SizedBox(height: 20),
               TextField(
-                  controller: titleCtrl,
-                  placeholder: const Text('Title')),
+                  controller: titleCtrl, placeholder: const Text('Title')),
               const SizedBox(height: 12),
               TextField(
                   controller: summaryCtrl,
@@ -303,20 +309,15 @@ class ManageHealthTipsScreen extends ConsumerWidget {
                 children: categories.map((c) {
                   final isSelected = category == c;
                   return GestureDetector(
-                    onTap: () =>
-                        setDrawerState(() => category = c),
+                    onTap: () => setDrawerState(() => category = c),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? colors.primary
-                            : colors.card,
+                        color: isSelected ? colors.primary : colors.card,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: isSelected
-                                ? colors.primary
-                                : colors.border),
+                            color: isSelected ? colors.primary : colors.border),
                       ),
                       child: Text(c,
                           style: TextStyle(
@@ -340,44 +341,51 @@ class ManageHealthTipsScreen extends ConsumerWidget {
                       return;
                     }
                     final now = DateTime.now();
-
-                    if (isEdit) {
-                      existing
-                        ..title = title
-                        ..summary = summaryCtrl.text.trim()
-                        ..content = contentCtrl.text.trim()
-                        ..author = authorCtrl.text.trim()
-                        ..category = category;
-                      await existing.save();
-                    } else {
-                      final tip = HealthTipLocal()
-                        ..title = title
-                        ..summary = summaryCtrl.text.trim()
-                        ..content = contentCtrl.text.trim()
-                        ..category = category
-                        ..author = authorCtrl.text.trim().isNotEmpty
-                            ? authorCtrl.text.trim()
-                            : 'Admin'
-                        ..isActive = true
-                        ..publishedAt = now
-                        ..createdAt = now
-                        ..syncStatus = 1;
-                      await DatabaseService.healthTips.add(tip);
+                    final repo = ref.read(healthTipRepositoryProvider);
+                    try {
+                      if (isEdit) {
+                        await repo.update(existing.copyWith(
+                          title: title,
+                          summary: summaryCtrl.text.trim(),
+                          content: contentCtrl.text.trim(),
+                          author: authorCtrl.text.trim().isNotEmpty
+                              ? authorCtrl.text.trim()
+                              : existing.author,
+                          category: category,
+                        ));
+                      } else {
+                        await repo.create(HealthTip(
+                          title: title,
+                          summary: summaryCtrl.text.trim(),
+                          content: contentCtrl.text.trim(),
+                          category: category,
+                          author: authorCtrl.text.trim().isNotEmpty
+                              ? authorCtrl.text.trim()
+                              : 'Admin',
+                          isActive: true,
+                          publishedAt: now,
+                          createdAt: now,
+                        ));
+                      }
+                      bumpRepos(ref);
+                      if (!context.mounted) return;
+                      closeDrawer(context);
+                      showToast(
+                          context: context,
+                          builder: (c, o) => SurfaceCard(
+                              child: Basic(
+                                  title: Text(isEdit
+                                      ? '"$title" updated'
+                                      : '"$title" published'))));
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      showToast(
+                          context: context,
+                          builder: (c, o) => SurfaceCard(
+                              child: Basic(
+                                  title: const Text('Save failed'),
+                                  subtitle: Text(e.toString()))));
                     }
-
-                    ref
-                        .read(healthTipRefreshProvider.notifier)
-                        .state++;
-
-                    if (!context.mounted) return;
-                    closeDrawer(context);
-                    showToast(
-                        context: context,
-                        builder: (c, o) => SurfaceCard(
-                            child: Basic(
-                                title: Text(isEdit
-                                    ? '"$title" updated'
-                                    : '"$title" published'))));
                   },
                   child: Text(isEdit ? 'Save Changes' : 'Publish Tip'),
                 ),
