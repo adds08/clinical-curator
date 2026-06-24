@@ -8,6 +8,7 @@ import 'package:cc_fhir_models/collections/schedule_slot_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
 import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
+import 'package:cc_data/providers/practitioner_data_provider.dart';
 
 class ScheduleEntryScreen extends ConsumerStatefulWidget {
   const ScheduleEntryScreen({super.key});
@@ -22,15 +23,13 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
   bool _allowEmergencyOverride = false;
   bool _enableTelehealth = false;
 
-  final _dateController = TextEditingController(text: 'Oct 28, 2024');
-  final _startTimeController = TextEditingController(text: '08:00 AM');
-  final _endTimeController = TextEditingController(text: '04:00 PM');
+  DateTime? _selectedDate;
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
   final _bufferController = TextEditingController(text: '5');
+  String? _timeError;
 
-  final List<String> _facilities = [
-    'City Central Hospital',
-    'St. Jude Medical Center',
-  ];
+  final List<String> _facilities = ['City Central Hospital', 'St. Jude Medical Center'];
 
   final List<String> _durations = ['15m', '30m', '45m', '60m'];
   final List<int> _durationMinutes = [15, 30, 45, 60];
@@ -43,11 +42,22 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
     return totalMinutes ~/ (slotMin + buffer);
   }
 
+  void _validateTimes() {
+    if (_startTime != null && _endTime != null) {
+      final start = _startTime!.hour * 60 + _startTime!.minute;
+      final end = _endTime!.hour * 60 + _endTime!.minute;
+      if (end <= start) {
+        setState(() => _timeError = 'End time must be after start time');
+      } else {
+        setState(() => _timeError = null);
+      }
+    } else {
+      setState(() => _timeError = null);
+    }
+  }
+
   @override
   void dispose() {
-    _dateController.dispose();
-    _startTimeController.dispose();
-    _endTimeController.dispose();
     _bufferController.dispose();
     super.dispose();
   }
@@ -62,18 +72,18 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // -- Date field --
+            // -- Date field with DatePicker in popover mode --
             _buildLabel('Date'),
             const SizedBox(height: AppSpacing.sm),
-            TextField(
-              controller: _dateController,
-              placeholder: const Text('Select date'),
-              features: [
-                InputFeature.trailing(
-                  Icon(LucideIcons.calendar,
-                      color: colors.mutedForeground, size: 18),
-                ),
-              ],
+            DatePicker(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+              placeholder: const Text('Select a date'),
+              mode: PromptMode.popover,
+              stateBuilder: (date) {
+                final isPast = date.isBefore(DateTime.now().subtract(const Duration(days: 1)));
+                return isPast ? DateState.disabled : DateState.enabled;
+              },
             ),
             const SizedBox(height: AppSpacing.xl),
 
@@ -88,15 +98,9 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                   if (val != null) setState(() => _selectedFacility = val);
                 },
                 itemBuilder: (context, item) => Text(item),
-                // ignore: implicit_call_tearoffs
                 popup: SelectPopup(
                   items: SelectItemList(
-                    children: _facilities
-                        .map((f) => SelectItemButton(
-                              value: f,
-                              child: Text(f),
-                            ))
-                        .toList(),
+                    children: _facilities.map((f) => SelectItemButton(value: f, child: Text(f))).toList(),
                   ),
                 ),
                 placeholder: const Text('Select facility'),
@@ -104,7 +108,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // -- Start / End time --
+            // -- Start / End time with TimePicker in popover mode --
             Row(
               children: [
                 Expanded(
@@ -113,15 +117,14 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                     children: [
                       _buildLabel('Start Time'),
                       const SizedBox(height: AppSpacing.sm),
-                      TextField(
-                        controller: _startTimeController,
-                        placeholder: const Text('08:00 AM'),
-                        features: [
-                          InputFeature.trailing(
-                            Icon(LucideIcons.clock,
-                                color: colors.mutedForeground, size: 18),
-                          ),
-                        ],
+                      TimePicker(
+                        value: _startTime,
+                        onChanged: (time) {
+                          setState(() => _startTime = time);
+                          _validateTimes();
+                        },
+                        placeholder: const Text('Start time'),
+                        mode: PromptMode.popover,
                       ),
                     ],
                   ),
@@ -133,21 +136,24 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                     children: [
                       _buildLabel('End Time'),
                       const SizedBox(height: AppSpacing.sm),
-                      TextField(
-                        controller: _endTimeController,
-                        placeholder: const Text('04:00 PM'),
-                        features: [
-                          InputFeature.trailing(
-                            Icon(LucideIcons.clock,
-                                color: colors.mutedForeground, size: 18),
-                          ),
-                        ],
+                      TimePicker(
+                        value: _endTime,
+                        onChanged: (time) {
+                          setState(() => _endTime = time);
+                          _validateTimes();
+                        },
+                        placeholder: const Text('End time'),
+                        mode: PromptMode.popover,
                       ),
                     ],
                   ),
                 ),
               ],
             ),
+            if (_timeError != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(_timeError!, style: TextStyle(fontSize: 11, color: colors.destructive)),
+            ],
             const SizedBox(height: AppSpacing.xxl),
 
             // -- Slot Duration chips --
@@ -158,16 +164,10 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
               children: List.generate(_durations.length, (i) {
                 final isSelected = i == _selectedDurationIndex;
                 return Chip(
-                  onPressed: () =>
-                      setState(() => _selectedDurationIndex = i),
+                  onPressed: () => setState(() => _selectedDurationIndex = i),
                   child: Text(
                     _durations[i],
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? colors.primary
-                          : colors.mutedForeground,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w700, color: isSelected ? colors.primary : colors.mutedForeground),
                   ),
                 );
               }),
@@ -179,11 +179,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               width: 120,
-              child: TextField(
-                controller: _bufferController,
-                placeholder: const Text('5'),
-                onChanged: (_) => setState(() {}),
-              ),
+              child: TextField(controller: _bufferController, placeholder: const Text('5'), onChanged: (_) => setState(() {})),
             ),
             const SizedBox(height: AppSpacing.xxl),
 
@@ -195,11 +191,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                 setState(() => _allowEmergencyOverride = v);
                 showToast(
                   context: context,
-                  builder: (ctx, overlay) => SurfaceCard(
-                    child: Text(v
-                        ? 'Emergency override enabled'
-                        : 'Emergency override disabled'),
-                  ),
+                  builder: (ctx, overlay) => SurfaceCard(child: Text(v ? 'Emergency override enabled' : 'Emergency override disabled')),
                 );
               },
             ),
@@ -211,10 +203,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                 setState(() => _enableTelehealth = v);
                 showToast(
                   context: context,
-                  builder: (ctx, overlay) => SurfaceCard(
-                    child: Text(
-                        v ? 'Telehealth enabled' : 'Telehealth disabled'),
-                  ),
+                  builder: (ctx, overlay) => SurfaceCard(child: Text(v ? 'Telehealth enabled' : 'Telehealth disabled')),
                 );
               },
             ),
@@ -234,21 +223,12 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                       children: [
                         Text(
                           'SCHEDULE PREVIEW',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: colors.primary,
-                            letterSpacing: 0.8,
-                          ),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.primary, letterSpacing: 0.8),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$_calculatedSlots available ${_durations[_selectedDurationIndex]} slots',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: colors.foreground,
-                          ),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.foreground),
                         ),
                       ],
                     ),
@@ -264,9 +244,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
               child: Button.primary(
                 onPressed: () async {
                   // Validate required fields
-                  if (_dateController.text.trim().isEmpty ||
-                      _startTimeController.text.trim().isEmpty ||
-                      _endTimeController.text.trim().isEmpty) {
+                  if (_selectedDate == null || _startTime == null || _endTime == null) {
                     showToast(
                       context: context,
                       builder: (ctx, overlay) => SurfaceCard(
@@ -278,15 +256,32 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                     );
                     return;
                   }
+                  if (_timeError != null) {
+                    showToast(
+                      context: context,
+                      builder: (ctx, overlay) => SurfaceCard(
+                        child: Basic(
+                          leading: Icon(LucideIcons.triangleAlert, color: colors.warning),
+                          title: Text(_timeError!),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
 
                   final user = ref.read(authProvider).user;
                   final practRef = user?.fhirPractitionerId ?? user?.id ?? 'unknown';
+                  // Ensure practitionerRef has the Practitionr/ prefix so the provider query matches
+                  final fullPractRef = practRef.startsWith('Practitioner/') ? practRef : 'Practitioner/$practRef';
+
+                  final startStr = _formatTimeOfDay(_startTime!);
+                  final endStr = _formatTimeOfDay(_endTime!);
 
                   final slot = ScheduleSlotLocal()
-                    ..practitionerRef = practRef
-                    ..date = DateTime.now()
-                    ..startTime = _startTimeController.text.trim()
-                    ..endTime = _endTimeController.text.trim()
+                    ..practitionerRef = fullPractRef
+                    ..date = _selectedDate!
+                    ..startTime = startStr
+                    ..endTime = endStr
                     ..slotDurationMinutes = _durationMinutes[_selectedDurationIndex]
                     ..maxPatients = _calculatedSlots
                     ..bookedCount = 0
@@ -299,9 +294,11 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
 
                   await DatabaseService.scheduleSlots.add(slot);
 
+                  // Bump the slot refresh provider so the timesheet re-reads from Hive
+                  ref.read(slotRefreshProvider.notifier).state++;
+
                   if (!mounted) return;
                   showToast(
-                    // ignore: use_build_context_synchronously
                     context: context,
                     builder: (ctx, overlay) => SurfaceCard(
                       child: Basic(
@@ -312,7 +309,6 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
                     ),
                   );
                   Future.delayed(const Duration(milliseconds: 600), () {
-                    // ignore: use_build_context_synchronously
                     if (mounted) context.pop();
                   });
                 },
@@ -326,35 +322,29 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
     );
   }
 
-  // -- Helpers --
+  String _formatTimeOfDay(TimeOfDay t) {
+    final minute = t.minute.toString().padLeft(2, '0');
+    final ampm = t.hour < 12 ? 'AM' : 'PM';
+    final hr12 = t.hour == 0 ? 12 : (t.hour > 12 ? t.hour - 12 : t.hour);
+    return '${hr12.toString().padLeft(2, '0')}:$minute $ampm';
+  }
 
   Widget _buildLabel(String text) {
     final colors = Theme.of(context).colorScheme;
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: colors.mutedForeground,
-        letterSpacing: 0.3,
-      ),
+      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.mutedForeground, letterSpacing: 0.3),
     );
   }
 
-  Widget _buildToggleRow({
-    required bool value,
-    required String label,
-    required ValueChanged<bool> onChanged,
-  }) {
+  Widget _buildToggleRow({required bool value, required String label, required ValueChanged<bool> onChanged}) {
     final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Row(
         children: [
           Checkbox(
-            state: value
-                ? CheckboxState.checked
-                : CheckboxState.unchecked,
+            state: value ? CheckboxState.checked : CheckboxState.unchecked,
             onChanged: (state) {
               onChanged(state == CheckboxState.checked);
             },
@@ -363,11 +353,7 @@ class _ScheduleEntryScreenState extends ConsumerState<ScheduleEntryScreen> {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colors.foreground,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.foreground),
             ),
           ),
         ],

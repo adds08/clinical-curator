@@ -18,6 +18,9 @@ final patientRefreshProvider = StateProvider<int>((ref) => 0);
 /// Bump this to force appointment-related providers to re-read from Hive.
 final appointmentRefreshProvider = StateProvider<int>((ref) => 0);
 
+/// Bump this to force schedule slot providers to re-read from Hive.
+final slotRefreshProvider = StateProvider<int>((ref) => 0);
+
 // ---------------------------------------------------------------------------
 // All Patients (doctor / practitioner view)
 // ---------------------------------------------------------------------------
@@ -30,8 +33,7 @@ final allPatientsProvider = Provider<List<fhir.Patient>>((ref) {
   for (final r in box.values) {
     if (r.resourceType == 'Patient') {
       try {
-        final resource = fhir.Resource.fromJson(
-            jsonDecode(r.jsonData) as Map<String, dynamic>);
+        final resource = fhir.Resource.fromJson(jsonDecode(r.jsonData) as Map<String, dynamic>);
         if (resource is fhir.Patient) {
           patients.add(resource);
         }
@@ -56,36 +58,24 @@ final patientCountProvider = Provider<int>((ref) {
 // ---------------------------------------------------------------------------
 
 /// All appointments for a given practitioner reference.
-final practitionerAppointmentsProvider =
-    Provider.family<List<AppointmentLocal>, String>((ref, practitionerRef) {
+final practitionerAppointmentsProvider = Provider.family<List<AppointmentLocal>, String>((ref, practitionerRef) {
   ref.watch(appointmentRefreshProvider);
   final box = DatabaseService.appointments;
-  final fullRef = practitionerRef.startsWith('Practitioner/')
-      ? practitionerRef
-      : 'Practitioner/$practitionerRef';
-  return box.values
-      .where((a) => a.practitionerRef == fullRef)
-      .toList()
-    ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+  final fullRef = practitionerRef.startsWith('Practitioner/') ? practitionerRef : 'Practitioner/$practitionerRef';
+  return box.values.where((a) => a.practitionerRef == fullRef).toList()..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 });
 
 /// Today's appointments for a practitioner, sorted by time.
-final todayAppointmentsProvider =
-    Provider.family<List<AppointmentLocal>, String>((ref, practitionerRef) {
+final todayAppointmentsProvider = Provider.family<List<AppointmentLocal>, String>((ref, practitionerRef) {
   final all = ref.watch(practitionerAppointmentsProvider(practitionerRef));
   final now = DateTime.now();
   final todayStart = DateTime(now.year, now.month, now.day);
   final todayEnd = todayStart.add(const Duration(days: 1));
-  return all
-      .where((a) =>
-          !a.scheduledAt.isBefore(todayStart) &&
-          a.scheduledAt.isBefore(todayEnd))
-      .toList();
+  return all.where((a) => !a.scheduledAt.isBefore(todayStart) && a.scheduledAt.isBefore(todayEnd)).toList();
 });
 
 /// Today's OPD (outpatient) appointments for a practitioner.
-final todayOpdProvider =
-    Provider.family<List<AppointmentLocal>, String>((ref, practitionerRef) {
+final todayOpdProvider = Provider.family<List<AppointmentLocal>, String>((ref, practitionerRef) {
   final today = ref.watch(todayAppointmentsProvider(practitionerRef));
   return today.where((a) => a.appointmentType == 'opd').toList();
 });
@@ -94,16 +84,11 @@ final todayOpdProvider =
 // Schedule Slots for a Practitioner
 // ---------------------------------------------------------------------------
 
-final practitionerSlotsProvider =
-    Provider.family<List<ScheduleSlotLocal>, String>((ref, practitionerRef) {
+final practitionerSlotsProvider = Provider.family<List<ScheduleSlotLocal>, String>((ref, practitionerRef) {
+  ref.watch(slotRefreshProvider); // re-evaluate when bumped
   final box = DatabaseService.scheduleSlots;
-  final fullRef = practitionerRef.startsWith('Practitioner/')
-      ? practitionerRef
-      : 'Practitioner/$practitionerRef';
-  return box.values
-      .where((s) => s.practitionerRef == fullRef)
-      .toList()
-    ..sort((a, b) => a.date.compareTo(b.date));
+  final fullRef = practitionerRef.startsWith('Practitioner/') ? practitionerRef : 'Practitioner/$practitionerRef';
+  return box.values.where((s) => s.practitionerRef == fullRef).toList()..sort((a, b) => a.date.compareTo(b.date));
 });
 
 // ---------------------------------------------------------------------------
@@ -112,7 +97,5 @@ final practitionerSlotsProvider =
 
 final pendingVerificationsProvider = Provider<List<UserAccount>>((ref) {
   final box = DatabaseService.userAccounts;
-  return box.values
-      .where((a) => a.isPractitioner && !a.isVerified)
-      .toList();
+  return box.values.where((a) => a.isPractitioner && !a.isVerified).toList();
 });
