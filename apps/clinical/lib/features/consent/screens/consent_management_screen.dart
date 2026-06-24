@@ -3,7 +3,7 @@ import 'package:fhir/r4.dart' as fhir;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/consent_provider.dart';
 import '../../shared/widgets/practitioner_verified_badge.dart';

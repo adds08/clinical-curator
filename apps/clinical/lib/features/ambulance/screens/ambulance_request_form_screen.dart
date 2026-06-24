@@ -11,7 +11,7 @@ import 'package:cc_core/theme/clinical_colors.dart';
 import '../../../domain/providers/ambulance_provider.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../shared/widgets/location_picker.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class AmbulanceRequestFormScreen extends ConsumerStatefulWidget {
   const AmbulanceRequestFormScreen({super.key});

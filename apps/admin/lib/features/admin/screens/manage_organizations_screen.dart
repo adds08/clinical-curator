@@ -8,23 +8,32 @@ import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 
 import '../../../domain/providers/repository_providers.dart';
+import '../../../domain/providers/serverpod_provider.dart';
 
 final _orgsProvider = FutureProvider.autoDispose<List<Organization>>((ref) {
   ref.watch(repoRefreshProvider);
-  return ref.read(organizationRepositoryProvider).listAll();
+  return ref.read(serverpodClientProvider).organization.listAll();
 });
 
 class ManageOrganizationsScreen extends ConsumerStatefulWidget {
   const ManageOrganizationsScreen({super.key});
 
   @override
-  ConsumerState<ManageOrganizationsScreen> createState() =>
-      _ManageOrganizationsScreenState();
+  ConsumerState<ManageOrganizationsScreen> createState() => _ManageOrganizationsScreenState();
 }
 
-class _ManageOrganizationsScreenState
-    extends ConsumerState<ManageOrganizationsScreen> {
-  String _filter = 'all'; // 'all', 'hospital', 'pharmacy'
+class _ManageOrganizationsScreenState extends ConsumerState<ManageOrganizationsScreen> {
+  String _searchQuery = '';
+  String _typeFilter = 'all';
+
+  bool _matches(Organization org) {
+    if (_typeFilter != 'all' && org.type != _typeFilter) return false;
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    return org.name.toLowerCase().contains(q) ||
+        (org.address?.toLowerCase().contains(q) ?? false) ||
+        (org.phone?.toLowerCase().contains(q) ?? false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,39 +44,22 @@ class _ManageOrganizationsScreenState
       backgroundColor: colors.background,
       child: SafeArea(
         child: orgsAsync.when(
-          loading: () => const Center(
-              child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2))),
+          loading: () => const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
           error: (e, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Text('Failed to load organizations: $e',
-                  style: TextStyle(color: colors.destructive)),
+              child: Text('Failed to load organizations: $e', style: TextStyle(color: colors.destructive)),
             ),
           ),
-          data: (all) => _buildContent(context, all),
+          data: (orgs) => _buildContent(context, orgs),
         ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, List<Organization> allOrgs) {
+  Widget _buildContent(BuildContext context, List<Organization> orgs) {
     final colors = Theme.of(context).colorScheme;
-    final hospitals = allOrgs
-        .where((o) =>
-            o.type == 'hospital' ||
-            o.type == 'government' ||
-            o.type == 'private')
-        .toList();
-    final pharmacies = allOrgs.where((o) => o.type == 'pharmacy').toList();
-
-    final displayList = _filter == 'hospital'
-        ? hospitals
-        : _filter == 'pharmacy'
-            ? pharmacies
-            : allOrgs;
+    final displayList = orgs.where(_matches).toList()..sort((a, b) => a.name.compareTo(b.name));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -80,16 +72,12 @@ class _ManageOrganizationsScreenState
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Facilities',
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: colors.foreground,
-                          letterSpacing: -0.5)),
+                  Text(
+                    'Organizations',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.foreground, letterSpacing: -0.5),
+                  ),
                   const SizedBox(height: 2),
-                  Text('Manage hospitals & pharmacies',
-                      style: TextStyle(
-                          fontSize: 12, color: colors.mutedForeground)),
+                  Text('${orgs.length} facilities', style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
                 ],
               ),
               Button.primary(
@@ -99,56 +87,55 @@ class _ManageOrganizationsScreenState
                   children: [
                     Icon(Icons.add, size: 16),
                     SizedBox(width: 4),
-                    Text('Add',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text('Add', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xl),
-          Row(
-            children: [
-              Expanded(
-                  child: _StatChip(
-                      label: 'Hospitals',
-                      count: hospitals.length,
-                      color: colors.primary)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                  child: _StatChip(
-                      label: 'Pharmacies',
-                      count: pharmacies.length,
-                      color: colors.success)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                  child: _StatChip(
-                      label: 'Total',
-                      count: allOrgs.length,
-                      color: colors.foreground)),
-            ],
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: TextArea(
+              initialValue: _searchQuery,
+              placeholder: const Text('Search facilities...'),
+              onChanged: (v) => setState(() => _searchQuery = v),
+              expandableWidth: false,
+              minLines: 1,
+              maxLines: 1,
+            ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          Row(
-            children: [
-              _FilterChip(
-                  label: 'All',
-                  isSelected: _filter == 'all',
-                  onTap: () => setState(() => _filter = 'all')),
-              const SizedBox(width: AppSpacing.sm),
-              _FilterChip(
-                  label: 'Hospitals',
-                  isSelected: _filter == 'hospital',
-                  onTap: () => setState(() => _filter = 'hospital')),
-              const SizedBox(width: AppSpacing.sm),
-              _FilterChip(
-                  label: 'Pharmacies',
-                  isSelected: _filter == 'pharmacy',
-                  onTap: () => setState(() => _filter = 'pharmacy')),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final f in ['all', 'hospital', 'clinic', 'pharmacy', 'lab'])
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _typeFilter = f),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: _typeFilter == f ? colors.primary : colors.surfaceLow,
+                          borderRadius: AppRadius.chipRadius,
+                        ),
+                        child: Text(
+                          f[0].toUpperCase() + f.substring(1),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _typeFilter == f ? colors.primaryForeground : colors.mutedForeground,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xxl),
           if (displayList.isEmpty)
             Card(
               padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -157,24 +144,23 @@ class _ManageOrganizationsScreenState
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.business,
-                        size: 36,
-                        color: colors.mutedForeground.withValues(alpha: 0.4)),
+                    Icon(Icons.business, size: 40, color: colors.mutedForeground.withValues(alpha: 0.4)),
                     const SizedBox(height: AppSpacing.md),
-                    Text('No facilities yet',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: colors.mutedForeground)),
+                    Text(
+                      'No organizations found',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                    ),
                   ],
                 ),
               ),
             )
           else
-            ...displayList.map((org) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: _buildOrgCard(context, org),
-                )),
+            ...displayList.map(
+              (org) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _buildOrgCard(context, org),
+              ),
+            ),
         ],
       ),
     );
@@ -182,7 +168,7 @@ class _ManageOrganizationsScreenState
 
   Widget _buildOrgCard(BuildContext context, Organization org) {
     final colors = Theme.of(context).colorScheme;
-    final isHospital = org.type == 'hospital';
+    final client = ref.read(serverpodClientProvider);
 
     return Card(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -196,100 +182,67 @@ class _ManageOrganizationsScreenState
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
-                  color: (isHospital ? colors.primary : colors.success)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                    isHospital
-                        ? Icons.local_hospital
-                        : Icons.local_pharmacy,
-                    color: isHospital ? colors.primary : colors.success,
-                    size: 20),
+                decoration: BoxDecoration(color: colors.primary.withValues(alpha: 0.1), borderRadius: AppRadius.inputRadius),
+                alignment: Alignment.center,
+                child: Icon(Icons.local_hospital_rounded, size: 20, color: colors.primary),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(org.name,
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: colors.foreground)),
+                    Text(
+                      org.name,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.foreground),
+                    ),
                     const SizedBox(height: 2),
-                    Text(org.address,
-                        style: TextStyle(
-                            fontSize: 12, color: colors.mutedForeground)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: _typeColor(org.type, colors).withValues(alpha: 0.12),
+                        borderRadius: AppRadius.chipRadius,
+                      ),
+                      child: Text(
+                        org.type.toUpperCase(),
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: _typeColor(org.type, colors), letterSpacing: 0.5),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              isHospital
-                  ? const PrimaryBadge(child: Text('HOSPITAL'))
-                  : Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                          color: colors.success.withValues(alpha: 0.1),
-                          borderRadius: AppRadius.chipRadius),
-                      child: Text('PHARMACY',
-                          style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: colors.success,
-                              letterSpacing: 0.5)),
-                    ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: SurfaceTheme.colorFor(SurfaceLevel.low, context),
-              borderRadius: AppRadius.inputRadius,
-            ),
-            child: Row(
-              children: [
-                if (org.phone != null) ...[
-                  Icon(Icons.phone, size: 12, color: colors.mutedForeground),
+          if (org.address != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 14, color: colors.mutedForeground),
                   const SizedBox(width: 4),
-                  Text(org.phone!,
-                      style: TextStyle(
-                          fontSize: 11, color: colors.mutedForeground)),
-                  const SizedBox(width: AppSpacing.md),
-                ],
-                Icon(Icons.schedule, size: 12, color: colors.mutedForeground),
-                const SizedBox(width: 4),
-                Text(org.openHours ?? 'N/A',
-                    style: TextStyle(
-                        fontSize: 11, color: colors.mutedForeground)),
-                const Spacer(),
-                if (org.hasEmergency)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                        color: colors.destructive.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4)),
-                    child: Text('ER',
-                        style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: colors.destructive)),
+                  Expanded(
+                    child: Text(org.address!, style: TextStyle(fontSize: 12, color: colors.foreground)),
                   ),
+                ],
+              ),
+            ),
+          if (org.phone != null)
+            Row(
+              children: [
+                Icon(Icons.phone_outlined, size: 14, color: colors.mutedForeground),
+                const SizedBox(width: 4),
+                Text(org.phone!, style: TextStyle(fontSize: 12, color: colors.foreground)),
+                const Spacer(),
+                Text('24h', style: TextStyle(fontSize: 11, color: colors.mutedForeground)),
               ],
             ),
-          ),
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
                 child: Button.outline(
                   onPressed: () => _openOrgDrawer(context, org),
-                  child: const Text('Edit',
-                      style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: const Text('Edit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -297,17 +250,15 @@ class _ManageOrganizationsScreenState
                 child: Button.destructive(
                   onPressed: () async {
                     if (org.id == null) return;
-                    await ref.read(organizationRepositoryProvider).delete(org.id!);
+                    await client.organization.delete(org.id!);
                     bumpRepos(ref);
                     if (!context.mounted) return;
                     showToast(
-                        context: context,
-                        builder: (c, o) => SurfaceCard(
-                            child: Basic(title: Text('${org.name} removed'))));
+                      context: context,
+                      builder: (c, o) => SurfaceCard(child: Basic(title: Text('${org.name} removed'))),
+                    );
                   },
-                  child: const Text('Remove',
-                      style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: const Text('Remove', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -315,6 +266,16 @@ class _ManageOrganizationsScreenState
         ],
       ),
     );
+  }
+
+  Color _typeColor(String type, ColorScheme colors) {
+    return switch (type) {
+      'hospital' => colors.primary,
+      'clinic' => colors.success,
+      'pharmacy' => colors.warning,
+      'lab' => colors.secondary,
+      _ => colors.mutedForeground,
+    };
   }
 
   void _openOrgDrawer(BuildContext context, Organization? existing) {
@@ -326,7 +287,7 @@ class _ManageOrganizationsScreenState
     final hoursCtrl = TextEditingController(text: existing?.openHours ?? '');
     String type = existing?.type ?? 'hospital';
     bool hasEmergency = existing?.hasEmergency ?? false;
-    bool is24Hours = existing?.isOpen24Hours ?? false;
+    bool is24Hours = existing?.openHours == '24/7';
 
     openDrawer(
       context: context,
@@ -339,101 +300,61 @@ class _ManageOrganizationsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(isEdit ? 'Edit Facility' : 'Add Facility',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: colors.foreground)),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setDrawerState(() => type = 'hospital'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: type == 'hospital'
-                              ? colors.primary.withValues(alpha: 0.08)
-                              : colors.card,
-                          borderRadius: AppRadius.inputRadius,
-                          border: Border.all(
-                              color: type == 'hospital'
-                                  ? colors.primary
-                                  : colors.border),
-                        ),
-                        child: Center(
-                            child: Text('Hospital',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: type == 'hospital'
-                                        ? colors.primary
-                                        : colors.mutedForeground))),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setDrawerState(() => type = 'pharmacy'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: type == 'pharmacy'
-                              ? colors.success.withValues(alpha: 0.08)
-                              : colors.card,
-                          borderRadius: AppRadius.inputRadius,
-                          border: Border.all(
-                              color: type == 'pharmacy'
-                                  ? colors.success
-                                  : colors.border),
-                        ),
-                        child: Center(
-                            child: Text('Pharmacy',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: type == 'pharmacy'
-                                        ? colors.success
-                                        : colors.mutedForeground))),
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                isEdit ? 'Edit Organization' : 'New Organization',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground),
               ),
+              const SizedBox(height: 20),
+              TextField(controller: nameCtrl, placeholder: const Text('Name')),
+              const SizedBox(height: 12),
+              TextField(controller: addressCtrl, placeholder: const Text('Address')),
+              const SizedBox(height: 12),
+              TextField(controller: phoneCtrl, placeholder: const Text('Phone')),
+              const SizedBox(height: 12),
+              TextField(controller: hoursCtrl, placeholder: const Text('Open hours (e.g. 8:00-20:00)')),
               const SizedBox(height: 16),
-              TextField(
-                  controller: nameCtrl,
-                  placeholder: const Text('Facility name')),
+              Text(
+                'Type',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.mutedForeground),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['hospital', 'clinic', 'pharmacy', 'lab'].map((t) {
+                  final isSelected = type == t;
+                  return GestureDetector(
+                    onTap: () => setDrawerState(() => type = t),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected ? colors.primary : colors.card,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isSelected ? colors.primary : colors.border),
+                      ),
+                      child: Text(
+                        t[0].toUpperCase() + t.substring(1),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? colors.primaryForeground : colors.mutedForeground,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
               const SizedBox(height: 12),
-              TextField(
-                  controller: addressCtrl, placeholder: const Text('Address')),
-              const SizedBox(height: 12),
-              TextField(
-                  controller: phoneCtrl,
-                  placeholder: const Text('Phone number')),
-              const SizedBox(height: 12),
-              TextField(
-                  controller: hoursCtrl,
-                  placeholder: const Text('Open hours (e.g. 24/7)')),
-              const SizedBox(height: 16),
               GestureDetector(
-                onTap: () =>
-                    setDrawerState(() => hasEmergency = !hasEmergency),
+                onTap: () => setDrawerState(() => hasEmergency = !hasEmergency),
                 child: Row(
                   children: [
                     Checkbox(
-                      state: hasEmergency
-                          ? CheckboxState.checked
-                          : CheckboxState.unchecked,
-                      onChanged: (s) => setDrawerState(
-                          () => hasEmergency = s == CheckboxState.checked),
+                      state: hasEmergency ? CheckboxState.checked : CheckboxState.unchecked,
+                      onChanged: (s) => setDrawerState(() => hasEmergency = s == CheckboxState.checked),
                     ),
                     const SizedBox(width: 8),
-                    Text('Has Emergency Department',
-                        style: TextStyle(
-                            fontSize: 13, color: colors.foreground)),
+                    Text('Has Emergency', style: TextStyle(fontSize: 13, color: colors.foreground)),
                   ],
                 ),
               ),
@@ -443,16 +364,11 @@ class _ManageOrganizationsScreenState
                 child: Row(
                   children: [
                     Checkbox(
-                      state: is24Hours
-                          ? CheckboxState.checked
-                          : CheckboxState.unchecked,
-                      onChanged: (s) => setDrawerState(
-                          () => is24Hours = s == CheckboxState.checked),
+                      state: is24Hours ? CheckboxState.checked : CheckboxState.unchecked,
+                      onChanged: (s) => setDrawerState(() => is24Hours = s == CheckboxState.checked),
                     ),
                     const SizedBox(width: 8),
-                    Text('Open 24 Hours',
-                        style: TextStyle(
-                            fontSize: 13, color: colors.foreground)),
+                    Text('Open 24 Hours', style: TextStyle(fontSize: 13, color: colors.foreground)),
                   ],
                 ),
               ),
@@ -466,123 +382,58 @@ class _ManageOrganizationsScreenState
                       closeDrawer(context);
                       return;
                     }
-                    final repo = ref.read(organizationRepositoryProvider);
+                    final client = ref.read(serverpodClientProvider);
                     final phone = phoneCtrl.text.trim();
                     final hours = hoursCtrl.text.trim();
                     try {
                       if (isEdit) {
-                        await repo.update(existing.copyWith(
-                          name: name,
-                          type: type,
-                          address: addressCtrl.text.trim(),
-                          phone: phone.isEmpty ? null : phone,
-                          openHours: hours.isEmpty ? null : hours,
-                          hasEmergency: hasEmergency,
-                          isOpen24Hours: is24Hours,
-                        ));
+                        await client.organization.update(
+                          existing.copyWith(
+                            name: name,
+                            type: type,
+                            address: addressCtrl.text.trim(),
+                            phone: phone.isEmpty ? null : phone,
+                            openHours: hours.isEmpty ? null : hours,
+                            hasEmergency: hasEmergency,
+                          ),
+                        );
                       } else {
-                        await repo.create(Organization(
-                          fhirId: 'org-${name.toLowerCase().replaceAll(' ', '-')}',
-                          name: name,
-                          type: type,
-                          address: addressCtrl.text.trim(),
-                          phone: phone.isEmpty ? null : phone,
-                          openHours: hours.isEmpty ? null : hours,
-                          hasEmergency: hasEmergency,
-                          isOpen24Hours: is24Hours,
-                          createdAt: DateTime.now(),
-                        ));
+                        await client.organization.create(
+                          Organization(
+                            name: name,
+                            type: type,
+                            address: addressCtrl.text.trim(),
+                            phone: phone.isEmpty ? null : phone,
+                            openHours: hours.isEmpty ? null : hours,
+                            hasEmergency: hasEmergency,
+                            isOpen24Hours: is24Hours,
+                            createdAt: DateTime.now(),
+                          ),
+                        );
                       }
                       bumpRepos(ref);
                       if (!context.mounted) return;
                       closeDrawer(context);
                       showToast(
-                          context: context,
-                          builder: (c, o) => SurfaceCard(
-                              child: Basic(
-                                  title: Text(isEdit
-                                      ? '"$name" updated'
-                                      : '"$name" added'))));
+                        context: context,
+                        builder: (c, o) => SurfaceCard(child: Basic(title: Text(isEdit ? '"$name" updated' : '"$name" added'))),
+                      );
                     } catch (e) {
                       if (!context.mounted) return;
                       showToast(
-                          context: context,
-                          builder: (c, o) => SurfaceCard(
-                              child: Basic(
-                                  title: const Text('Save failed'),
-                                  subtitle: Text(e.toString()))));
+                        context: context,
+                        builder: (c, o) => SurfaceCard(
+                          child: Basic(title: const Text('Save failed'), subtitle: Text(e.toString())),
+                        ),
+                      );
                     }
                   },
-                  child: Text(isEdit ? 'Save Changes' : 'Add Facility'),
+                  child: Text(isEdit ? 'Save Changes' : 'Add Organization'),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final int count;
-  final Color color;
-  const _StatChip(
-      {required this.label, required this.count, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: AppRadius.cardRadius,
-      ),
-      child: Column(
-        children: [
-          Text('$count',
-              style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w800, color: color)),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: colors.mutedForeground)),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  const _FilterChip(
-      {required this.label, required this.isSelected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: isSelected ? colors.primary : colors.border),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: isSelected
-                    ? colors.primaryForeground
-                    : colors.mutedForeground)),
       ),
     );
   }

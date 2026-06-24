@@ -10,7 +10,7 @@ import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_fhir_models/collections/encounter_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/encounter_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class EncounterListScreen extends ConsumerStatefulWidget {
   const EncounterListScreen({super.key});

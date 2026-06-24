@@ -1,40 +1,62 @@
-import 'package:cc_repositories/cc_repositories.dart';
+import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'serverpod_provider.dart';
 
-/// Repository bindings for admin. All admin data flows through these —
-/// screens depend on the abstract interface, not the Serverpod client
-/// directly. Swapping to a mock or alternative backend means overriding
-/// these providers in tests / alternative shells.
+/// Repository bindings for admin — direct Serverpod client calls.
+/// These replaced the former abstract repository layer (removed).
+///
+/// Screens depend on these providers and the client SDK types directly.
+/// Swapping to a mock backend means overriding these providers in tests.
 
-final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return ServerUserRepository(ref.watch(serverpodClientProvider));
+/// List pending practitioner verifications.
+final pendingPractitionersProvider = FutureProvider.autoDispose<List<UserAccount>>((ref) {
+  return ref.watch(serverpodClientProvider).admin.listPendingVerifications();
 });
 
-final healthTipRepositoryProvider = Provider<HealthTipRepository>((ref) {
-  return ServerHealthTipRepository(ref.watch(serverpodClientProvider));
+/// List verified practitioners.
+final verifiedPractitionersProvider = FutureProvider.autoDispose<List<UserAccount>>((ref) {
+  return ref.watch(serverpodClientProvider).admin.listVerifiedPractitioners();
 });
 
-final organizationRepositoryProvider = Provider<OrganizationRepository>((ref) {
-  return ServerOrganizationRepository(ref.watch(serverpodClientProvider));
+/// All users, optionally filtered by account type.
+final allUsersProvider = FutureProvider.autoDispose.family<List<UserAccount>, String?>((ref, accountType) {
+  return ref.watch(serverpodClientProvider).admin.listAllUsers(accountType: accountType);
 });
 
-final auditRepositoryProvider = Provider<AuditRepository>((ref) {
-  return ServerAuditRepository(ref.watch(serverpodClientProvider));
+/// Dashboard analytics (map with totalPatients, totalPractitioners, etc.).
+final analyticsProvider = FutureProvider.autoDispose<Map<String, int>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.watch(serverpodClientProvider).admin.getAnalytics();
 });
 
-final rbacRepositoryProvider = Provider<RbacRepository>((ref) {
-  return ServerRbacRepository(ref.watch(serverpodClientProvider));
+/// Recent audit events for the dashboard panel.
+final recentAuditProvider = FutureProvider.autoDispose<List<AuditEvent>>((ref) {
+  ref.watch(repoRefreshProvider);
+  return ref.watch(serverpodClientProvider).audit.recent(limit: 5);
 });
 
-final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
-  return ServerAnalyticsRepository(ref.watch(serverpodClientProvider));
+/// All RBAC permissions.
+final rbacPermissionsProvider = FutureProvider.autoDispose<List<RbacPermission>>((ref) {
+  return ref.watch(serverpodClientProvider).rbac.listAll();
 });
 
-/// Global refresh tick. Bumping this invalidates every async repo query
-/// below so refactored screens can cross-refresh each other (e.g.
-/// approving a practitioner bumps dashboard analytics).
+/// RBAC permissions for a specific role.
+final rbacPermissionsForRoleProvider = FutureProvider.autoDispose.family<List<RbacPermission>, String>((ref, roleId) {
+  return ref.watch(serverpodClientProvider).rbac.listForRole(roleId);
+});
+
+/// All health tips (admin view — includes inactive).
+final healthTipsAdminProvider = FutureProvider.autoDispose<List<HealthTip>>((ref) {
+  return ref.watch(serverpodClientProvider).healthTip.listAllAdmin();
+});
+
+/// All organizations.
+final organizationsProvider = FutureProvider.autoDispose<List<Organization>>((ref) {
+  return ref.watch(serverpodClientProvider).organization.listAll();
+});
+
+/// Global refresh tick. Bumping this invalidates every async query so
+/// screens can cross-refresh each other.
 final repoRefreshProvider = StateProvider<int>((_) => 0);
 void bumpRepos(WidgetRef ref) {
   ref.read(repoRefreshProvider.notifier).state++;

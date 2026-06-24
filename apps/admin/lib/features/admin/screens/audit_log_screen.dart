@@ -7,14 +7,13 @@ import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
-
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import '../../../domain/providers/repository_providers.dart';
+import '../../../domain/providers/serverpod_provider.dart';
 
-final _auditProvider =
-    FutureProvider.autoDispose<List<AuditEvent>>((ref) {
+final _auditProvider = FutureProvider.autoDispose<List<AuditEvent>>((ref) {
   ref.watch(repoRefreshProvider);
-  return ref.read(auditRepositoryProvider).list(limit: 500);
+  return ref.read(serverpodClientProvider).audit.list(limit: 500);
 });
 
 class AuditLogScreen extends ConsumerStatefulWidget {
@@ -57,27 +56,15 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      for (final filter in [
-                        'all',
-                        'login',
-                        'logout',
-                        'create',
-                        'read',
-                        'update',
-                        'delete'
-                      ])
+                      for (final filter in ['all', 'login', 'logout', 'create', 'read', 'update', 'delete'])
                         Padding(
                           padding: const EdgeInsets.only(right: AppSpacing.sm),
                           child: GestureDetector(
                             onTap: () => setState(() => _actionFilter = filter),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                  vertical: AppSpacing.sm),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                               decoration: BoxDecoration(
-                                color: _actionFilter == filter
-                                    ? colors.primary
-                                    : colors.surfaceLow,
+                                color: _actionFilter == filter ? colors.primary : colors.surfaceLow,
                                 borderRadius: AppRadius.chipRadius,
                               ),
                               child: Text(
@@ -85,9 +72,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: _actionFilter == filter
-                                      ? colors.primaryForeground
-                                      : colors.mutedForeground,
+                                  color: _actionFilter == filter ? colors.primaryForeground : colors.mutedForeground,
                                 ),
                               ),
                             ),
@@ -101,63 +86,48 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
           ),
           Expanded(
             child: async.when(
-              loading: () => const Center(
-                  child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2))),
+              loading: () => const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
               error: (e, _) => Center(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Text('Failed to load audit log: $e',
-                      style: TextStyle(color: colors.destructive)),
+                  child: Text('Failed to load audit log: $e', style: TextStyle(color: colors.destructive)),
                 ),
               ),
               data: (all) {
-                var events = List<AuditEvent>.from(all)
-                  ..sort((a, b) => b.recorded.compareTo(a.recorded));
+                var events = List<AuditEvent>.from(all)..sort((a, b) => b.recorded.compareTo(a.recorded));
                 if (_actionFilter != 'all') {
-                  events =
-                      events.where((e) => e.action == _actionFilter).toList();
+                  events = events.where((e) => e.action == _actionFilter).toList();
                 }
                 if (_searchQuery.isNotEmpty) {
                   final q = _searchQuery.toLowerCase();
                   events = events
-                      .where((e) =>
-                          e.agentName.toLowerCase().contains(q) ||
-                          (e.detail?.toLowerCase().contains(q) ?? false) ||
-                          (e.entityType?.toLowerCase().contains(q) ?? false))
+                      .where(
+                        (e) =>
+                            e.agentName.toLowerCase().contains(q) ||
+                            (e.detail?.toLowerCase().contains(q) ?? false) ||
+                            (e.entityType?.toLowerCase().contains(q) ?? false),
+                      )
                       .toList();
                 }
                 return Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                       child: Row(
-                        children: [
-                          Text('${events.length} events',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: colors.mutedForeground)),
-                        ],
+                        children: [Text('${events.length} events', style: TextStyle(fontSize: 12, color: colors.mutedForeground))],
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Expanded(
                       child: events.isEmpty
                           ? Center(
-                              child: Text('No audit events',
-                                  style: TextStyle(
-                                      color: colors.mutedForeground)))
+                              child: Text('No audit events', style: TextStyle(color: colors.mutedForeground)),
+                            )
                           : ListView.separated(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.xl),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                               itemCount: events.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(height: AppSpacing.sm),
-                              itemBuilder: (_, i) =>
-                                  _AuditEventRow(event: events[i]),
+                              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+                              itemBuilder: (_, i) => _AuditEventRow(event: events[i]),
                             ),
                     ),
                   ],
@@ -207,10 +177,7 @@ class _AuditEventRow extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(
-              color: actionColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.12), shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Icon(actionIcon, size: 16, color: actionColor),
           ),
@@ -223,25 +190,15 @@ class _AuditEventRow extends StatelessWidget {
                   children: [
                     Text(
                       event.agentName,
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: colors.foreground),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.foreground),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: actionColor.withValues(alpha: 0.12),
-                        borderRadius: AppRadius.chipRadius,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.12), borderRadius: AppRadius.chipRadius),
                       child: Text(
                         event.action,
-                        style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: actionColor),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: actionColor),
                       ),
                     ),
                   ],
@@ -250,19 +207,14 @@ class _AuditEventRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     event.detail!,
-                    style: TextStyle(
-                        fontSize: 12, color: colors.mutedForeground),
+                    style: TextStyle(fontSize: 12, color: colors.mutedForeground),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
                 if (event.entityType != null) ...[
                   const SizedBox(height: 2),
-                  Text(
-                    '${event.entityType} · ${event.entityRef ?? "—"}',
-                    style: TextStyle(
-                        fontSize: 11, color: colors.mutedForeground),
-                  ),
+                  Text('${event.entityType} · ${event.entityRef ?? "—"}', style: TextStyle(fontSize: 11, color: colors.mutedForeground)),
                 ],
               ],
             ),
@@ -270,20 +222,12 @@ class _AuditEventRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                dateFormat.format(event.recorded),
-                style: TextStyle(fontSize: 11, color: colors.mutedForeground),
-              ),
+              Text(dateFormat.format(event.recorded), style: TextStyle(fontSize: 11, color: colors.mutedForeground)),
               const SizedBox(height: 2),
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: event.outcome == 'success'
-                      ? colors.success
-                      : colors.destructive,
-                ),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: event.outcome == 'success' ? colors.success : colors.destructive),
               ),
             ],
           ),

@@ -12,7 +12,7 @@ import 'package:cc_core/router/route_names.dart';
 import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import '../../../domain/providers/ambulance_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 /// Simulated route for the mini map preview.
 const _routePoints = [

@@ -8,12 +8,7 @@ class SubPageScaffold extends StatelessWidget {
   final Widget child;
   final List<Widget> trailing;
 
-  const SubPageScaffold({
-    super.key,
-    required this.title,
-    required this.child,
-    this.trailing = const [],
-  });
+  const SubPageScaffold({super.key, required this.title, required this.child, this.trailing = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +31,7 @@ class SubPageScaffold extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: colors.foreground,
-              ),
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colors.foreground),
             ),
           ],
           trailing: trailing,

@@ -5,7 +5,7 @@ import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_fhir_models/collections/health_tip_collection.dart';
 import 'package:cc_data/providers/health_tip_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 
 class HealthTipsScreen extends ConsumerStatefulWidget {

@@ -1,108 +1,80 @@
 # Clinical Curator — Implementation Overview
 
-## Vision
+**Updated:** 2026-06-24
+**Supersedes:** Legacy docs 01-11 (deprecated)
 
-A FHIR R4-compliant clinical health platform for Nepal with offline-first architecture, dual-role support (patient/doctor), granular admin RBAC, and full clinical documentation workflows.
+## Architecture
+
+A FHIR R4-native EMR + patient portal for Nepal. Offline-first patient app, online primary clinician app, shared FHIR REST API backend.
+
+```
+Patient App (Flutter)
+  ├── Hive cache (offline-first)
+  ├── FhirSyncService (delta sync via _since)
+  └── PIN/JWT auth (works offline)
+
+Clinician App (Flutter)
+  ├── Patient chart with 9 tabs
+  ├── SOAP note editor, order entry, CDS
+  └── Direct API calls (online primary)
+
+Admin Console (Flutter)
+  ├── Practitioner verification
+  ├── Organization/RBAC management
+  └── Direct API calls (online only)
+
+FHIR REST API (Serverpod 3.4.10)
+  ├── JSONB + GIN indexed PostgreSQL
+  ├── _search, _history, Bundle, metadata
+  └── SMART on FHIR OAuth2, Bulk Export
+
+Shared Server
+  ├── One PostgreSQL serves all orgs
+  ├── Multi-tenant via Organization scoping
+  └── AuditEvent + Provenance for every action
+```
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Flutter 3.11+ / shadcn_flutter |
-| State | flutter_riverpod 2.6.1 |
-| Routing | go_router 17.1.0 |
-| Local DB | Hive CE 2.7.0 (26 typed collections) |
-| Backend | Serverpod 3.4.5 |
-| Server DB | PostgreSQL 16 + Redis |
-| FHIR | fhir ^0.12.1 (R4) |
-| Auth | Serverpod Auth module |
-| Charts | fl_chart 0.70.2 |
-| Maps | flutter_map 7.0.2 |
-| Video | flutter_webrtc |
-| Notifications | firebase_messaging |
+| State | flutter_riverpod 3.x |
+| Routing | go_router 17.x |
+| Local cache | Hive CE (1 class, manual adapter) |
+| Backend | Serverpod 3.4.10 |
+| Server DB | PostgreSQL 16 + JSONB + GIN |
+| FHIR | fhir ^0.12.1 |
+| Maps | flutter_map 7.x |
+| Tables | ultimate_grid |
+| Chat | Guff Messenger (plugin) |
 
-## Feature Files
+## Implementation Phases
 
-| # | Feature | File | Depends On |
-|---|---------|------|-----------|
-| 01 | Data Layer Foundations | [01-feature-data-layer.md](01-feature-data-layer.md) | — |
-| 02 | Auth & RBAC | [02-feature-auth-rbac.md](02-feature-auth-rbac.md) | 01 |
-| 03 | FHIR Resources | [03-feature-fhir-resources.md](03-feature-fhir-resources.md) | 01 |
-| 04 | Offline Sync | [04-feature-offline-sync.md](04-feature-offline-sync.md) | 01, 03 |
-| 05 | Admin Dashboard | [05-feature-admin-dashboard.md](05-feature-admin-dashboard.md) | 01, 02 |
-| 06 | Hospital Management | [06-feature-hospital-management.md](06-feature-hospital-management.md) | 03, 05 |
-| 07 | Clinical Workflows | [07-feature-clinical-workflows.md](07-feature-clinical-workflows.md) | 03, 04 |
-| 08 | Appointment Booking | [08-feature-appointment-booking.md](08-feature-appointment-booking.md) | 06, 07 |
-| 09 | Integrations | [09-feature-integrations.md](09-feature-integrations.md) | 04, 08 |
-| 10 | AI Triage Placeholder | [10-feature-ai-triage.md](10-feature-ai-triage.md) | 08 |
-| 11 | Testing & Deployment | [11-feature-testing-deployment.md](11-feature-testing-deployment.md) | All |
+| # | Phase | Weeks | Deliverable |
+|---|-------|-------|-------------|
+| 1 | FHIR Foundation | 1-3 | JSONB schema + `FhirStoreService` + FHIR REST API |
+| 2 | Sync + Cache | 4-5 | Single `FhirCacheEntry` + `FhirSyncService` |
+| 3 | Patient Chart | 6-9 | 9-tab chart, SOAP notes, order entry, CDS |
+| 4 | Patient Portal | 10-12 | My Health Record, booking, refills, self-vitals |
+| 5 | Medical Services | 13-15 | Lab workflow, pharmacy, referrals, immunizations, ambulance |
+| 6 | Interop + Security | 16-18 | SMART OAuth2, bulk export, audit trail, validation |
+| 7 | UI Modernization | 19-20 | ultimate_grid tables, dashboards, responsive |
+| 8 | Guff Integration | 21-22 | Chat replacement with Guff Messenger |
 
-## Dependency Graph
+## Plan Docs
 
-```
-01 Data Layer
- ├──> 02 Auth & RBAC
- │     └──> 05 Admin Dashboard
- │           └──> 06 Hospital Management
- ├──> 03 FHIR Resources
- │     ├──> 04 Offline Sync
- │     │     ├──> 07 Clinical Workflows
- │     │     └──> 09 Integrations
- │     └──> 06 Hospital Management
- │           └──> 08 Appointment Booking
- │                 ├──> 09 Integrations
- │                 └──> 10 AI Triage
- └──> 11 Testing & Deployment (after all)
-```
-
-## Key Decisions
-
-| Decision | Choice |
-|----------|--------|
-| Admin roles | Granular RBAC with fine-grained permissions |
-| Hospital data | Full profile (departments, capacity, equipment, staff) |
-| Practitioner assignment | Multi-hospital via FHIR PractitionerRole |
-| FHIR storage | Typed Hive collections per resource type |
-| FHIR scope | All clinical resources (12+ resource types) |
-| Offline | Everything except admin operations |
-| Sync conflicts | Last-write-wins by timestamp |
-| Auth | Serverpod Auth module (email, Google, Apple) |
-| Audit | Full trail with admin UI screen |
-| Clinical workflows | Full documentation (encounters, conditions, orders, care plans) |
-| Integrations | WebRTC + GPS + FCM + payment UI (mock gateway) |
-| Analytics | Charts, trends, CSV/PDF export |
-| Booking | Flexible 3-path flow + future AI triage |
-| AI triage | Placeholder UI + architecture for Claude API |
-| Nepal Health ID | Mock but realistic format |
-| Payments | eSewa/Khalti mock gateway ready |
-
-## Hive TypeId Registry
-
-| TypeId | Collection | Status |
-|--------|-----------|--------|
-| 0 | UserAccount | Existing |
-| 1 | FhirResource | Existing (keep for backward compat) |
-| 2 | AmbulanceRequestLocal | Existing |
-| 3 | AppointmentLocal | Existing |
-| 4 | ScheduleSlotLocal | Existing |
-| 5 | PharmacyOrderLocal | Existing |
-| 6 | InsuranceClaimLocal | Existing |
-| 7 | NotificationRecordLocal | Existing |
-| 8 | HealthTipLocal | Existing |
-| 9 | OrganizationLocal | Existing (to be extended) |
-| 10 | LabBookingLocal | Existing |
-| 11 | EncounterLocal | **New** |
-| 12 | ConditionLocal | **New** |
-| 13 | ProcedureLocal | **New** |
-| 14 | CarePlanLocal | **New** |
-| 15 | ServiceRequestLocal | **New** |
-| 16 | MedicationRequestLocal | **New** |
-| 17 | LocationLocal | **New** |
-| 18 | HealthcareServiceLocal | **New** |
-| 19 | PractitionerRoleLocal | **New** |
-| 20 | SlotLocal | **New** |
-| 21 | ImmunizationLocal | **New** |
-| 22 | AllergyIntoleranceLocal | **New** |
-| 23 | AuditEventLocal | **New** |
-| 24 | RbacPermissionLocal | **New** |
-| 25 | PaymentLocal | **New** |
+| Doc | Status |
+|-----|--------|
+| 00-overview | ✅ This file |
+| 01-11 | 🔴 Deprecated |
+| 12-fhir-storage-layer | 📄 Ready |
+| 13-emr-patient-chart | 📄 Ready |
+| 14-patient-portal | 📄 Ready |
+| 15-fhir-interoperability | 📄 Ready |
+| 16-ui-modernization | 📄 Ready |
+| 17-backend-hardening | 📄 Ready |
+| 18-nepal-complete-system | 📄 Master reference |
+| 19-guff-messaging-integration | 📄 Ready |
+| 20-local-development | 📄 Ready |
+| 21-sync-auth-safety | 📄 Ready |

@@ -1,3 +1,6 @@
+⚠️ DEPRECATED — Superseded by docs/plan/12-18
+This describes the legacy mock-data architecture. See 18-nepal-complete-system.md for current FHIR-native design.
+---
 # Feature 10 — AI Triage Placeholder
 
 ## Overview

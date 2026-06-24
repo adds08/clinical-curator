@@ -8,7 +8,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_fhir_models/collections/organization_collection.dart';
 import 'package:cc_data/providers/organization_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class _Hospital {
   final String name;

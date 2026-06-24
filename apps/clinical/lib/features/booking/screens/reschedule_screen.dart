@@ -7,7 +7,7 @@ import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import '../../../domain/providers/schedule_provider.dart';
 import '../../../domain/providers/slot_availability_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class RescheduleScreen extends ConsumerStatefulWidget {
   final String appointmentKey;

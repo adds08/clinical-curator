@@ -5,7 +5,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/constants/app_spacing.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 import '../../../domain/providers/role_provider.dart';
 

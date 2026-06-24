@@ -15,14 +15,12 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_svg: ^2.2.4
   fl_chart: ^0.70.2
-  cupertino_icons: ^1.0.8
 
   # Routing
-  go_router: ^17.1.0
+  go_router: ^17.0.0
 
   # State Management
   flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
 
   # FHIR
   fhir: ^0.12.1
@@ -31,12 +29,13 @@ dependencies:
   hive_ce: ^2.7.0
   hive_ce_flutter: ^2.1.0
 
-  # Config — dotenv loaded at startup (see lib/main.dart)
+  # Config
   flutter_dotenv: ^5.2.1
 
   # Persistence
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
+  path_provider: ^2.1.5
 
   # Date formatting
   intl: any
@@ -44,7 +43,6 @@ dependencies:
   # Offline & Network
   connectivity_plus: ^6.1.4
   dio: ^5.7.0
-  path_provider: ^2.1.5
 
   # Maps & Location
   flutter_map: ^7.0.2
@@ -66,11 +64,6 @@ dependencies:
   # Backup / sharing / file pick
   share_plus: ^10.1.4
   file_picker: ^8.1.7
-
-  # Google Drive backup (requires GOOGLE_CLIENT_ID at build time)
-  googleapis: ^13.2.0
-  googleapis_auth: ^1.5.1
-  google_sign_in: ^6.2.1
   http: ^1.2.2
 
   # Serverpod
@@ -85,12 +78,9 @@ dependencies:
     path: ../../packages/fhir_models
   cc_data:
     path: ../../packages/data
-  cc_ui_kit:
-    path: ../../packages/ui_kit
   cc_rbac:
     path: ../../packages/rbac
 
-  equatable: ^2.0.7
   json_annotation: ^4.9.0
 
 dev_dependencies:

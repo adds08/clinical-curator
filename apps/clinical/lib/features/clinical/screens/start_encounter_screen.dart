@@ -11,7 +11,7 @@ import 'package:cc_core/theme/surface_theme.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/encounter_workflow_provider.dart';
 import '../../../domain/providers/practitioner_role_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class StartEncounterScreen extends ConsumerStatefulWidget {
   final String? preselectedPatientId;

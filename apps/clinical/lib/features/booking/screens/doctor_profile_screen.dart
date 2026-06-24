@@ -7,7 +7,7 @@ import 'package:cc_core/theme/clinical_colors.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
 import '../../../domain/providers/practitioner_role_provider.dart';
 import '../../../domain/providers/slot_availability_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class DoctorProfileScreen extends ConsumerWidget {

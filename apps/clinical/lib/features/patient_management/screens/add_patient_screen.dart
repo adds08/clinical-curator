@@ -13,7 +13,7 @@ import 'package:cc_fhir_models/collections/appointment_collection.dart';
 import 'package:cc_fhir_models/collections/fhir_resource_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
 import 'package:cc_data/providers/practitioner_data_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class AddPatientScreen extends ConsumerStatefulWidget {
   const AddPatientScreen({super.key});

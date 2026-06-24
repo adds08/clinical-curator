@@ -6,7 +6,7 @@ import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
 import '../../../domain/providers/slot_availability_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class SlotPickerScreen extends ConsumerStatefulWidget {
   final String practitionerRef;

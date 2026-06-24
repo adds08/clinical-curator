@@ -7,7 +7,7 @@ import '../../../domain/providers/appointment_provider.dart';
 import '../../../domain/providers/auth_provider.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
 import '../../../domain/providers/schedule_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {

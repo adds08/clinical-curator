@@ -12,7 +12,7 @@ import 'package:cc_fhir_models/collections/organization_collection.dart';
 import '../../../domain/providers/healthcare_service_provider.dart';
 import '../../../domain/providers/location_provider.dart';
 import '../../../domain/providers/practitioner_role_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class HospitalDetailScreen extends ConsumerStatefulWidget {

@@ -6,7 +6,7 @@ import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_fhir_models/collections/schedule_slot_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 
 class ScheduleEntryScreen extends ConsumerStatefulWidget {

@@ -4,7 +4,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:cc_core/constants/app_spacing.dart';
 import '../../../domain/providers/booking_flow_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class BookingHubScreen extends ConsumerWidget {
   const BookingHubScreen({super.key});

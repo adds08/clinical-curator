@@ -10,19 +10,18 @@ import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 
 import '../../../domain/providers/repository_providers.dart';
+import '../../../domain/providers/serverpod_provider.dart';
 
 /// Admin panel pulls from the shared repository layer. Bumping
 /// `repoRefreshProvider` anywhere in the app invalidates these.
-final pendingPractitionersProvider =
-    FutureProvider.autoDispose<List<UserAccount>>((ref) {
+final pendingPractitionersProvider = FutureProvider.autoDispose<List<UserAccount>>((ref) {
   ref.watch(repoRefreshProvider);
-  return ref.read(userRepositoryProvider).listPendingPractitioners();
+  return ref.read(serverpodClientProvider).admin.listPendingVerifications();
 });
 
-final verifiedPractitionersProvider =
-    FutureProvider.autoDispose<List<UserAccount>>((ref) {
+final verifiedPractitionersProvider = FutureProvider.autoDispose<List<UserAccount>>((ref) {
   ref.watch(repoRefreshProvider);
-  return ref.read(userRepositoryProvider).listVerifiedPractitioners();
+  return ref.read(serverpodClientProvider).admin.listVerifiedPractitioners();
 });
 
 /// Kept for compatibility — re-exports [repoRefreshProvider] under the
@@ -66,162 +65,136 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
       backgroundColor: colors.background,
       child: SafeArea(
         child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.1),
-                        borderRadius: AppRadius.inputRadius,
-                      ),
-                      child: Icon(Icons.shield,
-                          size: 22, color: colors.primary),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(color: colors.primary.withValues(alpha: 0.1), borderRadius: AppRadius.inputRadius),
+                    child: Icon(Icons.shield, size: 22, color: colors.primary),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Admin Panel',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.foreground, letterSpacing: -0.5),
+                        ),
+                        const SizedBox(height: 2),
+                        Text('Practitioner verification & oversight', style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
+                      ],
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Admin Panel',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: colors.foreground,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Practitioner verification & oversight',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colors.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xxl),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxl),
 
-                if (error != null)
-                  _buildErrorBanner(context, error),
+              if (error != null) _buildErrorBanner(context, error),
 
-                // Stats
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(context,
-                          label: 'Total Pending',
-                          value: '$pendingCount',
-                          color: colors.warning,
-                          icon: Icons.hourglass_empty),
+              // Stats
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      label: 'Total Pending',
+                      value: '$pendingCount',
+                      color: colors.warning,
+                      icon: Icons.hourglass_empty,
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: _buildStatCard(context,
-                          label: 'Verified',
-                          value: '$verifiedCount',
-                          color: colors.success,
-                          icon: Icons.check_circle_outline),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      label: 'Verified',
+                      value: '$verifiedCount',
+                      color: colors.success,
+                      icon: Icons.check_circle_outline,
                     ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(context,
-                          label: 'Total Practitioners',
-                          value: '$totalPractitioners',
-                          color: colors.primary,
-                          icon: Icons.people_outline),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      label: 'Total Practitioners',
+                      value: '$totalPractitioners',
+                      color: colors.primary,
+                      icon: Icons.people_outline,
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: _buildStatCard(context,
-                          label: 'Total Practitioners',
-                          value: '$totalPractitioners',
-                          color: colors.secondary,
-                          icon: Icons.group_outlined),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      label: 'Total Practitioners',
+                      value: '$totalPractitioners',
+                      color: colors.secondary,
+                      icon: Icons.group_outlined,
                     ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xxl),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxl),
 
-                _buildFilterTabs(context, pendingCount, verifiedCount),
-                const SizedBox(height: AppSpacing.lg),
+              _buildFilterTabs(context, pendingCount, verifiedCount),
+              const SizedBox(height: AppSpacing.lg),
 
-                Text(
-                  _selectedTab == 0
-                      ? 'Verification Queue'
-                      : _selectedTab == 1
-                          ? 'Approved Practitioners'
-                          : 'Rejected Applications',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: colors.foreground,
+              Text(
+                _selectedTab == 0
+                    ? 'Verification Queue'
+                    : _selectedTab == 1
+                    ? 'Approved Practitioners'
+                    : 'Rejected Applications',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.foreground),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              if (isLoading && displayList.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(AppSpacing.xxl),
+                  child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+                )
+              else if (displayList.isEmpty)
+                Card(
+                  padding: const EdgeInsets.all(AppSpacing.xxl),
+                  fillColor: SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
+                  borderRadius: AppRadius.cardRadius,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.check_circle_outline, size: 40, color: colors.mutedForeground.withValues(alpha: 0.5)),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          _selectedTab == 0 ? 'No pending verifications' : 'No entries to display',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ...displayList.map(
+                  (account) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: _buildVerificationCard(context, account),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-
-                if (isLoading && displayList.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(AppSpacing.xxl),
-                    child: Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                  )
-                else if (displayList.isEmpty)
-                  Card(
-                    padding: const EdgeInsets.all(AppSpacing.xxl),
-                    fillColor:
-                        SurfaceTheme.colorFor(SurfaceLevel.lowest, context),
-                    borderRadius: AppRadius.cardRadius,
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.check_circle_outline,
-                              size: 40,
-                              color: colors.mutedForeground
-                                  .withValues(alpha: 0.5)),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            _selectedTab == 0
-                                ? 'No pending verifications'
-                                : 'No entries to display',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: colors.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  ...displayList.map((account) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildVerificationCard(context, account),
-                      )),
-              ],
-            ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildErrorBanner(BuildContext context, Object error) {
@@ -230,23 +203,13 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: colors.destructive.withValues(alpha: 0.08),
-          borderRadius: AppRadius.cardRadius,
-        ),
+        decoration: BoxDecoration(color: colors.destructive.withValues(alpha: 0.08), borderRadius: AppRadius.cardRadius),
         child: Row(
           children: [
-            Icon(Icons.error_outline,
-                size: 18, color: colors.destructive),
+            Icon(Icons.error_outline, size: 18, color: colors.destructive),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: Text(
-                'Could not reach server: $error',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colors.destructive,
-                ),
-              ),
+              child: Text('Could not reach server: $error', style: TextStyle(fontSize: 12, color: colors.destructive)),
             ),
           ],
         ),
@@ -254,7 +217,8 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, {
+  Widget _buildStatCard(
+    BuildContext context, {
     required String label,
     required String value,
     required Color color,
@@ -275,26 +239,19 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.3),
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.3), shape: BoxShape.circle),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.w800, color: color)),
+          Text(
+            value,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
+          ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: colors.mutedForeground,
-              letterSpacing: 0.8,
-            ),
+            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: colors.mutedForeground, letterSpacing: 0.8),
           ),
         ],
       ),
@@ -320,18 +277,9 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected
-                        ? colors.primary
-                        : colors.mutedForeground,
-                  ),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isSelected ? colors.primary : colors.mutedForeground),
                 ),
-                if (index == 0 && pendingCount > 0) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  SecondaryBadge(child: Text('$pendingCount')),
-                ],
+                if (index == 0 && pendingCount > 0) ...[const SizedBox(width: AppSpacing.xs), SecondaryBadge(child: Text('$pendingCount'))],
                 if (index == 1 && verifiedCount > 0) ...[
                   const SizedBox(width: AppSpacing.xs),
                   SecondaryBadge(child: Text('$verifiedCount')),
@@ -349,9 +297,8 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
     final isDoctor = account.practitionerType != 'nurse';
     final initials = _extractInitials(account.displayName);
     final d = account.createdAt;
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    final submittedDate =
-        '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}, ${d.year}';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final submittedDate = '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}, ${d.year}';
 
     return Card(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -370,62 +317,39 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
                   children: [
                     Text(
                       account.displayName,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: colors.foreground,
-                      ),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.foreground),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       account.email,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: colors.mutedForeground,
-                      ),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.mutedForeground),
                     ),
                   ],
                 ),
               ),
-              isDoctor
-                  ? const PrimaryBadge(child: Text('DOCTOR'))
-                  : const SecondaryBadge(child: Text('NURSE')),
+              isDoctor ? const PrimaryBadge(child: Text('DOCTOR')) : const SecondaryBadge(child: Text('NURSE')),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
 
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: SurfaceTheme.colorFor(SurfaceLevel.low, context),
-              borderRadius: AppRadius.inputRadius,
-            ),
+            decoration: BoxDecoration(color: SurfaceTheme.colorFor(SurfaceLevel.low, context), borderRadius: AppRadius.inputRadius),
             child: Row(
               children: [
-                Icon(Icons.business,
-                    size: 14, color: colors.mutedForeground),
+                Icon(Icons.business, size: 14, color: colors.mutedForeground),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     account.practitionerType ?? 'Practitioner',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: colors.foreground,
-                    ),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.foreground),
                   ),
                 ),
-                Icon(Icons.calendar_today,
-                    size: 12, color: colors.mutedForeground),
+                Icon(Icons.calendar_today, size: 12, color: colors.mutedForeground),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   submittedDate,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: colors.mutedForeground,
-                  ),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.mutedForeground),
                 ),
               ],
             ),
@@ -438,18 +362,11 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
               onPressed: account.id == null
                   ? null
                   : () {
-                      context.push(
-                        RouteNames.verificationDetail
-                            .replaceFirst(':id', account.id!.toString()),
-                      );
+                      context.push(RouteNames.verificationDetail.replaceFirst(':id', account.id!.toString()));
                     },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.rate_review_outlined, size: 14),
-                  SizedBox(width: 6),
-                  Text('Review'),
-                ],
+                children: [Icon(Icons.rate_review_outlined, size: 14), SizedBox(width: 6), Text('Review')],
               ),
             ),
           ),

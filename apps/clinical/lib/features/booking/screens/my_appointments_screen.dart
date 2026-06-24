@@ -7,7 +7,7 @@ import 'package:cc_data/database/isar_service.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_fhir_models/collections/appointment_collection.dart';
 import '../../../domain/providers/auth_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 import '../../shared/widgets/practitioner_verified_badge.dart';
 
 class MyAppointmentsScreen extends ConsumerStatefulWidget {

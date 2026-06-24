@@ -1,4 +1,3 @@
-import 'package:cc_repositories/cc_repositories.dart';
 import 'package:clinical_curator_client/clinical_curator_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -7,14 +6,20 @@ import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_core/theme/surface_theme.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 import '../../../domain/providers/repository_providers.dart';
+import '../../../domain/providers/serverpod_provider.dart';
 
-final _rbacProvider =
-    FutureProvider.autoDispose<List<RbacPermission>>((ref) {
+/// Known RBAC resource types used in the permission matrix.
+const _rbacResources = ['patient_data', 'appointments', 'encounters', 'prescriptions', 'lab_results', 'admin_panel', 'audit_log'];
+
+/// Known RBAC action types.
+const _rbacActions = ['create', 'read', 'update', 'delete', 'manage'];
+
+final _rbacProvider = FutureProvider.autoDispose<List<RbacPermission>>((ref) {
   ref.watch(repoRefreshProvider);
-  return ref.read(rbacRepositoryProvider).listAll();
+  return ref.read(serverpodClientProvider).rbac.listAll();
 });
 
 class ManageRbacScreen extends ConsumerStatefulWidget {
@@ -51,24 +56,16 @@ class _ManageRbacScreenState extends ConsumerState<ManageRbacScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(right: AppSpacing.sm),
                   child: GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedRole = role['id']!),
+                    onTap: () => setState(() => _selectedRole = role['id']!),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color:
-                            selected ? colors.primary : colors.surfaceLow,
-                        borderRadius: AppRadius.chipRadius,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                      decoration: BoxDecoration(color: selected ? colors.primary : colors.surfaceLow, borderRadius: AppRadius.chipRadius),
                       child: Text(
                         role['name']!,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: selected
-                              ? colors.primaryForeground
-                              : colors.mutedForeground,
+                          color: selected ? colors.primaryForeground : colors.mutedForeground,
                         ),
                       ),
                     ),
@@ -79,16 +76,11 @@ class _ManageRbacScreenState extends ConsumerState<ManageRbacScreen> {
           ),
           Expanded(
             child: permsAsync.when(
-              loading: () => const Center(
-                  child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2))),
+              loading: () => const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
               error: (e, _) => Center(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Text('Failed to load permissions: $e',
-                      style: TextStyle(color: colors.destructive)),
+                  child: Text('Failed to load permissions: $e', style: TextStyle(color: colors.destructive)),
                 ),
               ),
               data: (all) => _buildMatrix(context, all),
@@ -102,25 +94,22 @@ class _ManageRbacScreenState extends ConsumerState<ManageRbacScreen> {
   Widget _buildMatrix(BuildContext context, List<RbacPermission> all) {
     final colors = Theme.of(context).colorScheme;
     final rolePerms = all.where((p) => p.roleId == _selectedRole);
-    final roleName =
-        _roles.firstWhere((r) => r['id'] == _selectedRole)['name']!;
+    final roleName = _roles.firstWhere((r) => r['id'] == _selectedRole)['name']!;
 
     final permsByResource = <String, Map<String, bool>>{};
-    for (final resource in RbacResources.all) {
+    for (final resource in _rbacResources) {
       permsByResource[resource] = {};
-      for (final action in RbacActions.all) {
-        final match = rolePerms.where(
-            (p) => p.resource == resource && p.action == action);
-        permsByResource[resource]![action] =
-            match.isNotEmpty && match.first.isAllowed;
+      for (final action in _rbacActions) {
+        final match = rolePerms.where((p) => p.resource == resource && p.action == action);
+        permsByResource[resource]![action] = match.isNotEmpty && match.first.isAllowed;
       }
     }
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      itemCount: RbacResources.all.length,
+      itemCount: _rbacResources.length,
       itemBuilder: (_, index) {
-        final resource = RbacResources.all[index];
+        final resource = _rbacResources[index];
         final actions = permsByResource[resource]!;
 
         return Padding(
@@ -133,60 +122,35 @@ class _ManageRbacScreenState extends ConsumerState<ManageRbacScreen> {
               children: [
                 Text(
                   resource.replaceAll('_', ' ').toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.foreground,
-                    letterSpacing: 0.5,
-                  ),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground, letterSpacing: 0.5),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Wrap(
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
-                  children: RbacActions.all.map((action) {
+                  children: _rbacActions.map((action) {
                     final allowed = actions[action] ?? false;
                     return GestureDetector(
                       onTap: () async {
                         try {
-                          await ref
-                              .read(rbacRepositoryProvider)
-                              .setPermission(
-                                roleId: _selectedRole,
-                                roleName: roleName,
-                                resource: resource,
-                                action: action,
-                                isAllowed: !allowed,
-                              );
+                          await ref.read(serverpodClientProvider).rbac.setPermission(_selectedRole, roleName, resource, action, !allowed);
                           bumpRepos(ref);
                         } catch (e) {
                           if (!context.mounted) return;
                           showToast(
                             context: context,
                             builder: (_, __) => SurfaceCard(
-                              child: Basic(
-                                title: const Text('Update failed'),
-                                subtitle: Text(e.toString()),
-                              ),
+                              child: Basic(title: const Text('Update failed'), subtitle: Text(e.toString())),
                             ),
                           );
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.xs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                         decoration: BoxDecoration(
-                          color: allowed
-                              ? colors.success.withValues(alpha: 0.12)
-                              : colors.surfaceLow,
+                          color: allowed ? colors.success.withValues(alpha: 0.12) : colors.surfaceLow,
                           borderRadius: AppRadius.chipRadius,
-                          border: allowed
-                              ? Border.all(
-                                  color: colors.success
-                                      .withValues(alpha: 0.3),
-                                  width: 1)
-                              : null,
+                          border: allowed ? Border.all(color: colors.success.withValues(alpha: 0.3), width: 1) : null,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -194,17 +158,14 @@ class _ManageRbacScreenState extends ConsumerState<ManageRbacScreen> {
                             if (allowed)
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
-                                child: Icon(Icons.check_rounded,
-                                    size: 14, color: colors.success),
+                                child: Icon(Icons.check_rounded, size: 14, color: colors.success),
                               ),
                             Text(
                               action,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: allowed
-                                    ? colors.success
-                                    : colors.mutedForeground,
+                                color: allowed ? colors.success : colors.mutedForeground,
                               ),
                             ),
                           ],

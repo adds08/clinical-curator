@@ -11,7 +11,7 @@ import 'package:cc_fhir_models/collections/encounter_collection.dart';
 import '../../../domain/providers/condition_provider.dart';
 import '../../../domain/providers/procedure_provider.dart';
 import '../../../domain/providers/service_request_provider.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 class EncounterSummaryScreen extends ConsumerWidget {
   final String encounterId;

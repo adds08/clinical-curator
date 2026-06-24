@@ -1,1 +1,33 @@
-// Barrel for cc_data. Repositories and sync service land here.
+/// Shared data layer — Hive database service, repositories, mock seed, network, providers.
+library;
+
+export 'database/isar_service.dart';
+export 'mock/mock_seed.dart';
+export 'mock/reference_seed.dart';
+export 'network/api_client.dart';
+export 'network/api_exceptions.dart';
+export 'network/api_interceptors.dart';
+export 'network/fhir_api_service.dart';
+export 'providers/admin_analytics_provider.dart';
+export 'providers/health_tip_provider.dart';
+export 'providers/organization_provider.dart';
+export 'providers/practitioner_data_provider.dart';
+export 'providers/rbac_provider.dart';
+export 'repositories/allergy_intolerance_repository.dart';
+export 'repositories/base_repository.dart';
+export 'repositories/care_plan_repository.dart';
+export 'repositories/condition_repository.dart';
+export 'repositories/consent_repository.dart';
+export 'repositories/diagnostic_report_repository.dart';
+export 'repositories/encounter_repository.dart';
+export 'repositories/healthcare_service_repository.dart';
+export 'repositories/immunization_repository.dart';
+export 'repositories/location_repository.dart';
+export 'repositories/medication_repository.dart';
+export 'repositories/observation_repository.dart';
+export 'repositories/patient_repository.dart';
+export 'repositories/practitioner_repository.dart';
+export 'repositories/practitioner_role_repository.dart';
+export 'repositories/procedure_repository.dart';
+export 'repositories/service_request_repository.dart';
+export 'utils/audit_logger.dart';

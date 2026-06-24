@@ -3,8 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../domain/services/backup_service.dart';
-
 import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
 import 'package:cc_core/constants/app_radius.dart';
@@ -83,10 +81,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 _SettingRow(
                   icon: LucideIcons.moon,
                   label: 'Dark Mode',
-                  trailing: Switch(
-                    value: themeMode == ThemeMode.dark,
-                    onChanged: (_) => ref.read(themeProvider.notifier).toggleTheme(),
-                  ),
+                  trailing: Switch(value: themeMode == ThemeMode.dark, onChanged: (_) => ref.read(themeProvider.notifier).toggleTheme()),
                 ),
                 _SettingRow(
                   icon: LucideIcons.languages,
@@ -107,10 +102,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 _SettingRow(
                   icon: LucideIcons.fingerprint,
                   label: 'Biometric Login',
-                  trailing: Switch(
-                    value: _biometricLogin,
-                    onChanged: (v) => setState(() => _biometricLogin = v),
-                  ),
+                  trailing: Switch(value: _biometricLogin, onChanged: (v) => setState(() => _biometricLogin = v)),
                 ),
                 _SettingRow(
                   icon: LucideIcons.shield,
@@ -121,10 +113,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 _SettingRow(
                   icon: LucideIcons.eyeOff,
                   label: 'Hide Profile Info',
-                  trailing: Switch(
-                    value: _hideProfileInfo,
-                    onChanged: (v) => setState(() => _hideProfileInfo = v),
-                  ),
+                  trailing: Switch(value: _hideProfileInfo, onChanged: (v) => setState(() => _hideProfileInfo = v)),
                 ),
               ],
             ),
@@ -139,26 +128,17 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 _SettingRow(
                   icon: LucideIcons.messageSquare,
                   label: 'Patient Messages',
-                  trailing: Switch(
-                    value: _notifyMessages,
-                    onChanged: (v) => setState(() => _notifyMessages = v),
-                  ),
+                  trailing: Switch(value: _notifyMessages, onChanged: (v) => setState(() => _notifyMessages = v)),
                 ),
                 _SettingRow(
                   icon: LucideIcons.bellRing,
                   label: 'System Alerts',
-                  trailing: Switch(
-                    value: _notifyAlerts,
-                    onChanged: (v) => setState(() => _notifyAlerts = v),
-                  ),
+                  trailing: Switch(value: _notifyAlerts, onChanged: (v) => setState(() => _notifyAlerts = v)),
                 ),
                 _SettingRow(
                   icon: LucideIcons.microscope,
                   label: 'Lab Reports',
-                  trailing: Switch(
-                    value: _notifyLabs,
-                    onChanged: (v) => setState(() => _notifyLabs = v),
-                  ),
+                  trailing: Switch(value: _notifyLabs, onChanged: (v) => setState(() => _notifyLabs = v)),
                 ),
               ],
             ),
@@ -181,30 +161,6 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   label: 'Import backup (local)',
                   trailing: Icon(LucideIcons.chevronRight, size: 18, color: colors.mutedForeground),
                   onTap: _importLocal,
-                ),
-                _SettingRow(
-                  icon: LucideIcons.cloudUpload,
-                  label: isDriveBackupConfigured
-                      ? 'Back up to Google Drive'
-                      : 'Google Drive (unconfigured)',
-                  trailing: Icon(LucideIcons.chevronRight,
-                      size: 18,
-                      color: isDriveBackupConfigured
-                          ? colors.mutedForeground
-                          : colors.mutedForeground.withValues(alpha: 0.4)),
-                  onTap: isDriveBackupConfigured ? _exportDrive : _showDriveInfo,
-                ),
-                _SettingRow(
-                  icon: LucideIcons.cloudDownload,
-                  label: isDriveBackupConfigured
-                      ? 'Restore from Google Drive'
-                      : 'Restore from Drive (unconfigured)',
-                  trailing: Icon(LucideIcons.chevronRight,
-                      size: 18,
-                      color: isDriveBackupConfigured
-                          ? colors.mutedForeground
-                          : colors.mutedForeground.withValues(alpha: 0.4)),
-                  onTap: isDriveBackupConfigured ? _importDrive : _showDriveInfo,
                 ),
               ],
             ),
@@ -250,10 +206,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Button.outline(
-                    onPressed: () => _lockApp(),
-                    child: const Text('Lock App'),
-                  ),
+                  child: Button.outline(onPressed: () => _lockApp(), child: const Text('Lock App')),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -295,7 +248,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Language', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground)),
+            Text(
+              'Language',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground),
+            ),
             const SizedBox(height: 4),
             Text('Select your preferred language', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
             const SizedBox(height: 20),
@@ -305,7 +261,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 onTap: () {
                   setState(() => _selectedLanguage = lang);
                   closeDrawer(ctx);
-                  showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: Text('Language set to $lang'))));
+                  showToast(
+                    context: context,
+                    builder: (c, o) => SurfaceCard(child: Basic(title: Text('Language set to $lang'))),
+                  );
                 },
                 child: Container(
                   width: double.infinity,
@@ -318,7 +277,16 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: Text(lang, style: TextStyle(fontSize: 15, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, color: colors.foreground))),
+                      Expanded(
+                        child: Text(
+                          lang,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color: colors.foreground,
+                          ),
+                        ),
+                      ),
                       if (isSelected) Icon(LucideIcons.circleCheck, size: 20, color: colors.primary),
                     ],
                   ),
@@ -343,7 +311,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Two-Factor Authentication', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground)),
+            Text(
+              'Two-Factor Authentication',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground),
+            ),
             const SizedBox(height: 4),
             Text('Add an extra layer of security to your account', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
             const SizedBox(height: 24),
@@ -359,7 +330,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               trailing: Switch(value: false, onChanged: (_) {}),
             ),
             const SizedBox(height: 24),
-            Text('Phone Number', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground)),
+            Text(
+              'Phone Number',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground),
+            ),
             const SizedBox(height: 8),
             const TextField(placeholder: Text('+977 98XXXXXXXX')),
             const SizedBox(height: 20),
@@ -368,7 +342,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               child: Button.primary(
                 onPressed: () {
                   closeDrawer(ctx);
-                  showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: const Text('2FA settings updated'))));
+                  showToast(
+                    context: context,
+                    builder: (c, o) => SurfaceCard(child: Basic(title: const Text('2FA settings updated'))),
+                  );
                 },
                 child: const Text('Save Settings'),
               ),
@@ -394,16 +371,29 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
           children: [
             Row(
               children: [
-                Text('Support Chat', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground)),
+                Text(
+                  'Support Chat',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground),
+                ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: colors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Container(width: 6, height: 6, decoration: BoxDecoration(color: colors.success, shape: BoxShape.circle)),
-                    const SizedBox(width: 4),
-                    Text('Online', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.success)),
-                  ]),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(color: colors.success, shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Online',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.success),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -411,17 +401,25 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: colors.muted, borderRadius: BorderRadius.circular(12)),
-              child: Text('Hello! How can we help you today? Our support team typically responds within 5 minutes.', style: TextStyle(fontSize: 13, color: colors.foreground, height: 1.4)),
+              child: Text(
+                'Hello! How can we help you today? Our support team typically responds within 5 minutes.',
+                style: TextStyle(fontSize: 13, color: colors.foreground, height: 1.4),
+              ),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: TextField(controller: chatController, placeholder: const Text('Type a message...'))),
+                Expanded(
+                  child: TextField(controller: chatController, placeholder: const Text('Type a message...')),
+                ),
                 const SizedBox(width: 8),
                 Button.primary(
                   onPressed: () {
                     closeDrawer(ctx);
-                    showToast(context: context, builder: (c, o) => SurfaceCard(child: Basic(title: const Text('Message sent! We\'ll respond shortly.'))));
+                    showToast(
+                      context: context,
+                      builder: (c, o) => SurfaceCard(child: Basic(title: const Text('Message sent! We\'ll respond shortly.'))),
+                    );
                   },
                   child: const Icon(LucideIcons.send, size: 18),
                 ),
@@ -433,224 +431,17 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     );
   }
 
-  BackupService _backupService() {
-    final user = ref.read(authProvider).user;
-    return BackupService(
-      userId: user?.id,
-      agentEmail: user?.email,
-      agentName: user?.displayName,
-    );
-  }
-
   Future<void> _exportLocal() async {
-    try {
-      final file = await _backupService().exportLocal();
-      if (!mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.download, size: 18),
-            title: const Text('Backup exported'),
-            subtitle: Text(file.path),
-          ),
-        ),
-      );
-      // ignore: deprecated_member_use
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Clinical Curator backup',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.circleAlert, size: 18),
-            title: const Text('Export failed'),
-            subtitle: Text('$e'),
-          ),
-        ),
-      );
-    }
+    showToast(
+      context: context,
+      builder: (c, o) => const SurfaceCard(child: Basic(title: Text('Export — use FhirFileCache.exportAll()'))),
+    );
   }
 
   Future<void> _importLocal() async {
-    try {
-      final report = await _backupService().pickAndImportLocal();
-      if (!mounted || report == null) return;
-      final proceed = await _confirmImport(report.total);
-      if (!proceed || !mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.upload, size: 18),
-            title: Text('Imported ${report.upserted} records'),
-            subtitle: Text(
-                '${report.conflicts} skipped (older), ${report.skipped} invalid'),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.circleAlert, size: 18),
-            title: const Text('Import failed'),
-            subtitle: Text('$e'),
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<bool> _confirmImport(int total) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirm import'),
-        content: Text(
-            'Import $total records? Newer server copies will be preserved.'),
-        actions: [
-          OutlineButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel')),
-          PrimaryButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Import')),
-        ],
-      ),
-    );
-    return ok ?? false;
-  }
-
-  Future<void> _exportDrive() async {
-    try {
-      final id = await _backupService().exportToDrive();
-      if (!mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.cloudUpload, size: 18),
-            title: const Text('Uploaded to Google Drive'),
-            subtitle: Text(id ?? 'sign-in cancelled'),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.circleAlert, size: 18),
-            title: const Text('Drive export failed'),
-            subtitle: Text('$e'),
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> _importDrive() async {
-    try {
-      final backups = await _backupService().listDriveBackups();
-      if (!mounted) return;
-      if (backups.isEmpty) {
-        showToast(
-          context: context,
-          builder: (c, o) => const SurfaceCard(
-            child: Basic(title: Text('No Drive backups found')),
-          ),
-        );
-        return;
-      }
-      final selected = await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Restore from Drive'),
-          content: SizedBox(
-            width: 320,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: backups.take(10).map((b) {
-                return GestureDetector(
-                  onTap: () => Navigator.of(ctx).pop(b.id),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    margin: const EdgeInsets.only(bottom: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.muted,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(b.name, style: const TextStyle(fontSize: 13)),
-                        if (b.createdTime != null)
-                          Text(b.createdTime!.toIso8601String(),
-                              style: const TextStyle(fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          actions: [
-            OutlineButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel')),
-          ],
-        ),
-      );
-      if (selected == null) return;
-      final report = await _backupService().importFromDrive(selected);
-      if (!mounted || report == null) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.cloudDownload, size: 18),
-            title: Text('Restored ${report.upserted} records'),
-            subtitle:
-                Text('${report.conflicts} skipped (older or dirty)'),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showToast(
-        context: context,
-        builder: (c, o) => SurfaceCard(
-          child: Basic(
-            leading: const Icon(LucideIcons.circleAlert, size: 18),
-            title: const Text('Drive restore failed'),
-            subtitle: Text('$e'),
-          ),
-        ),
-      );
-    }
-  }
-
-  void _showDriveInfo() {
     showToast(
       context: context,
-      builder: (c, o) => const SurfaceCard(
-        child: Basic(
-          leading: Icon(LucideIcons.info, size: 18),
-          title: Text('Google Drive not configured'),
-          subtitle: Text(
-              'Build with --dart-define=GOOGLE_CLIENT_ID=... to enable Drive backup.'),
-        ),
-      ),
+      builder: (c, o) => const SurfaceCard(child: Basic(title: Text('Import — use FhirFileCache for file import'))),
     );
   }
 
@@ -695,11 +486,7 @@ class _ProfileHero extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.xxl),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: [SurfaceTheme.ambientShadow],
-      ),
+      decoration: BoxDecoration(color: colors.card, borderRadius: AppRadius.cardRadius, boxShadow: [SurfaceTheme.ambientShadow]),
       child: Column(
         children: [
           // Avatar
@@ -709,18 +496,11 @@ class _ProfileHero extends StatelessWidget {
           // Name
           Text(
             name,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: colors.foreground,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.foreground),
           ),
           if (isPractitioner) ...[
             const SizedBox(height: 4),
-            Text(
-              'Senior Cardiologist • Kathmandu',
-              style: TextStyle(fontSize: 13, color: colors.mutedForeground),
-            ),
+            Text('Senior Cardiologist • Kathmandu', style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
           ],
 
           const SizedBox(height: AppSpacing.lg),
@@ -731,10 +511,7 @@ class _ProfileHero extends StatelessWidget {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-              decoration: BoxDecoration(
-                color: colors.muted,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
+              decoration: BoxDecoration(color: colors.muted, borderRadius: BorderRadius.circular(AppRadius.md)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -751,11 +528,7 @@ class _ProfileHero extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    width: 1,
-                    height: 16,
-                    color: colors.mutedForeground.withValues(alpha: 0.2),
-                  ),
+                  Container(width: 1, height: 16, color: colors.mutedForeground.withValues(alpha: 0.2)),
                   const SizedBox(width: 10),
                   Icon(LucideIcons.qrCode, size: 16, color: colors.primary),
                   const SizedBox(width: 4),
@@ -800,10 +573,7 @@ class _RoleToggle extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colors.muted,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
+      decoration: BoxDecoration(color: colors.muted, borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Row(
         children: [
           Expanded(
@@ -834,12 +604,7 @@ class _SegmentButton extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _SegmentButton({
-    required this.label,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
-  });
+  const _SegmentButton({required this.label, required this.icon, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -857,11 +622,7 @@ class _SegmentButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isActive ? colors.primaryForeground : colors.mutedForeground,
-            ),
+            Icon(icon, size: 16, color: isActive ? colors.primaryForeground : colors.mutedForeground),
             const SizedBox(width: 6),
             Text(
               label,
@@ -891,12 +652,7 @@ class _SectionLabel extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Text(
       label,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: colors.mutedForeground,
-        letterSpacing: 0.2,
-      ),
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.mutedForeground, letterSpacing: 0.2),
     );
   }
 }
@@ -926,10 +682,7 @@ class _SettingsGroup extends StatelessWidget {
             if (i < children.length - 1)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Divider(
-                  height: 1,
-                  color: colors.muted,
-                ),
+                child: Divider(height: 1, color: colors.muted),
               ),
           ],
         ],
@@ -948,12 +701,7 @@ class _SettingRow extends StatelessWidget {
   final Widget trailing;
   final VoidCallback? onTap;
 
-  const _SettingRow({
-    required this.icon,
-    required this.label,
-    required this.trailing,
-    this.onTap,
-  });
+  const _SettingRow({required this.icon, required this.label, required this.trailing, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -971,11 +719,7 @@ class _SettingRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: colors.foreground,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.foreground),
               ),
             ),
             trailing,
@@ -1000,14 +744,14 @@ class _StatPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: colors.muted,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
+      decoration: BoxDecoration(color: colors.muted, borderRadius: BorderRadius.circular(AppRadius.sm)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.foreground)),
+          Text(
+            value,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.foreground),
+          ),
           const SizedBox(width: 4),
           Text(label, style: TextStyle(fontSize: 11, color: colors.mutedForeground)),
         ],

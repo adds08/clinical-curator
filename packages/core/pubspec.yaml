@@ -14,6 +14,7 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_secure_storage: ^9.2.4
   fhir: ^0.12.1
+  go_router: ^17.1.0
   intl: any
   flutter_dotenv: ^5.2.1
 

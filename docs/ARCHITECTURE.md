@@ -1,106 +1,126 @@
-# Clinical Curator -- Architecture
+# Clinical Curator — Architecture
 
-## 1. Project Structure
+## 1. Project Structure (Monorepo)
 
-Clinical Curator follows a **feature-based** project structure. Each feature is self-contained with its own screens, widgets, and providers.
+Clinical Curator is a **Melos monorepo** containing two Flutter apps, a Serverpod backend, an auto-generated client SDK, and 4 shared packages.
 
 ```
-lib/
-  main.dart                       # App entry, Hive init, mock seed
-  app.dart                        # ShadcnApp.router + theme setup
-
-  core/
-    constants/                    # Design tokens
-      app_colors.dart             # Full color token system (light + dark)
-      app_typography.dart         # Plus Jakarta Sans type scale
-      app_spacing.dart            # Spacing tokens (4-40px)
-      app_radius.dart             # Border radius tokens (4-20px)
-      fhir_constants.dart         # FHIR system URIs, LOINC codes
-    database/
-      isar_service.dart           # Hive CE database service (DatabaseService)
-    router/
-      app_router.dart             # GoRouter with role-based redirects
-      route_names.dart            # All route path constants
-    theme/
-      app_theme.dart              # shadcn_flutter ThemeData (light + dark)
-      surface_theme.dart          # Surface-level tonal layering
-      glassmorphism.dart          # Glassmorphic decoration builder
-    utils/
-      responsive.dart             # Mobile/tablet/desktop breakpoints
-      fhir_helpers.dart           # FHIR model extraction utilities
-      validators.dart             # Form validation (email, password, phone, license)
-      date_formatters.dart        # Clinical date formatting
-      id_generator.dart           # Health ID, Patient ID generation
-
-  data/
-    collections/
-      user_account_collection.dart    # Hive TypeAdapter for user accounts
-      fhir_resource_collection.dart   # Hive TypeAdapter for FHIR resources
-    mock/
-      mock_seed.dart              # Seeds 7 users + 20+ FHIR resources on first run
-
-  domain/
-    models/
-      user_role.dart              # UserRole enum (patient, doctor, nurse, admin)
-      app_user.dart               # AppUser domain model (Equatable)
-      role_state.dart             # RoleState for toggle management
-    providers/
-      auth_provider.dart          # AuthNotifier (login, signup, logout, session restore)
-      role_provider.dart          # RoleNotifier (SharedPreferences persistence)
-      theme_provider.dart         # ThemeNotifier (dark/light toggle)
-      connectivity_provider.dart  # Network status stream
-      database_provider.dart      # Hive box providers
-      patient_data_provider.dart  # FHIR Observation, DiagnosticReport, etc. per patient
-      practitioner_data_provider.dart  # All patients, pending verifications
-      user_provider.dart          # Current user's FHIR Patient/Practitioner
-
-  features/
-    auth/                         # Login, signup, practitioner registration
-    patient_home/                 # Patient home with health summary
-    doctor_dashboard/             # Doctor dashboard with stats and queue
-    medical_records/              # Records bento grid + cardiovascular detail
-    patient_detail/               # Patient profile, vitals chart, timeline
-    patient_management/           # Patient directory + add patient
-    doctor_schedule/              # Timesheet + schedule entry
-    ambulance/                    # Request form, confirmation, tracking
-    health_tips/                  # Article library
-    telemedicine/                 # Specialist search + video call
-    profile/                      # Settings with role toggle + clinician settings
-    consent/                      # FHIR Consent management
-    admin/                        # Verification queue + detail
-    shared/                       # Scaffold, bottom nav, services hub
+clinical-curator/
+├── apps/
+│   ├── clinical/           # Main patient + clinician Flutter app
+│   │   ├── lib/
+│   │   │   ├── app.dart          # ShadcnApp.router + theme setup
+│   │   │   ├── main.dart         # Hive init, env load, seed
+│   │   │   ├── core/
+│   │   │   │   ├── network/
+│   │   │   │   │   └── sync_service.dart    # FHIR _since REST sync client
+│   │   │   │   └── router/
+│   │   │   │       └── app_router.dart      # GoRouter with role-based shells
+│   │   │   ├── domain/
+│   │   │   │   ├── models/       # UserRole, AppUser, RoleState, EncounterStatus
+│   │   │   │   └── providers/    # Auth, role, theme, connectivity, patient data, FHIR data
+│   │   │   └── features/         # 26 feature directories
+│   │   │       ├── auth/         # Login, signup, practitioner registration
+│   │   │       ├── patient_home/ # Patient home with health summary
+│   │   │       ├── doctor_dashboard/ # Doctor dashboard with stats + queue
+│   │   │       ├── medical_records/ # Records bento grid + cardiovascular detail
+│   │   │       ├── patient_detail/  # Patient profile, vitals chart, timeline
+│   │   │       ├── patient_management/ # Patient directory + add patient
+│   │   │       ├── doctor_schedule/   # Timesheet + schedule entry
+│   │   │       ├── ambulance/     # Request form, confirmation, tracking
+│   │   │       ├── health_tips/   # Article library
+│   │   │       ├── telemedicine/  # Specialist search + video call (WebRTC skeleton)
+│   │   │       ├── profile/       # Settings with role toggle + clinician settings
+│   │   │       ├── consent/       # FHIR Consent management
+│   │   │       ├── admin/         # Admin routes (to be populated)
+│   │   │       ├── booking/       # Appointment booking, AI triage placeholder
+│   │   │       ├── clinical/      # Encounter workspace
+│   │   │       ├── hospitals/     # Hospital directory
+│   │   │       ├── insurance/     # Insurance claim screen
+│   │   │       ├── lab_booking/   # Lab booking screen
+│   │   │       ├── notifications/ # Notifications screen
+│   │   │       ├── onboarding/    # Onboarding wizard
+│   │   │       ├── pharmacy/      # Pharmacy order screen
+│   │   │       └── shared/        # Scaffold, bottom nav, services hub, shared widgets
+│   │   ├── test/
+│   │   ├── android/
+│   │   └── ios/
+│   │
+│   └── admin/              # Admin Flutter app (verification, audit, RBAC, orgs)
+│       └── lib/
+│           ├── main.dart
+│           ├── router.dart
+│           ├── domain/providers/  # Admin auth, serverpod client, repo providers
+│           └── features/
+│               ├── admin/         # Dashboard, panel, audit log, health tips, orgs, RBAC, users
+│               └── auth/          # Admin login screen
+│
+├── clinical_curator_server/  # Serverpod 3.4.5 backend
+│   ├── bin/
+│   │   ├── main.dart         # Server entry point
+│   │   └── seed.dart         # Database seed runner
+│   ├── config/               # Environment configs (dev, staging, prod, test)
+│   ├── lib/src/
+│   │   ├── auth/             # JWT auth + key management
+│   │   ├── endpoints/        # 16 endpoint groups
+│   │   │   ├── admin_endpoint.dart
+│   │   │   ├── auth_endpoint.dart
+│   │   │   ├── fhir_sync_endpoint.dart
+│   │   │   └── ... (appointment, ambulance, audit, health tip, insurance,
+│   │   │        lab booking, notification, organization, pharmacy, rbac,
+│   │   │        schedule, webrtc signaling)
+│   │   ├── errors/           # AppException classes
+│   │   ├── generated/        # Serverpod-generated protocol code
+│   │   ├── models/           # Server-side model helpers
+│   │   ├── services/         # Business logic services
+│   │   ├── utils/            # Helper utilities
+│   │   └── web/              # Web server static files
+│   ├── migrations/           # 3 database migrations
+│   ├── test/                 # Integration tests
+│   └── web/                  # Static web assets
+│
+├── clinical_curator_client/  # Auto-generated Serverpod client SDK
+│   └── lib/src/protocol/     # 28 model classes + endpoint refs
+│
+├── packages/
+│   ├── core/ (cc_core)       # Design tokens, theme, config, auth primitives, utils
+│   ├── data/ (cc_data)       # Hive DB service, mock/reference seed, network layer,
+│   │                         # 17 repositories, 5 providers, audit logger
+│   ├── fhir_models/ (cc_fhir_models)  # 27+ Hive TypeAdapter collections + domain models
+│   └── rbac/ (cc_rbac)       # Role-based access control (Can widget, canProvider)
+│
+├── docs/
+│   ├── ARCHITECTURE.md       # This file
+│   ├── FEATURE_TRACKER.md    # Living feature/status tracker
+│   ├── ADMIN_GUIDE.md        # Admin user guide
+│   ├── USER_GUIDE.md         # Patient/clinician user guide
+│   ├── manual/               # Clinician + patient manuals
+│   └── plan/                 # 12 implementation plan docs
+│
+├── docker-compose.yaml       # PostgreSQL + Redis services
+├── Makefile                  # Convenience targets
+└── melos.yaml                # Melos workspace config
 ```
 
 ## 2. State Management
 
 **Riverpod** (`flutter_riverpod`) is used for all state management.
 
-- `ProviderScope` wraps the app at root level in `main.dart`
-- Core providers in `domain/providers/`:
-  - `authProvider` — `StateNotifierProvider<AuthNotifier, AuthState>` for login/signup/logout
-  - `roleProvider` — `StateNotifierProvider<RoleNotifier, UserRole>` persisted via SharedPreferences
-  - `themeProvider` — `StateNotifierProvider<ThemeNotifier, ThemeMode>` for dark/light toggle
-  - `connectivityProvider` — `StreamProvider` from connectivity_plus
-- FHIR data providers in `domain/providers/`:
-  - `patientVitalsProvider(patientRef)` — vital signs from Hive
-  - `latestHeartRateProvider(patientRef)` / `latestBloodPressureProvider(patientRef)` — latest readings
-  - `patientLabsProvider`, `patientMedicationsProvider`, `patientImmunizationsProvider`, `patientAllergiesProvider`
-  - `allPatientsProvider`, `patientCountProvider`, `pendingVerificationsProvider`
-  - `currentUserFhirPatientProvider`, `currentUserFhirPractitionerProvider`
-- Router uses a `_RouterRefreshNotifier` that listens to auth and role providers, triggering redirect re-evaluation
+- `ProviderScope` wraps the app at root level in both apps
+- Core providers follow the `StateNotifierProvider<*, *>` pattern
+- FHIR data providers use `FutureProvider.autoDispose` for async server calls
+- The admin app uses Serverpod client directly via providers in `repository_providers.dart`
 
-## 3. Local Database
+## 3. Local Database (Clinical App Only)
 
 **Hive CE** (Community Edition) — works on mobile, desktop, AND web.
 
-- Database service: `lib/core/database/isar_service.dart` (`DatabaseService` class)
-- Two Hive boxes:
-  - `user_accounts` — `Box<UserAccount>` for auth accounts
-  - `fhir_resources` — `Box<FhirResource>` for all FHIR data
-- TypeAdapters generated via `hive_ce_generator` + `build_runner`
-- `FhirResource` stores: `fhirId`, `resourceType`, `jsonData` (full FHIR JSON), `patientReference`, `practitionerReference`, `category`, `syncStatus`, `isDownloadedOffline`, `lastUpdated`
-- Initialized in `main.dart` before `runApp()`
-- Mock data seeded automatically if boxes are empty
+- Database service: `DatabaseService` in `packages/data/lib/database/isar_service.dart`
+- Two Hive boxes: `user_accounts` and `fhir_resources`
+- 27+ Hive TypeAdapter collections in `packages/fhir_models/lib/collections/`
+- Mock data seeded automatically if boxes are empty (via `MockSeed` or `ReferenceSeed`)
+
+The admin app does NOT use Hive — it communicates with the Serverpod backend exclusively.
 
 ## 4. FHIR R4 Standard
 
@@ -117,8 +137,6 @@ All clinical data follows **HL7 FHIR R4** using the `fhir: ^0.12.1` Dart package
 | AllergyIntolerance | Drug allergies (penicillin) | SNOMED 764146007 |
 | Consent | Record sharing permissions | — |
 
-Resources are stored as JSON strings in Hive and deserialized via `fhir.Resource.fromJson()` when needed by providers.
-
 ## 5. Routing
 
 **go_router** with `StatefulShellRoute.indexedStack` for bottom navigation shells.
@@ -126,59 +144,73 @@ Resources are stored as JSON strings in Hive and deserialized via `fhir.Resource
 Three navigation contexts:
 - **Patient** (4 tabs): Home, Records, Services, Profile
 - **Doctor/Nurse** (5 tabs): Dashboard, Patients, Schedule, Services, Profile
-- **Admin** (1 tab): Verifications
+- **Admin** (1 tab): Verifications (in admin app)
 
 Auth guard: unauthenticated → `/login`. Authenticated on auth page → role-appropriate home.
-Role guard: wrong role prefix → redirect to correct home.
-
-Each shell branch has its own `GlobalKey<NavigatorState>` for independent navigation stacks.
 
 ## 6. Design System — Clinical Precision Framework
 
-### UI Library
-**shadcn_flutter v0.0.52** — provides `Card`, `Button.primary/secondary/outline/ghost/destructive/link`, `Badge`, `Avatar`, `Progress`, `Alert`, `Chip`, `Switch`, `Checkbox`, `TextField`, `showToast`, `Tabs`, and more.
+**shadcn_flutter v0.0.52** — provides Card, Button, Badge, Avatar, Progress, Alert, etc.
 
 ### Core Principles
 - **No-Line Rule** — tonal background shifts define boundaries, NOT borders
 - **Surface Hierarchy** — 5 levels from `#ffffff` (lowest) to `#e0e3e5` (highest)
 - **Sharp Geometry** — 8-12px border radius, no pills
 - **Glassmorphism** — `BackdropFilter` blur for floating/premium elements
-- **Ambient Shadows** — 24px blur at 4% opacity, no traditional drop shadows
 
-### Design Tokens
-- Colors: `core/constants/app_colors.dart` — primary #004ac6, surface #f7f9fb, 5-level surface hierarchy, dark theme
-- Typography: `core/constants/app_typography.dart` — Plus Jakarta Sans, full Material type scale
-- Spacing: `core/constants/app_spacing.dart` — 4px to 40px scale
-- Radius: `core/constants/app_radius.dart` — card 12px, button 6px, chip 4px, input 8px
+Design tokens in `packages/core/lib/constants/`: colors, typography, spacing, radius, FHIR constants.
 
-## 7. Offline-First Architecture
+## 7. Offline-First Architecture (Clinical App)
 
 Designed for low-connectivity environments in Nepal.
 
 ```
-[UI] ↔ [Riverpod Provider] ↔ [Hive Box (local)] ↔ [API (future)]
+[UI] ↔ [Riverpod Provider] ↔ [Hive Box (local)] ↔ [Serverpod API (sync)]
 ```
 
 - All reads come from Hive first (synchronous, instant)
 - FHIR resources stored as JSON with indexed fields for filtering
 - `syncStatus` field tracks: 0=synced, 1=pendingUpload, 2=pendingDelete
-- `isDownloadedOffline` flag for explicitly cached records
-- Backend sync (HAPI FHIR, Dio HTTP client) is architecturally planned, not yet implemented
+- `_since` REST sync via `FhirSyncService` with 5-min periodic timer
+- Backup/restore via local JSON files and Google Drive
 
-## 8. Mock Data Seeding
+## 8. Data Flow
 
-`lib/data/mock/mock_seed.dart` seeds on first run:
+```
+┌─────────────────────┐     ┌─────────────────────┐
+│  apps/clinical       │     │  apps/admin          │
+│  (Flutter App)       │     │  (Flutter App)       │
+│                      │     │                      │
+│  Reads/Writes → Hive │     │  Calls API directly  │
+│  (offline-first)     │     │  (online-only)       │
+└───────┬─────────────┘     └──────────┬───────────┘
+        │                              │
+        │  uses packages:              │  uses packages:
+        │  - cc_core                   │  - cc_core
+        │  - cc_data                   │  - clinical_curator_client
+        │  - cc_fhir_models            │
+        │  - cc_rbac                   │
+        │  - clinical_curator_client   │
+        ▼                              ▼
+┌─────────────────────────────────────────────────┐
+│           clinical_curator_client               │
+│         (auto-generated Serverpod SDK)           │
+└────────────────────┬────────────────────────────┘
+                     │  HTTP/WebSocket
+                     ▼
+┌─────────────────────────────────────────────────┐
+│           clinical_curator_server               │
+│           (Serverpod Backend)                    │
+│                                                  │
+│   ┌──────────┐  ┌──────────┐  ┌──────────────┐ │
+│   │ PostgreSQL│  │  Redis   │  │  Web Server   │ │
+│   │ (pgvector)│  │ (cache)  │  │ (Flutter web) │ │
+│   └──────────┘  └──────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────┘
+```
 
-**7 user accounts:**
-- 2 patients (Arjun Maharjan, Sunita Rajbhandari)
-- 2 verified doctors (Dr. Arpan K. Sharma, Dr. Elena Vance)
-- 1 verified nurse (Anjali Sharma)
-- 1 pending doctor (Dr. Bikesh Shrestha — awaiting admin verification)
-- 1 admin (Admin User)
+## 9. Removed Packages (Historical)
 
-**20+ FHIR resources:**
-- 6 Patient resources, 4 Practitioner resources
-- Arjun: 4 vital signs (HR 95, BP 120/80, temp 98.6, SpO2 98%), 1 lipid panel, 1 Amoxicillin prescription, 1 influenza vaccine
-- Sunita: 3 critical vitals (HR 112, BP 142/95, SpO2 91%), 1 penicillin allergy
-
-All resources use proper FHIR R4 coding systems (LOINC, SNOMED, RxNorm, CVX).
+The following packages were removed from the workspace:
+- **`cc_repositories`** — Abstract repository layer. Had zero consumers. Admin rewritten to use `clinical_curator_client` directly.
+- **`cc_ui_kit`** — Contained only `SubPageScaffold`. Moved to `cc_core` for sharing across apps.

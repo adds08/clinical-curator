@@ -12,10 +12,6 @@ dependencies:
 
   cc_core:
     path: ../../packages/core
-  cc_ui_kit:
-    path: ../../packages/ui_kit
-  cc_repositories:
-    path: ../../packages/repositories
 
   # UI + state
   shadcn_flutter: ^0.0.52

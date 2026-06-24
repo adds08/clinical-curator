@@ -7,7 +7,7 @@ import 'package:cc_core/constants/app_spacing.dart';
 import 'package:cc_core/constants/app_radius.dart';
 import 'package:cc_core/theme/surface_theme.dart';
 import 'package:cc_core/theme/clinical_colors.dart';
-import 'package:cc_ui_kit/widgets/sub_page_scaffold.dart';
+import 'package:cc_core/widgets/sub_page_scaffold.dart';
 
 import '../../../domain/providers/serverpod_provider.dart';
 import 'admin_panel_screen.dart';
@@ -16,12 +16,10 @@ class VerificationDetailScreen extends ConsumerStatefulWidget {
   const VerificationDetailScreen({super.key});
 
   @override
-  ConsumerState<VerificationDetailScreen> createState() =>
-      _VerificationDetailScreenState();
+  ConsumerState<VerificationDetailScreen> createState() => _VerificationDetailScreenState();
 }
 
-class _VerificationDetailScreenState
-    extends ConsumerState<VerificationDetailScreen> {
+class _VerificationDetailScreenState extends ConsumerState<VerificationDetailScreen> {
   final List<bool> _checklistValues = [false, false, false, false];
   final TextEditingController _notesController = TextEditingController();
 
@@ -178,13 +176,7 @@ class _VerificationDetailScreenState
     if (_loading) {
       return const SubPageScaffold(
         title: 'Verification',
-        child: Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
+        child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
       );
     }
 
@@ -195,16 +187,11 @@ class _VerificationDetailScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.person_off_outlined,
-                  size: 48, color: colors.mutedForeground),
+              Icon(Icons.person_off_outlined, size: 48, color: colors.mutedForeground),
               const SizedBox(height: AppSpacing.md),
               Text(
                 _loadError ?? 'Account not found',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colors.foreground,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.foreground),
               ),
             ],
           ),
@@ -222,12 +209,10 @@ class _VerificationDetailScreenState
             _buildPractitionerInfoCard(account, colors),
             const SizedBox(height: AppSpacing.xxl),
 
-            Text('License Photo',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: colors.foreground,
-                )),
+            Text(
+              'License Photo',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.foreground),
+            ),
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
@@ -238,12 +223,10 @@ class _VerificationDetailScreenState
             ),
             const SizedBox(height: AppSpacing.xxl),
 
-            Text('Verification Checklist',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: colors.foreground,
-                )),
+            Text(
+              'Verification Checklist',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.foreground),
+            ),
             const SizedBox(height: AppSpacing.md),
             Card(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
@@ -257,12 +240,10 @@ class _VerificationDetailScreenState
             ),
             const SizedBox(height: AppSpacing.xxl),
 
-            Text('Notes / Reason',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: colors.foreground,
-                )),
+            Text(
+              'Notes / Reason',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.foreground),
+            ),
             const SizedBox(height: AppSpacing.md),
             TextField(
               controller: _notesController,
@@ -280,11 +261,7 @@ class _VerificationDetailScreenState
                     onPressed: _busy ? null : _approveAccount,
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.check, size: 16),
-                        SizedBox(width: 6),
-                        Text('Approve'),
-                      ],
+                      children: [Icon(Icons.check, size: 16), SizedBox(width: 6), Text('Approve')],
                     ),
                   ),
                 ),
@@ -292,11 +269,7 @@ class _VerificationDetailScreenState
                 Expanded(
                   child: Button.outline(
                     onPressed: _busy ? null : _requestMoreInfo,
-                    child: const Text(
-                      'Request More Info',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11),
-                    ),
+                    child: const Text('Request More Info', textAlign: TextAlign.center, style: TextStyle(fontSize: 11)),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -305,11 +278,7 @@ class _VerificationDetailScreenState
                     onPressed: _busy ? null : _rejectAccount,
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.close, size: 16),
-                        SizedBox(width: 6),
-                        Text('Reject'),
-                      ],
+                      children: [Icon(Icons.close, size: 16), SizedBox(width: 6), Text('Reject')],
                     ),
                   ),
                 ),
@@ -319,25 +288,16 @@ class _VerificationDetailScreenState
 
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.06),
-                borderRadius: AppRadius.cardRadius,
-              ),
+              decoration: BoxDecoration(color: colors.primary.withValues(alpha: 0.06), borderRadius: AppRadius.cardRadius),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline,
-                      size: 18,
-                      color: colors.primary.withValues(alpha: 0.7)),
+                  Icon(Icons.info_outline, size: 18, color: colors.primary.withValues(alpha: 0.7)),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       'On approval, this practitioner will be able to switch to doctor view and manage patients.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colors.foreground,
-                        height: 1.5,
-                      ),
+                      style: TextStyle(fontSize: 12, color: colors.foreground, height: 1.5),
                     ),
                   ),
                 ],
@@ -355,7 +315,20 @@ class _VerificationDetailScreenState
     final initials = _extractInitials(account.displayName);
     final isDoctor = account.practitionerType != 'nurse';
     final d = account.createdAt;
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
     final submittedDate = '${months[d.month - 1]} ${d.day}, ${d.year}';
 
     return Card(
@@ -375,18 +348,12 @@ class _VerificationDetailScreenState
                   children: [
                     Text(
                       account.displayName,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: colors.foreground,
-                      ),
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: colors.foreground),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        isDoctor
-                            ? const PrimaryBadge(child: Text('DOCTOR'))
-                            : const SecondaryBadge(child: Text('NURSE')),
+                        isDoctor ? const PrimaryBadge(child: Text('DOCTOR')) : const SecondaryBadge(child: Text('NURSE')),
                         const SizedBox(width: AppSpacing.sm),
                         account.isVerified
                             ? const PrimaryBadge(child: Text('VERIFIED'))
@@ -402,10 +369,7 @@ class _VerificationDetailScreenState
 
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: SurfaceTheme.colorFor(SurfaceLevel.low, context),
-              borderRadius: AppRadius.inputRadius,
-            ),
+            decoration: BoxDecoration(color: SurfaceTheme.colorFor(SurfaceLevel.low, context), borderRadius: AppRadius.inputRadius),
             child: Column(
               children: [
                 _DetailRow(label: 'Email', value: account.email),
@@ -434,23 +398,14 @@ class _VerificationDetailScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.camera_alt_outlined,
-                size: 36,
-                color: colors.mutedForeground.withValues(alpha: 0.5)),
+            Icon(Icons.camera_alt_outlined, size: 36, color: colors.mutedForeground.withValues(alpha: 0.5)),
             const SizedBox(height: AppSpacing.sm),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: colors.mutedForeground,
-              ),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.mutedForeground),
             ),
             const SizedBox(height: 2),
-            Text(
-              'Tap to view',
-              style: TextStyle(fontSize: 10, color: colors.mutedForeground),
-            ),
+            Text('Tap to view', style: TextStyle(fontSize: 10, color: colors.mutedForeground)),
           ],
         ),
       ),
@@ -466,16 +421,11 @@ class _VerificationDetailScreenState
         });
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         child: Row(
           children: [
             Checkbox(
-              state: _checklistValues[index]
-                  ? CheckboxState.checked
-                  : CheckboxState.unchecked,
+              state: _checklistValues[index] ? CheckboxState.checked : CheckboxState.unchecked,
               onChanged: (state) {
                 setState(() {
                   _checklistValues[index] = state == CheckboxState.checked;
@@ -489,9 +439,7 @@ class _VerificationDetailScreenState
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: _checklistValues[index]
-                      ? colors.foreground
-                      : colors.mutedForeground,
+                  color: _checklistValues[index] ? colors.foreground : colors.mutedForeground,
                 ),
               ),
             ),
@@ -525,22 +473,13 @@ class _DetailRow extends StatelessWidget {
           width: 110,
           child: Text(
             label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: colors.mutedForeground,
-              letterSpacing: 0.8,
-            ),
+            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: colors.mutedForeground, letterSpacing: 0.8),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: colors.foreground,
-            ),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground),
           ),
         ),
       ],
