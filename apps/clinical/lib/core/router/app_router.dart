@@ -57,6 +57,8 @@ import '../../features/clinical/screens/start_encounter_screen.dart';
 import '../../features/clinical/screens/encounter_workspace_screen.dart';
 import '../../features/clinical/screens/encounter_summary_screen.dart';
 import '../../features/clinical/screens/add_condition_screen.dart';
+// Patient Chart (EMR)
+import '../../features/patient_chart/screens/patient_chart_screen.dart';
 // Booking
 import '../../features/booking/screens/booking_hub_screen.dart';
 import '../../features/booking/screens/doctor_search_screen.dart';
@@ -89,7 +91,6 @@ final _clinicianServicesNavKey = GlobalKey<NavigatorState>(debugLabel: 'clinicia
 final _clinicianAlertsNavKey = GlobalKey<NavigatorState>(debugLabel: 'clinicianAlerts');
 final _clinicianProfileNavKey = GlobalKey<NavigatorState>(debugLabel: 'clinicianProfile');
 
-
 // ---------------------------------------------------------------------------
 // Router provider
 // ---------------------------------------------------------------------------
@@ -105,17 +106,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.isAuthenticated;
       final currentPath = state.matchedLocation;
 
-      final isAuthRoute = currentPath == RouteNames.login ||
-          currentPath == RouteNames.signup ||
-          currentPath == RouteNames.register;
+      final isAuthRoute = currentPath == RouteNames.login || currentPath == RouteNames.signup || currentPath == RouteNames.register;
       final isOnboarding = currentPath == RouteNames.onboarding;
 
       if (!isAuthenticated && !isAuthRoute) return RouteNames.login;
       if (isAuthenticated && isAuthRoute) {
         final user = authState.user;
-        final accountType = (user != null && user.activeRole.isPractitioner)
-            ? 'practitioner'
-            : 'patient';
+        final accountType = (user != null && user.activeRole.isPractitioner) ? 'practitioner' : 'patient';
         if (ref.read(onboardingProvider.notifier).shouldShowOnboarding(accountType)) {
           return RouteNames.onboarding;
         }
@@ -137,11 +134,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // These push on top of the shell, showing their own back-button AppBar.
 
       // Ambulance flow
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/ambulance',
-        builder: (_, _) => const AmbulanceRequestFormScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/ambulance', builder: (_, _) => const AmbulanceRequestFormScreen()),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/service/ambulance/confirmation',
@@ -153,52 +146,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const AmbulanceTrackingScreen(),
       ),
       // Telemedicine
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/telemedicine',
-        builder: (_, _) => const TelemedicineScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/telemedicine', builder: (_, _) => const TelemedicineScreen()),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/service/telemedicine/call',
         builder: (_, state) {
           final q = state.uri.queryParameters;
-          return VideoCallScreen(
-            practitionerName: q['name'],
-            specialty: q['specialty'],
-          );
+          return VideoCallScreen(practitionerName: q['name'], specialty: q['specialty']);
         },
       ),
       // Health Tips
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/health-tips',
-        builder: (_, _) => const HealthTipsScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/health-tips', builder: (_, _) => const HealthTipsScreen()),
       // Consent
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/consent',
-        builder: (_, _) => const ConsentManagementScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/consent', builder: (_, _) => const ConsentManagementScreen()),
       // Clinician settings
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/clinician-settings',
-        builder: (_, _) => const ClinicianSettingsScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/clinician-settings', builder: (_, _) => const ClinicianSettingsScreen()),
       // User manual (in-app markdown docs)
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: RouteNames.userManual,
-        builder: (_, _) => const UserManualScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: RouteNames.userManual, builder: (_, _) => const UserManualScreen()),
       // Add patient
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/add-patient',
-        builder: (_, _) => const AddPatientScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/add-patient', builder: (_, _) => const AddPatientScreen()),
       // Patient detail
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
@@ -209,39 +175,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       // Schedule entry
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/schedule-entry',
-        builder: (_, _) => const ScheduleEntryScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/schedule-entry', builder: (_, _) => const ScheduleEntryScreen()),
       // Cardiovascular detail
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/cardiovascular',
-        builder: (_, _) => const CardiovascularDetailScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/cardiovascular', builder: (_, _) => const CardiovascularDetailScreen()),
       // Verification detail moved to apps/admin.
       // New service screens
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/hospitals',
-        builder: (_, _) => const HospitalsScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/lab-booking',
-        builder: (_, _) => const LabBookingScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/pharmacy',
-        builder: (_, _) => const PharmacyScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/service/insurance',
-        builder: (_, _) => const InsuranceScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/hospitals', builder: (_, _) => const HospitalsScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/lab-booking', builder: (_, _) => const LabBookingScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/pharmacy', builder: (_, _) => const PharmacyScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/service/insurance', builder: (_, _) => const InsuranceScreen()),
 
       // Admin routes live in apps/admin (separate binary).
       // Hospital detail
@@ -254,17 +196,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // ─── EMR: Patient Chart ──────────────────────────────────────
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/patient-chart/:id',
+        builder: (_, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return PatientChartScreen(patientId: id);
+        },
+      ),
+
       // ─── Clinical workflows (full-screen, no bottom nav) ─────────
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/clinical/encounters',
-        builder: (_, _) => const EncounterListScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/clinical/start-encounter',
-        builder: (_, _) => const StartEncounterScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/clinical/encounters', builder: (_, _) => const EncounterListScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/clinical/start-encounter', builder: (_, _) => const StartEncounterScreen()),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/clinical/workspace/:id',
@@ -291,16 +235,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // ─── Booking flow (full-screen, no bottom nav) ─────────────────
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/booking',
-        builder: (_, _) => const BookingHubScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/booking/doctor-search',
-        builder: (_, _) => const DoctorSearchScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/booking', builder: (_, _) => const BookingHubScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/booking/doctor-search', builder: (_, _) => const DoctorSearchScreen()),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/booking/doctor/:id',
@@ -313,31 +249,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/booking/slots/:practitionerId',
         builder: (_, state) {
-          final id = Uri.decodeComponent(
-              state.pathParameters['practitionerId'] ?? '');
+          final id = Uri.decodeComponent(state.pathParameters['practitionerId'] ?? '');
           return SlotPickerScreen(practitionerRef: id);
         },
       ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/booking/confirm',
-        builder: (_, _) => const BookingConfirmationScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/booking/success',
-        builder: (_, _) => const BookingSuccessScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/booking/my-appointments',
-        builder: (_, _) => const MyAppointmentsScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/booking/ai-triage',
-        builder: (_, _) => const AiTriageScreen(),
-      ),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/booking/confirm', builder: (_, _) => const BookingConfirmationScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/booking/success', builder: (_, _) => const BookingSuccessScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/booking/my-appointments', builder: (_, _) => const MyAppointmentsScreen()),
+      GoRoute(parentNavigatorKey: _rootNavigatorKey, path: '/booking/ai-triage', builder: (_, _) => const AiTriageScreen()),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/booking/appointment/:id',
@@ -361,33 +280,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             navigatorKey: _patientHomeNavKey,
-            routes: [
-              GoRoute(path: RouteNames.patientHome, builder: (_, _) => const PatientHomeScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.patientHome, builder: (_, _) => const PatientHomeScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _patientRecordsNavKey,
-            routes: [
-              GoRoute(path: RouteNames.patientRecords, builder: (_, _) => const MedicalRecordsScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.patientRecords, builder: (_, _) => const MedicalRecordsScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _patientServicesNavKey,
-            routes: [
-              GoRoute(path: RouteNames.patientServices, builder: (_, _) => const ServicesHubScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.patientServices, builder: (_, _) => const ServicesHubScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _patientAlertsNavKey,
-            routes: [
-              GoRoute(path: RouteNames.patientAlerts, builder: (_, _) => const NotificationsScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.patientAlerts, builder: (_, _) => const NotificationsScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _patientProfileNavKey,
-            routes: [
-              GoRoute(path: RouteNames.patientProfile, builder: (_, _) => const ProfileSettingsScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.patientProfile, builder: (_, _) => const ProfileSettingsScreen())],
           ),
         ],
       ),
@@ -398,39 +307,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             navigatorKey: _clinicianHomeNavKey,
-            routes: [
-              GoRoute(path: RouteNames.clinicianHome, builder: (_, _) => const DoctorDashboardScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.clinicianHome, builder: (_, _) => const DoctorDashboardScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _clinicianPatientsNavKey,
-            routes: [
-              GoRoute(path: RouteNames.clinicianPatients, builder: (_, _) => const PatientManagementScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.clinicianPatients, builder: (_, _) => const PatientManagementScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _clinicianScheduleNavKey,
-            routes: [
-              GoRoute(path: RouteNames.clinicianSchedule, builder: (_, _) => const ScheduleTimesheetScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.clinicianSchedule, builder: (_, _) => const ScheduleTimesheetScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _clinicianServicesNavKey,
-            routes: [
-              GoRoute(path: RouteNames.clinicianServices, builder: (_, _) => const ServicesHubScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.clinicianServices, builder: (_, _) => const ServicesHubScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _clinicianAlertsNavKey,
-            routes: [
-              GoRoute(path: RouteNames.clinicianAlerts, builder: (_, _) => const NotificationsScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.clinicianAlerts, builder: (_, _) => const NotificationsScreen())],
           ),
           StatefulShellBranch(
             navigatorKey: _clinicianProfileNavKey,
-            routes: [
-              GoRoute(path: RouteNames.clinicianProfile, builder: (_, _) => const ProfileSettingsScreen()),
-            ],
+            routes: [GoRoute(path: RouteNames.clinicianProfile, builder: (_, _) => const ProfileSettingsScreen())],
           ),
         ],
       ),
@@ -443,10 +340,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 String _homeForRole(UserRole role) {
   switch (role) {
-    case UserRole.patient: return RouteNames.patientHome;
-    case UserRole.clinician: return RouteNames.clinicianHome;
+    case UserRole.patient:
+      return RouteNames.patientHome;
+    case UserRole.clinician:
+      return RouteNames.clinicianHome;
     // Admin users belong to apps/admin; if one logs in here, fall back to login.
-    case UserRole.admin: return RouteNames.login;
+    case UserRole.admin:
+      return RouteNames.login;
   }
 }
 

@@ -1,0 +1,71 @@
+{
+  "$description": "Clinical Curator design tokens — W3C DTCG format. Import directly into Penpot via Tokens tab → Import (paste or upload this file).",
+  "color": {
+    "$type": "color",
+    "primary": {
+      "$value": "#004ac6",
+      "$description": "Deep blue — primary brand / actions"
+    },
+    "primary-container": { "$value": "#2563eb" },
+    "primary-light": { "$value": "#eff6ff" },
+    "on-primary": { "$value": "#ffffff" },
+    "secondary": { "$value": "#545f73" },
+    "success": { "$value": "#16a34a" },
+    "success-container": { "$value": "#f0fdf4" },
+    "warning": { "$value": "#f59e0b" },
+    "warning-text": { "$value": "#d97706" },
+    "warning-container": { "$value": "#fffbeb" },
+    "critical": { "$value": "#ba1a1a" },
+    "critical-container": { "$value": "#fef2f2" },
+    "surface-bg": { "$value": "#f8fafc" },
+    "surface-card": { "$value": "#ffffff" },
+    "surface-muted": { "$value": "#f1f5f9" },
+    "border": { "$value": "#e2e8f0" },
+    "text-primary": { "$value": "#191c1e" },
+    "text-secondary": { "$value": "#64748b" },
+    "text-tertiary": { "$value": "#94a3b8" },
+    "vital-heart": { "$value": "#ef4444" },
+    "vital-bp": { "$value": "#004ac6" },
+    "vital-oxygen": { "$value": "#0ea5e9" },
+    "vital-temp": { "$value": "#f97316" },
+    "vital-resp": { "$value": "#7c3aed" },
+    "vital-heart-bg": { "$value": "#fff1f2" },
+    "vital-oxygen-bg": { "$value": "#f0f9ff" },
+    "vital-temp-bg": { "$value": "#fff7ed" },
+    "vital-resp-bg": { "$value": "#f5f3ff" }
+  },
+  "spacing": {
+    "$type": "dimension",
+    "xs": { "$value": "4px" },
+    "sm": { "$value": "6px" },
+    "md": { "$value": "12px" },
+    "lg": { "$value": "16px" },
+    "xl": { "$value": "24px" },
+    "2xl": { "$value": "32px" }
+  },
+  "radius": {
+    "$type": "dimension",
+    "input": { "$value": "8px" },
+    "button": { "$value": "10px" },
+    "card": { "$value": "16px" },
+    "chip": { "$value": "20px" },
+    "phone": { "$value": "36px" }
+  },
+  "font-size": {
+    "$type": "dimension",
+    "page-title": { "$value": "26px" },
+    "section": { "$value": "15px" },
+    "card-title": { "$value": "14px" },
+    "body": { "$value": "13px" },
+    "caption": { "$value": "11px" },
+    "badge": { "$value": "10px" },
+    "stat": { "$value": "33px" }
+  },
+  "font-weight": {
+    "$type": "number",
+    "regular": { "$value": 500 },
+    "semibold": { "$value": 600 },
+    "bold": { "$value": 700 },
+    "extrabold": { "$value": 800 }
+  }
+}

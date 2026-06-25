@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<meta name="design_doc_mode" content="canvas">
+<helmet>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+    .browser { background: #fff; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.08); overflow: hidden; }
+    .browser-chrome { background: #F0F0F0; padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #D0D0D0; }
+    .traffic { display: flex; gap: 6px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .url-bar { flex: 1; background: #fff; border-radius: 6px; padding: 5px 12px; font-size: 12px; color: #64748B; border: 1px solid #D0D0D0; }
+    .app-shell { display: flex; height: 720px; }
+    .sidebar { width: 220px; background: #fff; border-right: 1px solid #F1F5F9; display: flex; flex-direction: column; flex-shrink: 0; padding: 16px 0; }
+    .sidebar-logo { padding: 0 16px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #F1F5F9; margin-bottom: 16px; }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13px; font-weight: 500; color: #64748B; cursor: pointer; transition: all .15s; }
+    .nav-link.active { color: #004AC6; background: rgba(0,74,198,.07); font-weight: 600; }
+    .nav-link svg { flex-shrink: 0; }
+    .content { flex: 1; background: #F8FAFC; overflow-y: auto; padding: 24px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .stat-card { border-radius: 16px; padding: 16px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .badge-primary { background: rgba(0,74,198,.1); color: #004AC6; }
+    .badge-success { background: rgba(22,163,74,.1); color: #16A34A; }
+    .badge-warning { background: rgba(245,158,11,.12); color: #D97706; }
+    .badge-destructive { background: rgba(186,26,26,.1); color: #BA1A1A; }
+    .section-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .section-title { font-size: 15px; font-weight: 600; color: #191C1E; }
+    .see-all { font-size: 13px; font-weight: 500; color: #004AC6; display: flex; align-items: center; gap: 2px; cursor: pointer; }
+    .avatar { border-radius: 50%; background: rgba(0,74,198,.1); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #004AC6; flex-shrink: 0; }
+    .btn-primary { background: #004AC6; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-outline { background: transparent; color: #191C1E; border: 1.5px solid #E2E8F0; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .tab-bar { display: flex; border-bottom: 1px solid #E2E8F0; background: #fff; }
+    .tab { padding: 12px 20px; font-size: 13px; font-weight: 500; color: #64748B; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .tab.active { color: #004AC6; border-bottom-color: #004AC6; font-weight: 600; }
+    .ta { width: 100%; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; padding: 11px; font-size: 13px; font-family: inherit; color: #191C1E; resize: none; line-height: 1.5; }
+  </style>
+</helmet>
+
+<!-- ─── SECTION LABEL ─── -->
+<div style="position:absolute;left:80px;top:44px;font:700 13px/1 system-ui;letter-spacing:.5px;color:rgba(0,0,0,.45);text-transform:uppercase">EMR — Clinician Portal · Dashboard · Patient Chart · Encounter · Schedule</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 1 · Doctor Dashboard (Desktop 1280px)
+═══════════════════════════════════════════════ -->
+<div style="position:absolute;left:80px;top:80px;width:1280px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:500 11px system-ui;color:rgba(0,0,0,.55)">Doctor Dashboard — Desktop</div>
+  <div class="browser">
+    <div class="browser-chrome">
+      <div class="traffic">
+        <div class="dot" style="background:#FF5F57"></div>
+        <div class="dot" style="background:#FEBC2E"></div>
+        <div class="dot" style="background:#28C840"></div>
+      </div>
+      <div class="url-bar">app.clinicalcurator.com/doctor-dashboard</div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </div>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div style="background:#004AC6;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div>
+            <p style="font-size:13px;font-weight:700;color:#191C1E">Clinical Curator</p>
+            <p style="font-size:11px;color:#64748B">Clinician Portal</p>
+          </div>
+        </div>
+
+        <div class="nav-link active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Schedule
+        </div>
+        <div class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Patients
+        </div>
+        <div class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
+          Health Tips
+        </div>
+        <div style="flex:1"></div>
+        <div class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </div>
+        <div class="nav-link" style="color:#BA1A1A">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BA1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="content">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:24px">
+          <div>
+            <p style="font-size:14px;font-weight:500;color:#64748B">Good morning,</p>
+            <p style="font-size:24px;font-weight:700;color:#191C1E;letter-spacing:-.3px;margin-top:2px">Dr. Kumar</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:20px;padding:6px 12px;display:flex;align-items:center;gap:6px">
+              <div style="width:8px;height:8px;border-radius:50%;background:#16A34A"></div>
+              <span style="font-size:12px;font-weight:600;color:#16A34A">Synced</span>
+            </div>
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,74,198,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div class="avatar" style="width:36px;height:36px;font-size:13px">RK</div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px">
+          <div class="stat-card" style="background:#F0F9FF">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <p style="font-size:24px;font-weight:700;color:#191C1E;margin-top:12px;line-height:1">247</p>
+            <p style="font-size:12px;font-weight:500;color:#64748B;margin-top:4px">Total Patients</p>
+          </div>
+          <div class="stat-card" style="background:#F0FDF4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <p style="font-size:24px;font-weight:700;color:#191C1E;margin-top:12px;line-height:1">12</p>
+            <p style="font-size:12px;font-weight:500;color:#64748B;margin-top:4px">OPD Today</p>
+          </div>
+          <div class="stat-card" style="background:#F5F3FF">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <p style="font-size:24px;font-weight:700;color:#191C1E;margin-top:12px;line-height:1">5</p>
+            <p style="font-size:12px;font-weight:500;color:#64748B;margin-top:4px">Completed</p>
+          </div>
+          <div class="stat-card" style="background:#FFFBEB">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <p style="font-size:24px;font-weight:700;color:#191C1E;margin-top:12px;line-height:1">7</p>
+            <p style="font-size:12px;font-weight:500;color:#64748B;margin-top:4px">In Queue</p>
+          </div>
+        </div>
+
+        <!-- Two column layout -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+          <!-- Today's Schedule -->
+          <div>
+            <div class="section-hd">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="section-title">Today's Schedule</span>
+                <span style="background:rgba(22,163,74,.1);color:#16A34A;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.5px">LIVE</span>
+              </div>
+              <span class="see-all">View all <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+            </div>
+            <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">
+              <!-- Schedule card 1 (active) -->
+              <div style="min-width:150px;background:rgba(0,74,198,.06);border-radius:14px;padding:14px;flex-shrink:0">
+                <p style="font-size:12px;font-weight:500;color:#004AC6">09:00 AM</p>
+                <p style="font-size:14px;font-weight:600;color:#191C1E;margin-top:4px">Arjun Mehta</p>
+                <p style="font-size:12px;color:#64748B;margin-top:2px">OPD</p>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:10px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:#16A34A"></div>
+                  <span style="font-size:11px;font-weight:600;color:#16A34A">Checked In</span>
+                </div>
+              </div>
+              <!-- Schedule card 2 -->
+              <div style="min-width:150px;background:#fff;border-radius:14px;padding:14px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <p style="font-size:12px;font-weight:500;color:#64748B">10:30 AM</p>
+                <p style="font-size:14px;font-weight:600;color:#191C1E;margin-top:4px">Priya Singh</p>
+                <p style="font-size:12px;color:#64748B;margin-top:2px">Follow-up</p>
+                <p style="font-size:11px;color:#64748B;margin-top:10px">Booked</p>
+              </div>
+              <!-- Schedule card 3 -->
+              <div style="min-width:150px;background:#fff;border-radius:14px;padding:14px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <p style="font-size:12px;font-weight:500;color:#64748B">02:00 PM</p>
+                <p style="font-size:14px;font-weight:600;color:#191C1E;margin-top:4px">Ravi Kumar</p>
+                <p style="font-size:12px;color:#64748B;margin-top:2px">Virtual</p>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:10px">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+                  <span style="font-size:11px;font-weight:600;color:#7C3AED">Teleconsult</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Tools -->
+          <div>
+            <div class="section-hd"><span class="section-title">Quick Tools</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:#fff;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer">
+                <div style="background:#F1F5F9;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </div>
+                <span style="font-size:13px;font-weight:600;color:#191C1E">Find Patient</span>
+              </div>
+              <div style="background:#fff;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer">
+                <div style="background:#F1F5F9;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54Z"/></svg>
+                </div>
+                <span style="font-size:13px;font-weight:600;color:#191C1E">New Referral</span>
+              </div>
+              <div style="background:#fff;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer">
+                <div style="background:#F1F5F9;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg>
+                </div>
+                <span style="font-size:13px;font-weight:600;color:#191C1E">E-Prescribe</span>
+              </div>
+              <div style="background:#fff;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer">
+                <div style="background:#F1F5F9;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 5 20.5h14L15 3"/><path d="M5 12h14"/></svg>
+                </div>
+                <span style="font-size:13px;font-weight:600;color:#191C1E">Lab Orders</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPD Queue + Pending Consults -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px">
+          <!-- OPD Queue -->
+          <div>
+            <div class="section-hd">
+              <span class="section-title">OPD Patient Queue</span>
+              <span class="see-all">View All <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <!-- Queue item 1 (checked in) -->
+              <div style="background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div class="avatar" style="width:38px;height:38px;font-size:13px">AM</div>
+                  <div style="flex:1">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <p style="font-size:14px;font-weight:600;color:#191C1E">Arjun Mehta</p>
+                      <span class="badge badge-warning">IN QUEUE</span>
+                    </div>
+                    <p style="font-size:12px;color:#64748B;margin-top:2px">Hypertension follow-up</p>
+                  </div>
+                </div>
+                <div style="margin-top:12px;display:flex;gap:8px">
+                  <button class="btn-primary" style="flex:1;justify-content:center;padding:8px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    Start Record
+                  </button>
+                  <button class="btn-outline" style="flex:1">Vitals</button>
+                </div>
+              </div>
+              <!-- Queue item 2 -->
+              <div style="background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div class="avatar" style="width:38px;height:38px;font-size:13px">PS</div>
+                  <div style="flex:1">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <p style="font-size:14px;font-weight:600;color:#191C1E">Priya Sharma</p>
+                      <span style="background:#F1F5F9;color:#64748B;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        10:30 AM
+                      </span>
+                    </div>
+                    <p style="font-size:12px;color:#64748B;margin-top:2px">Diabetes check-up</p>
+                  </div>
+                </div>
+              </div>
+              <!-- Queue item 3 -->
+              <div style="background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div class="avatar" style="width:38px;height:38px;font-size:13px">RK</div>
+                  <div style="flex:1">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <p style="font-size:14px;font-weight:600;color:#191C1E">Ramesh Kumar</p>
+                      <span style="background:#F1F5F9;color:#64748B;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        11:00 AM
+                      </span>
+                    </div>
+                    <p style="font-size:12px;color:#64748B;margin-top:2px">Chest pain complaint</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Consults (blue card) -->
+          <div>
+            <div class="section-hd"><span class="section-title">Pending Consults</span></div>
+            <div style="background:#004AC6;border-radius:16px;padding:20px">
+              <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="background:rgba(255,255,255,.15);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:14px;font-weight:600;color:#fff">Radiology</p>
+                    <p style="font-size:12px;color:rgba(255,255,255,.7)">MRI Review — Ward 4B</p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+                <div style="background:rgba(255,255,255,.1);height:1px"></div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="background:rgba(255,255,255,.15);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:14px;font-weight:600;color:#fff">Cardiology</p>
+                    <p style="font-size:12px;color:rgba(255,255,255,.7)">ECG Interpretation</p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+                <div style="background:rgba(255,255,255,.1);height:1px"></div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="background:rgba(255,255,255,.15);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 5 20.5h14L15 3"/><path d="M5 12h14"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:14px;font-weight:600;color:#fff">Pathology</p>
+                    <p style="font-size:12px;color:rgba(255,255,255,.7)">Blood culture results</p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+              </div>
+              <div style="border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:10px;text-align:center;cursor:pointer">
+                <p style="font-size:13px;font-weight:600;color:#fff">Review All (5)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- end content -->
+    </div><!-- end app-shell -->
+  </div><!-- end browser -->
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 2 · EMR Patient Chart (Desktop)
+═══════════════════════════════════════════════ -->
+<div style="position:absolute;left:80px;top:900px;width:1280px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:500 11px system-ui;color:rgba(0,0,0,.55)">EMR Patient Chart — Desktop</div>
+  <div class="browser">
+    <div class="browser-chrome">
+      <div class="traffic">
+        <div class="dot" style="background:#FF5F57"></div>
+        <div class="dot" style="background:#FEBC2E"></div>
+        <div class="dot" style="background:#28C840"></div>
+      </div>
+      <div class="url-bar">app.clinicalcurator.com/patient-detail/pt-001</div>
+    </div>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div style="background:#004AC6;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div>
+            <p style="font-size:13px;font-weight:700;color:#191C1E">Clinical Curator</p>
+            <p style="font-size:11px;color:#64748B">Clinician Portal</p>
+          </div>
+        </div>
+        <div class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-link active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Patients
+        </div>
+        <div class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Schedule
+        </div>
+      </div>
+
+      <!-- Patient chart content -->
+      <div style="flex:1;background:#F8FAFC;overflow-y:auto;display:flex;flex-direction:column">
+        <!-- Patient Header -->
+        <div style="background:#EFF6FF;border-bottom:1px solid #BFDBFE;padding:20px 24px">
+          <div style="display:flex;align-items:start;gap:14px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:4px;cursor:pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              <span style="font-size:13px;font-weight:600;color:#004AC6">Back</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="avatar" style="width:56px;height:56px;font-size:18px">SG</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+                <p style="font-size:20px;font-weight:700;color:#191C1E">Sarah Green</p>
+                <span style="background:#FEF2F2;color:#BA1A1A;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+                  Allergy: Penicillin
+                </span>
+              </div>
+              <p style="font-size:13px;color:#64748B">28Y • Female • HID-2024-001 • Blood: A+</p>
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <span style="background:#F1F5F9;color:#191C1E;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:500">Hypertension</span>
+                <span style="background:#F1F5F9;color:#191C1E;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:500">Type 2 DM</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Start Encounter
+              </button>
+              <button class="btn-outline">New Order</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+          <div class="tab active">Overview</div>
+          <div class="tab">Encounters</div>
+          <div class="tab">Vitals</div>
+          <div class="tab">Labs</div>
+          <div class="tab">Medications</div>
+          <div class="tab">Imaging</div>
+          <div class="tab">Immunizations</div>
+        </div>
+
+        <!-- Overview Content -->
+        <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <!-- Vitals Summary -->
+          <div>
+            <div class="section-hd">
+              <span class="section-title">Latest Vitals</span>
+              <span style="font-size:12px;color:#64748B">2h ago · <span style="color:#004AC6;font-weight:600">View Full</span></span>
+            </div>
+            <div style="background:#F8FAFC;border-left:4px solid #004AC6;border-radius:8px;padding:16px">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <div>
+                  <p style="font-size:11px;color:#64748B;margin-bottom:4px">Blood Pressure</p>
+                  <p style="font-size:20px;font-weight:700;color:#004AC6;line-height:1">120/80</p>
+                  <p style="font-size:11px;color:#64748B">mmHg</p>
+                </div>
+                <div>
+                  <p style="font-size:11px;color:#64748B;margin-bottom:4px">Heart Rate</p>
+                  <p style="font-size:20px;font-weight:700;color:#EF4444;line-height:1">72</p>
+                  <p style="font-size:11px;color:#64748B">bpm</p>
+                </div>
+                <div>
+                  <p style="font-size:11px;color:#64748B;margin-bottom:4px">SpO₂</p>
+                  <p style="font-size:20px;font-weight:700;color:#0EA5E9;line-height:1">98%</p>
+                  <p style="font-size:11px;color:#64748B">oxygen</p>
+                </div>
+                <div>
+                  <p style="font-size:11px;color:#64748B;margin-bottom:4px">Temperature</p>
+                  <p style="font-size:20px;font-weight:700;color:#F97316;line-height:1">98.6</p>
+                  <p style="font-size:11px;color:#64748B">°F</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Medications -->
+          <div>
+            <div class="section-hd">
+              <span class="section-title">Active Medications</span>
+              <button class="btn-primary" style="font-size:12px;padding:6px 12px">+ Prescribe</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#fff;border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <p style="font-size:13px;font-weight:600;color:#191C1E">Metformin 500mg</p>
+                  <p style="font-size:12px;color:#64748B;margin-top:2px">Twice daily · Oral · 90 days</p>
+                </div>
+                <span class="badge badge-success">Active</span>
+              </div>
+              <div style="background:#fff;border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <p style="font-size:13px;font-weight:600;color:#191C1E">Amlodipine 5mg</p>
+                  <p style="font-size:12px;color:#64748B;margin-top:2px">Once daily · Oral · 30 days</p>
+                </div>
+                <span class="badge badge-success">Active</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Encounters -->
+          <div>
+            <div class="section-hd">
+              <span class="section-title">Recent Encounters</span>
+              <span class="see-all">View All <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+                  <p style="font-size:14px;font-weight:600;color:#191C1E">General Check-up</p>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:12px;color:#64748B">Jun 18</span>
+                    <span class="badge badge-success">Completed</span>
+                  </div>
+                </div>
+                <p style="font-size:12px;color:#64748B">Hypertension control review · Dr. Kumar</p>
+              </div>
+              <div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+                  <p style="font-size:14px;font-weight:600;color:#191C1E">Diabetes Follow-up</p>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:12px;color:#64748B">Jun 04</span>
+                    <span class="badge badge-success">Completed</span>
+                  </div>
+                </div>
+                <p style="font-size:12px;color:#64748B">HbA1c check, medication review · Dr. Kumar</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Allergies + Conditions -->
+          <div>
+            <div class="section-hd"><span class="section-title">Allergies &amp; Conditions</span></div>
+            <div style="background:#FEF2F2;border-radius:10px;padding:14px;margin-bottom:10px">
+              <p style="font-size:12px;font-weight:700;color:#BA1A1A;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Allergies</p>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <span style="background:#fff;border:1px solid #FECACA;color:#BA1A1A;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+                  Penicillin
+                </span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+              <p style="font-size:12px;font-weight:700;color:#191C1E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Active Conditions</p>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <span style="background:#F1F5F9;color:#191C1E;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500">Hypertension (ICD: I10)</span>
+                <span style="background:#F1F5F9;color:#191C1E;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500">Type 2 DM (ICD: E11)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 3 · Encounter Workspace (SOAP Notes)
+═══════════════════════════════════════════════ -->
+<div style="position:absolute;left:80px;top:1720px;width:1280px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:500 11px system-ui;color:rgba(0,0,0,.55)">Encounter Workspace — SOAP Notes</div>
+  <div class="browser">
+    <div class="browser-chrome">
+      <div class="traffic"><div class="dot" style="background:#FF5F57"></div><div class="dot" style="background:#FEBC2E"></div><div class="dot" style="background:#28C840"></div></div>
+      <div class="url-bar">app.clinicalcurator.com/encounter/enc-2026-001</div>
+    </div>
+    <div class="app-shell" style="height:760px">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div style="background:#004AC6;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <div><p style="font-size:13px;font-weight:700;color:#191C1E">Clinical Curator</p><p style="font-size:11px;color:#64748B">Clinician Portal</p></div>
+        </div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Patients</div>
+        <div class="nav-link active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>Encounters</div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule</div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg>E-Prescribe</div>
+        <div style="flex:1"></div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Dr. Kumar</div>
+      </div>
+      <div class="content">
+        <!-- patient bar -->
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#004AC6;font-size:13px;font-weight:600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back</div>
+          <div style="width:1px;height:24px;background:#BFDBFE"></div>
+          <div class="avatar" style="width:40px;height:40px;font-size:14px">SG</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px"><p style="font-size:15px;font-weight:700;color:#191C1E">Sarah Green</p><span style="background:#FEF2F2;color:#BA1A1A;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700">⚠ Allergy: Penicillin</span></div>
+            <p style="font-size:12px;color:#64748B;margin-top:2px">28Y · Female · HID-2024-001 · A+ · HTN · DM2</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:6px"><div style="width:7px;height:7px;border-radius:50%;background:#16A34A"></div><span style="font-size:12px;font-weight:600;color:#16A34A">In Progress</span></div>
+            <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:7px 12px"><span style="font-size:12px;font-weight:600;color:#D97706">ENC-2026-001</span></div>
+          </div>
+        </div>
+        <!-- soap tabs + actions -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="display:flex;gap:6px">
+            <div style="background:#004AC6;color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer">Subjective</div>
+            <div style="background:#F1F5F9;color:#64748B;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">Objective</div>
+            <div style="background:#F1F5F9;color:#64748B;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">Assessment</div>
+            <div style="background:#F1F5F9;color:#64748B;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">Plan</div>
+          </div>
+          <div style="display:flex;gap:8px"><button class="btn-outline">Save Draft</button><button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Finalise Encounter</button></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <!-- left -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card" style="padding:16px">
+              <div class="section-hd"><span class="section-title" style="font-size:14px;font-weight:700">S — Subjective</span><span style="font-size:11px;color:#64748B">Chief Complaint</span></div>
+              <textarea class="ta" rows="4">Patient presents with headache and dizziness for the past 3 days. Home BP readings averaging 145/95 mmHg. No chest pain, shortness of breath, or visual disturbances. Currently on Amlodipine 5mg once daily.</textarea>
+              <div style="margin-top:10px"><p style="font-size:11px;font-weight:700;color:#64748B;margin-bottom:6px">QUICK TEMPLATES</p><div style="display:flex;gap:6px;flex-wrap:wrap"><div style="background:#F1F5F9;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:#64748B;cursor:pointer">Hypertension Follow-up</div><div style="background:#F1F5F9;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:#64748B;cursor:pointer">Diabetes Check</div><div style="background:#F1F5F9;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:#64748B;cursor:pointer">General OPD</div></div></div>
+            </div>
+            <div class="card" style="padding:16px">
+              <div class="section-hd"><span class="section-title" style="font-size:14px;font-weight:700">A — Assessment</span></div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+                <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center"><div><p style="font-size:13px;font-weight:600;color:#191C1E">Essential Hypertension</p><p style="font-size:11px;color:#64748B;margin-top:1px">ICD-10: I10 · SNOMED: 38341003</p></div><span class="badge badge-warning">Worsening</span></div>
+                <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center"><div><p style="font-size:13px;font-weight:600;color:#191C1E">Type 2 Diabetes Mellitus</p><p style="font-size:11px;color:#64748B;margin-top:1px">ICD-10: E11 · SNOMED: 44054006</p></div><span class="badge badge-success">Stable</span></div>
+              </div>
+              <div style="border:1.5px dashed #E2E8F0;border-radius:8px;padding:10px;text-align:center;cursor:pointer"><p style="font-size:12px;font-weight:600;color:#004AC6">+ Add Diagnosis (ICD-10 / SNOMED)</p></div>
+            </div>
+          </div>
+          <!-- right -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card" style="padding:16px">
+              <div class="section-hd"><span class="section-title" style="font-size:14px;font-weight:700">O — Objective · Vitals</span><span class="see-all">+ Add Reading</span></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                <div style="background:#F0F9FF;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:#004AC6;line-height:1">145/95</p><p style="font-size:10px;color:#64748B;margin-top:3px">BP · mmHg</p></div>
+                <div style="background:#FFF1F2;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:#EF4444;line-height:1">88</p><p style="font-size:10px;color:#64748B;margin-top:3px">HR · bpm</p></div>
+                <div style="background:#F0F9FF;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:#0EA5E9;line-height:1">97%</p><p style="font-size:10px;color:#64748B;margin-top:3px">SpO₂</p></div>
+                <div style="background:#FFF7ED;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:#F97316;line-height:1">99.1</p><p style="font-size:10px;color:#64748B;margin-top:3px">Temp · °F</p></div>
+                <div style="background:#F8FAFC;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:#191C1E;line-height:1">68kg</p><p style="font-size:10px;color:#64748B;margin-top:3px">Weight</p></div>
+                <div style="background:#F8FAFC;border-radius:10px;padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:#191C1E;line-height:1">24.2</p><p style="font-size:10px;color:#64748B;margin-top:3px">BMI</p></div>
+              </div>
+            </div>
+            <div class="card" style="padding:16px">
+              <div class="section-hd"><span class="section-title" style="font-size:14px;font-weight:700">P — Plan</span></div>
+              <textarea class="ta" rows="4">1. Increase Amlodipine to 10mg once daily
+2. DASH diet counselling provided
+3. Home BP monitoring — twice daily
+4. Return in 2 weeks or if BP ≥160/100</textarea>
+            </div>
+            <div class="card" style="padding:16px">
+              <div class="section-hd"><span class="section-title" style="font-size:14px;font-weight:700">Prescriptions</span><button class="btn-primary" style="font-size:12px;padding:6px 12px">+ E-Prescribe</button></div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center"><div><p style="font-size:13px;font-weight:600;color:#191C1E">Amlodipine 10mg</p><p style="font-size:11px;color:#64748B;margin-top:1px">Once daily · Oral · 30 days · RxNorm 17767</p></div><span class="badge badge-primary">New</span></div>
+                <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center"><div><p style="font-size:13px;font-weight:600;color:#191C1E">Metformin 500mg</p><p style="font-size:11px;color:#64748B;margin-top:1px">Twice daily · Oral · 90 days · RxNorm 860975</p></div><span class="badge badge-success">Continue</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#F0F9FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-top:16px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <p style="font-size:12px;color:#0369A1;font-weight:600">FHIR R4 — saved as an Encounter resource with linked Observation, Condition, MedicationRequest &amp; DiagnosticReport resources for full interoperability.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 4 · Doctor Schedule (Timesheet)
+═══════════════════════════════════════════════ -->
+<div style="position:absolute;left:80px;top:2620px;width:1280px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:500 11px system-ui;color:rgba(0,0,0,.55)">Doctor Schedule — Day View</div>
+  <div class="browser">
+    <div class="browser-chrome">
+      <div class="traffic"><div class="dot" style="background:#FF5F57"></div><div class="dot" style="background:#FEBC2E"></div><div class="dot" style="background:#28C840"></div></div>
+      <div class="url-bar">app.clinicalcurator.com/schedule</div>
+    </div>
+    <div class="app-shell" style="height:700px">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div style="background:#004AC6;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <div><p style="font-size:13px;font-weight:700;color:#191C1E">Clinical Curator</p><p style="font-size:11px;color:#64748B">Clinician Portal</p></div>
+        </div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Patients</div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>Encounters</div>
+        <div class="nav-link active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule</div>
+        <div style="flex:1"></div>
+        <div class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Dr. Kumar</div>
+      </div>
+      <div class="content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div><p style="font-size:22px;font-weight:800;color:#191C1E;letter-spacing:-.3px">Schedule</p><p style="font-size:13px;color:#64748B;margin-top:3px">Dr. Raj Kumar · Wednesday, June 25, 2026</p></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span style="font-size:13px;font-weight:600;color:#191C1E">Today</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+            <button class="btn-primary">+ Block Time</button>
+          </div>
+        </div>
+        <!-- summary -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+          <div class="stat-card" style="background:#F0F9FF;padding:14px"><p style="font-size:22px;font-weight:800;color:#004AC6;line-height:1">12</p><p style="font-size:12px;color:#64748B;margin-top:4px">Appointments</p></div>
+          <div class="stat-card" style="background:#F0FDF4;padding:14px"><p style="font-size:22px;font-weight:800;color:#16A34A;line-height:1">5</p><p style="font-size:12px;color:#64748B;margin-top:4px">Completed</p></div>
+          <div class="stat-card" style="background:#FFFBEB;padding:14px"><p style="font-size:22px;font-weight:800;color:#D97706;line-height:1">7</p><p style="font-size:12px;color:#64748B;margin-top:4px">Remaining</p></div>
+          <div class="stat-card" style="background:#F5F3FF;padding:14px"><p style="font-size:22px;font-weight:800;color:#7C3AED;line-height:1">2</p><p style="font-size:12px;color:#64748B;margin-top:4px">Teleconsults</p></div>
+        </div>
+        <!-- timeline -->
+        <div class="card" style="padding:8px 0">
+          <!-- row -->
+          <div style="display:flex;border-bottom:1px solid #F1F5F9;padding:12px 16px;gap:16px;align-items:center;background:rgba(22,163,74,.03)">
+            <span style="font-size:13px;font-weight:600;color:#64748B;width:64px;flex-shrink:0">09:00</span>
+            <div style="width:4px;height:40px;border-radius:4px;background:#16A34A;flex-shrink:0"></div>
+            <div class="avatar" style="width:34px;height:34px;font-size:12px">AM</div>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;color:#191C1E">Arjun Mehta</p><p style="font-size:11px;color:#64748B">Hypertension follow-up · OPD</p></div>
+            <span class="badge badge-success">Completed</span>
+          </div>
+          <div style="display:flex;border-bottom:1px solid #F1F5F9;padding:12px 16px;gap:16px;align-items:center;background:rgba(0,74,198,.04)">
+            <span style="font-size:13px;font-weight:700;color:#004AC6;width:64px;flex-shrink:0">10:30</span>
+            <div style="width:4px;height:40px;border-radius:4px;background:#004AC6;flex-shrink:0"></div>
+            <div class="avatar" style="width:34px;height:34px;font-size:12px">SG</div>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;color:#191C1E">Sarah Green <span style="font-size:10px;font-weight:700;color:#004AC6">· NOW</span></p><p style="font-size:11px;color:#64748B">Diabetes check-up · OPD</p></div>
+            <button class="btn-primary" style="font-size:12px;padding:6px 14px">Start Encounter</button>
+          </div>
+          <div style="display:flex;border-bottom:1px solid #F1F5F9;padding:12px 16px;gap:16px;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:#64748B;width:64px;flex-shrink:0">11:00</span>
+            <div style="width:4px;height:40px;border-radius:4px;background:#E2E8F0;flex-shrink:0"></div>
+            <div class="avatar" style="width:34px;height:34px;font-size:12px">RK</div>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;color:#191C1E">Ramesh Kumar</p><p style="font-size:11px;color:#64748B">Chest pain complaint · OPD</p></div>
+            <span class="badge badge-primary">Booked</span>
+          </div>
+          <div style="display:flex;border-bottom:1px solid #F1F5F9;padding:12px 16px;gap:16px;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:#94A3B8;width:64px;flex-shrink:0">12:00</span>
+            <div style="width:4px;height:40px;border-radius:4px;background:#FDE68A;flex-shrink:0"></div>
+            <div style="width:34px;height:34px;border-radius:50%;background:#FFFBEB;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h2a1 1 0 0 1 1 1v3a3 3 0 0 1-3 3M6 6H4a1 1 0 0 0-1 1v3a3 3 0 0 0 3 3M6 6h12v5a6 6 0 0 1-12 0z"/><path d="M8 22h8M12 17v5"/></svg></div>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;color:#94A3B8">Lunch Break</p></div>
+            <span style="font-size:11px;color:#94A3B8">Blocked</span>
+          </div>
+          <div style="display:flex;border-bottom:1px solid #F1F5F9;padding:12px 16px;gap:16px;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:#64748B;width:64px;flex-shrink:0">14:00</span>
+            <div style="width:4px;height:40px;border-radius:4px;background:#7C3AED;flex-shrink:0"></div>
+            <div class="avatar" style="width:34px;height:34px;font-size:12px;background:rgba(124,58,237,.1);color:#7C3AED">RV</div>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;color:#191C1E">Ravi Verma</p><p style="font-size:11px;color:#64748B">Follow-up · Teleconsultation</p></div>
+            <span style="background:rgba(124,58,237,.1);color:#7C3AED;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>Video</span>
+          </div>
+          <div style="display:flex;padding:12px 16px;gap:16px;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:#64748B;width:64px;flex-shrink:0">15:30</span>
+            <div style="width:4px;height:40px;border-radius:4px;background:#E2E8F0;flex-shrink:0"></div>
+            <div class="avatar" style="width:34px;height:34px;font-size:12px">PS</div>
+            <div style="flex:1"><p style="font-size:13px;font-weight:600;color:#191C1E">Priya Singh</p><p style="font-size:11px;color:#64748B">New patient consultation · OPD</p></div>
+            <span class="badge badge-primary">Booked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

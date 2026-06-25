@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<meta name="design_doc_mode" content="canvas">
+<helmet>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+@keyframes hb{0%,100%{transform:scale(1)}30%{transform:scale(1.15)}}
+@keyframes ep{0%,100%{box-shadow:0 0 0 0 rgba(186,26,26,0)}60%{box-shadow:0 0 0 10px rgba(186,26,26,.15)}}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.hb{animation:hb 1.8s ease-in-out infinite}
+.ep{animation:ep 2.5s ease-in-out infinite}
+.fl{animation:fl 3s ease-in-out infinite}
+.a1{animation:fu .3s ease both}
+.a2{animation:fu .3s .07s ease both}
+.a3{animation:fu .3s .14s ease both}
+.a4{animation:fu .3s .21s ease both}
+.ph{background:#111;border-radius:44px;padding:11px;box-shadow:0 28px 72px rgba(0,0,0,.38)}
+.sc{background:#F8FAFC;border-radius:36px;overflow:hidden;display:flex;flex-direction:column;height:852px;width:390px}
+.di{background:#111;height:34px;display:flex;justify-content:center;align-items:flex-end;padding-bottom:4px;flex-shrink:0}
+.dp{background:#000;width:120px;height:32px;border-radius:20px}
+.sb{padding:3px 22px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;font-size:12px;font-weight:700;color:#191C1E}
+.sv{flex:1;overflow-y:auto;padding:18px 18px 0}
+.bn{background:#fff;border-top:1px solid #F1F5F9;display:flex;padding:8px 0 26px;flex-shrink:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px}
+.no{color:#004AC6;font-weight:700}.nm{color:#64748B;font-weight:500}
+.cw{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.row{display:flex;gap:11px}
+.inp{background:#F1F5F9;border-radius:10px;padding:12px 13px;display:flex;align-items:center;gap:9px;font-size:14px;color:#64748B;margin-bottom:13px}
+.lbl{font-size:10px;font-weight:700;color:#545F73;letter-spacing:.9px;margin-bottom:6px}
+.btn{background:#004AC6;color:#fff;border:none;border-radius:10px;padding:14px;text-align:center;font-size:15px;font-weight:700;cursor:pointer;display:block;width:100%}
+.btno{border:1.5px solid #E2E8F0;border-radius:10px;padding:13px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;display:block;background:#fff}
+.chip{background:#F1F5F9;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;color:#64748B;white-space:nowrap;cursor:pointer}
+.chipon{background:rgba(0,74,198,.1);color:#004AC6}
+.bs{background:rgba(22,163,74,.1);color:#16A34A;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.bw{background:rgba(245,158,11,.12);color:#D97706;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.bd{background:rgba(186,26,26,.1);color:#BA1A1A;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.bp{background:rgba(0,74,198,.1);color:#004AC6;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.bv{background:rgba(124,58,237,.1);color:#7C3AED;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.hdg{font-size:22px;font-weight:800;color:#191C1E;letter-spacing:-.3px;margin-bottom:14px}
+.sec{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.st{font-size:15px;font-weight:700;color:#191C1E}
+.sa{font-size:12px;font-weight:600;color:#004AC6}
+/* Status bar battery icon */
+.bat{display:flex;gap:5px;align-items:center}
+</style>
+</helmet>
+
+<!-- ─── LABELS ─── -->
+<div style="position:absolute;left:80px;top:44px;font:700 11px system-ui;letter-spacing:.6px;color:rgba(0,0,0,.38);text-transform:uppercase">PHR · Row 1 — Core Screens</div>
+<div style="position:absolute;left:80px;top:1028px;font:700 11px system-ui;letter-spacing:.6px;color:rgba(0,0,0,.38);text-transform:uppercase">PHR · Row 2 — Healthcare Access</div>
+<div style="position:absolute;left:80px;top:2008px;font:700 11px system-ui;letter-spacing:.6px;color:rgba(0,0,0,.38);text-transform:uppercase">PHR · Row 3 — Services &amp; Settings</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 1 · PATIENT HOME
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:80px;top:80px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">1 · Patient Home</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<div class="bat"><svg width="15" height="10" viewBox="0 0 16 11"><rect x="0" y="3" width="3" height="8" rx="1" fill="#191C1E"/><rect x="5" y="1.5" width="3" height="9.5" rx="1" fill="#191C1E"/><rect x="10" y="0" width="3" height="11" rx="1" fill="#191C1E"/></svg><svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div></div>
+    <div class="sv">
+      <!-- Greeting -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px" class="a1">
+        <div><p style="font-size:13px;color:#64748B">Good morning,</p><p style="font-size:26px;font-weight:800;color:#191C1E;letter-spacing:-.5px">Sarah 👋</p></div>
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:#16A34A"></div><span style="font-size:11px;font-weight:700;color:#16A34A">Synced</span></div>
+      </div>
+      <!-- Bento R1 -->
+      <div class="row a2" style="margin-bottom:11px">
+        <div style="flex:3;background:linear-gradient(140deg,#004AC6,#2563EB);border-radius:20px;padding:17px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 28px rgba(0,74,198,.28)">
+          <div><p style="font-size:11px;color:rgba(255,255,255,.7)">Wed, Jun 25</p><p style="font-size:21px;font-weight:800;color:#fff;letter-spacing:-.3px;margin-top:3px">Sarah</p></div>
+          <div style="background:rgba(255,255,255,.18);border-radius:8px;padding:4px 9px;width:fit-content;margin-top:10px"><span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px">HID-2024-001</span></div>
+        </div>
+        <div style="flex:2;background:#fff;border-radius:20px;padding:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.07)">
+          <div style="position:relative" class="fl">
+            <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,rgba(0,74,198,.12),rgba(37,99,235,.2));display:flex;align-items:center;justify-content:center"><span style="font-size:17px;font-weight:800;color:#004AC6">SG</span></div>
+            <div style="position:absolute;right:0;bottom:0;width:13px;height:13px;background:#16A34A;border-radius:50%;border:2.5px solid #fff"></div>
+          </div>
+          <p style="font-size:11px;font-weight:700;color:#191C1E;margin-top:9px">Patient</p><p style="font-size:10px;color:#64748B">Active</p>
+        </div>
+      </div>
+      <!-- Bento R2 -->
+      <div class="row a3" style="margin-bottom:11px">
+        <div style="flex:1;background:#FFF1F2;border-radius:20px;padding:15px">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
+            <div style="background:rgba(239,68,68,.15);border-radius:10px;width:35px;height:35px;display:flex;align-items:center;justify-content:center" class="hb"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div>
+            <div style="background:rgba(22,163,74,.12);border-radius:8px;padding:3px 7px"><span style="font-size:10px;font-weight:700;color:#16A34A">↑+3%</span></div>
+          </div>
+          <p style="font-size:33px;font-weight:800;color:#191C1E;letter-spacing:-.5px;line-height:1">72</p>
+          <p style="font-size:11px;color:#64748B;margin:3px 0 6px">bpm</p><p style="font-size:12px;font-weight:700;color:#EF4444">Heart Rate</p>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          <div style="flex:1;background:#F0F9FF;border-radius:15px;padding:11px;display:flex;align-items:center;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg><div><p style="font-size:9px;color:#64748B">Blood Pressure</p><p style="font-size:16px;font-weight:800;color:#191C1E;line-height:1;margin-top:2px">120/80</p><p style="font-size:9px;color:#64748B">mmHg</p></div></div>
+          <div style="flex:1;background:#FFF7ED;border-radius:15px;padding:11px;display:flex;align-items:center;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg><div><p style="font-size:9px;color:#64748B">Temperature</p><p style="font-size:16px;font-weight:800;color:#191C1E;line-height:1;margin-top:2px">98.6°F</p><p style="font-size:9px;color:#16A34A;font-weight:600">Normal</p></div></div>
+        </div>
+      </div>
+      <!-- Bento R3 -->
+      <div class="row a4" style="margin-bottom:16px">
+        <div style="flex:1;background:#F0F9FF;border-radius:15px;padding:11px;display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><div><p style="font-size:9px;color:#64748B">SpO₂</p><p style="font-size:15px;font-weight:800;color:#191C1E;line-height:1;margin-top:1px">98%</p></div></div>
+        <div style="flex:1;background:#F5F3FF;border-radius:15px;padding:11px;display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg><div><p style="font-size:9px;color:#64748B">Resp Rate</p><p style="font-size:15px;font-weight:800;color:#191C1E;line-height:1;margin-top:1px">16/min</p></div></div>
+        <div style="flex:1;background:rgba(0,74,198,.07);border:1px solid rgba(0,74,198,.15);border-radius:15px;padding:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer"><div style="background:rgba(0,74,198,.13);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div><p style="font-size:10px;font-weight:700;color:#004AC6;margin-top:5px">View All</p></div>
+      </div>
+      <!-- Tip -->
+      <div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:16px;border:1px solid #FDE68A"><span style="font-size:20px">💡</span><div><p style="font-size:10px;font-weight:700;color:#92400E">Today's Tip</p><p style="font-size:11px;color:#78350F;line-height:1.4;margin-top:1px">Drink 8 glasses of water daily to stay healthy.</p></div></div>
+      <!-- Services -->
+      <div class="sec"><span class="st">Services</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px 6px;margin-bottom:20px">
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Book Appt</p></div>
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v4m-2 0h4M14 14h-4M14 18h-4M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Hospitals</p></div>
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Teleconsult</p></div>
+        <div style="text-align:center"><div style="background:#FEF2F2;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center" class="ep"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#BA1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="19" r="2"/><path d="M17 13v4h4"/></svg></div><p style="font-size:10px;font-weight:600;color:#BA1A1A;margin-top:6px">Ambulance</p></div>
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Health Tips</p></div>
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 5 20.5h14L15 3"/><path d="M5 12h14"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Lab Tests</p></div>
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Pharmacy</p></div>
+        <div style="text-align:center"><div style="background:#F1F5F9;border-radius:13px;width:50px;height:50px;margin:0 auto;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div><p style="font-size:10px;font-weight:600;color:#191C1E;margin-top:6px">Records</p></div>
+      </div>
+    </div>
+    <div class="bn">
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="no">Home</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="nm">Appts</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg><span class="nm">Records</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg><span class="nm">Pharmacy</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nm">Profile</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 2 · LOGIN
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:556px;top:80px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">2 · Login</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div style="flex:1;overflow-y:auto;padding:24px 22px">
+      <div style="text-align:center;margin-bottom:28px;margin-top:18px" class="a1">
+        <div style="display:inline-flex;padding:14px;background:#fff;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.08);margin-bottom:18px"><div style="background:#004AC6;border-radius:10px;padding:11px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div></div>
+        <p style="font-size:25px;font-weight:800;color:#191C1E;letter-spacing:-.5px">Clinical Curator</p>
+        <p style="font-size:13px;color:#64748B;margin-top:5px">Your Health. Secure &amp; Simple.</p>
+      </div>
+      <div class="cw a2" style="margin-bottom:16px">
+        <p class="lbl">EMAIL</p>
+        <div class="inp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>name@hospital.np</span></div>
+        <p class="lbl">PASSWORD</p>
+        <div class="inp" style="margin-bottom:20px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span style="flex:1">Enter your password</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="btn">Sign In</div>
+      </div>
+      <p class="a3" style="text-align:center;font-size:13px;color:#64748B;margin-bottom:16px">Need an account? <span style="color:#004AC6;font-weight:700">Create Account</span></p>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px" class="a3"><div style="flex:1;height:1px;background:#E2E8F0"></div><span style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:1.5px">OR</span><div style="flex:1;height:1px;background:#E2E8F0"></div></div>
+      <div class="btno a4" style="margin-bottom:20px"><p style="font-size:13px;font-weight:700">Register as Practitioner</p><p style="font-size:11px;color:#64748B;margin-top:2px">Includes a standard patient account</p></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><p style="font-size:11px;color:#94A3B8;font-weight:600">HIPAA-compliant · FHIR R4 · Offline-first</p></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 3 · SIGN UP / PROFILE SETUP
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:1032px;top:80px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">3 · Sign Up — Profile Setup</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div class="sv">
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:18px;margin-top:4px" class="a1">
+        <div style="width:30px;height:4px;border-radius:4px;background:#004AC6"></div><div style="width:30px;height:4px;border-radius:4px;background:#004AC6"></div><div style="width:30px;height:4px;border-radius:4px;background:#E2E8F0"></div><div style="width:30px;height:4px;border-radius:4px;background:#E2E8F0"></div>
+      </div>
+      <p style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:.5px;margin-bottom:4px" class="a1">STEP 2 OF 4</p>
+      <p style="font-size:22px;font-weight:800;color:#191C1E;letter-spacing:-.3px;margin-bottom:3px" class="a2">Your Profile</p>
+      <p style="font-size:13px;color:#64748B;margin-bottom:20px" class="a2">Help us personalise your experience</p>
+      <div class="a3" style="display:flex;flex-direction:column;gap:13px">
+        <div><p class="lbl">FULL NAME</p><div class="inp" style="margin-bottom:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Sarah Green</span></div></div>
+        <div><p class="lbl">DATE OF BIRTH</p><div class="inp" style="margin-bottom:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>1996-03-15</span></div></div>
+        <div><p class="lbl">GENDER</p>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:rgba(0,74,198,.08);border:1.5px solid #004AC6;border-radius:10px;padding:11px;text-align:center"><p style="font-size:13px;font-weight:700;color:#004AC6">Female</p></div>
+            <div style="flex:1;background:#F1F5F9;border:1.5px solid transparent;border-radius:10px;padding:11px;text-align:center"><p style="font-size:13px;color:#64748B">Male</p></div>
+            <div style="flex:1;background:#F1F5F9;border:1.5px solid transparent;border-radius:10px;padding:11px;text-align:center"><p style="font-size:13px;color:#64748B">Other</p></div>
+          </div>
+        </div>
+        <div><p class="lbl">PHONE</p><div class="inp" style="margin-bottom:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 13 19.79 19.79 0 0 1 1.27 4.4 2 2 0 0 1 3.22 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.88-.88a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.7z"/></svg><span>+977 98XXXXXXXX</span></div></div>
+        <div><p class="lbl">I AM A</p>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:rgba(0,74,198,.08);border:1.5px solid #004AC6;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><p style="font-size:13px;font-weight:700;color:#004AC6">Patient</p></div>
+            <div style="flex:1;background:#F1F5F9;border:1.5px solid transparent;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><p style="font-size:13px;color:#64748B">Clinician</p></div>
+          </div>
+        </div>
+        <div><p class="lbl">BLOOD GROUP</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <div style="background:rgba(0,74,198,.08);border:1.5px solid #004AC6;border-radius:8px;padding:8px 14px"><p style="font-size:13px;font-weight:700;color:#004AC6">A+</p></div>
+            <div style="background:#F1F5F9;border:1.5px solid transparent;border-radius:8px;padding:8px 14px"><p style="font-size:13px;color:#64748B">A−</p></div>
+            <div style="background:#F1F5F9;border:1.5px solid transparent;border-radius:8px;padding:8px 14px"><p style="font-size:13px;color:#64748B">B+</p></div>
+            <div style="background:#F1F5F9;border:1.5px solid transparent;border-radius:8px;padding:8px 14px"><p style="font-size:13px;color:#64748B">O+</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:22px" class="a4"><div class="btn">Continue →</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 4 · APPOINTMENTS  (Row 2)
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:80px;top:1060px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">4 · Appointments</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div class="sv">
+      <p class="hdg a1">Appointments</p>
+      <div style="background:#F1F5F9;border-radius:12px;padding:4px;display:flex;gap:2px;margin-bottom:18px" class="a2">
+        <div style="flex:1;background:#fff;border-radius:9px;padding:9px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)"><span style="font-size:12px;font-weight:700;color:#191C1E">Upcoming</span></div>
+        <div style="flex:1;padding:9px;text-align:center"><span style="font-size:12px;font-weight:500;color:#64748B">Past</span></div>
+        <div style="flex:1;padding:9px;text-align:center"><span style="font-size:12px;font-weight:500;color:#64748B">Book</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="cw a3" style="border-left:3px solid #004AC6">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#004AC6;flex-shrink:0;margin-top:2px"></div><div><p style="font-size:14px;font-weight:700;color:#191C1E">Dr. Rajesh Sharma</p><p style="font-size:11px;color:#64748B;margin-top:2px">General Medicine</p></div></div>
+            <span class="bp">Booked</span>
+          </div>
+          <div style="background:#F8FAFC;border-radius:8px;padding:9px;display:flex;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span style="font-size:11px;color:#64748B">Thu, Jun 26</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span style="font-size:11px;color:#64748B">10:30 AM</span></div>
+          </div>
+        </div>
+        <div class="cw a4">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#7C3AED;flex-shrink:0;margin-top:2px"></div><div><p style="font-size:14px;font-weight:700;color:#191C1E">Dr. Priya Malhotra</p><p style="font-size:11px;color:#64748B;margin-top:2px">Cardiologist</p></div></div>
+            <span class="bv" style="display:flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>Video</span>
+          </div>
+          <div style="background:#F8FAFC;border-radius:8px;padding:9px;display:flex;justify-content:space-between"><span style="font-size:11px;color:#64748B">Sat, Jun 28</span><span style="font-size:11px;color:#64748B">2:00 PM</span></div>
+        </div>
+        <div class="cw a5" style="opacity:.65">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div><p style="font-size:13px;font-weight:700;color:#191C1E">Dr. Amit Patel</p><p style="font-size:11px;color:#64748B">Jun 18 · 11:00 AM · Orthopedics</p></div><span class="bs">Done</span></div>
+        </div>
+      </div>
+      <div style="margin-top:16px"><div class="btn">+ Book New Appointment</div></div>
+    </div>
+    <div class="bn">
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nm">Home</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="no">Appts</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg><span class="nm">Records</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg><span class="nm">Pharmacy</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nm">Profile</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 5 · MEDICAL RECORDS
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:556px;top:1060px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">5 · Medical Records (FHIR R4)</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div class="sv">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px" class="a1">
+        <p style="font-size:22px;font-weight:800;color:#191C1E">My Records</p>
+        <div style="background:rgba(0,74,198,.08);border-radius:8px;padding:5px 9px;display:flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span style="font-size:10px;font-weight:700;color:#004AC6">FHIR R4</span></div>
+      </div>
+      <div style="background:#F1F5F9;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:9px;margin-bottom:13px" class="a2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span style="font-size:13px;color:#94A3B8">Search records…</span></div>
+      <div style="display:flex;gap:7px;overflow-x:auto;margin-bottom:15px;padding-bottom:2px" class="a3">
+        <div class="chip chipon">All</div><div class="chip">Vitals</div><div class="chip">Labs</div><div class="chip">Meds</div><div class="chip">Allergies</div><div class="chip">Immunizations</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="cw a3" style="display:flex;align-items:center;gap:11px">
+          <div style="background:#FFF1F2;border-radius:10px;width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+          <div style="flex:1"><div style="display:flex;justify-content:space-between"><p style="font-size:13px;font-weight:700;color:#191C1E">Vital Signs</p><span class="bp">FHIR</span></div><p style="font-size:11px;color:#64748B;margin-top:1px">BP 120/80 · HR 72 · SpO₂ 98%</p><p style="font-size:10px;color:#94A3B8;margin-top:2px">Jun 25, 2026 · LOINC 85354-9</p></div>
+        </div>
+        <div class="cw a4" style="display:flex;align-items:center;gap:11px">
+          <div style="background:#F0FDF4;border-radius:10px;width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></div>
+          <div style="flex:1"><div style="display:flex;justify-content:space-between"><p style="font-size:13px;font-weight:700;color:#191C1E">Metformin 500mg</p><span class="bs">Active</span></div><p style="font-size:11px;color:#64748B;margin-top:1px">Twice daily · Oral · RxNorm 860975</p><p style="font-size:10px;color:#94A3B8;margin-top:2px">Since May 12, 2026</p></div>
+        </div>
+        <div class="cw a4" style="display:flex;align-items:center;gap:11px">
+          <div style="background:#F0F9FF;border-radius:10px;width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 5 20.5h14L15 3"/><path d="M5 12h14"/></svg></div>
+          <div style="flex:1"><div style="display:flex;justify-content:space-between"><p style="font-size:13px;font-weight:700;color:#191C1E">HbA1c Lab Result</p><span class="bs">Normal</span></div><p style="font-size:11px;color:#64748B;margin-top:1px">6.8% · LOINC 4548-4</p><p style="font-size:10px;color:#94A3B8;margin-top:2px">Jun 20, 2026</p></div>
+        </div>
+        <div class="cw a5" style="display:flex;align-items:center;gap:11px">
+          <div style="background:#FEF2F2;border-radius:10px;width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#BA1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+          <div style="flex:1"><div style="display:flex;justify-content:space-between"><p style="font-size:13px;font-weight:700;color:#191C1E">Penicillin Allergy</p><span class="bd">Critical</span></div><p style="font-size:11px;color:#64748B;margin-top:1px">Anaphylaxis · High severity</p><p style="font-size:10px;color:#94A3B8;margin-top:2px">Recorded Jun 1, 2026</p></div>
+        </div>
+        <div class="cw a5" style="display:flex;align-items:center;gap:11px">
+          <div style="background:#F5F3FF;border-radius:10px;width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></div>
+          <div style="flex:1"><div style="display:flex;justify-content:space-between"><p style="font-size:13px;font-weight:700;color:#191C1E">COVID-19 Vaccine</p><span class="bs">Complete</span></div><p style="font-size:11px;color:#64748B;margin-top:1px">Covishield · 2 doses</p><p style="font-size:10px;color:#94A3B8;margin-top:2px">Jan 15, 2022</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="bn">
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nm">Home</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="nm">Appts</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg><span class="no">Records</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg><span class="nm">Pharmacy</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nm">Profile</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 6 · HEALTH TIPS
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:1032px;top:1060px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">6 · Health Tips</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div class="sv">
+      <p class="hdg a1">Health Tips</p>
+      <div style="display:flex;gap:7px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px" class="a2">
+        <div class="chip chipon">All</div><div class="chip">Cardiology</div><div class="chip">Diabetes</div><div class="chip">Nutrition</div><div class="chip">Seasonal</div>
+      </div>
+      <!-- Featured -->
+      <div style="background:linear-gradient(140deg,#004AC6,#2563EB);border-radius:16px;padding:18px;margin-bottom:13px" class="a2">
+        <span style="background:rgba(255,255,255,.2);color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700">🇳🇵 FEATURED</span>
+        <p style="font-size:15px;font-weight:700;color:#fff;margin-top:10px;line-height:1.35">Staying Healthy During Monsoon Season in Nepal</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.4">Practical tips for waterborne disease prevention &amp; hygiene…</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+          <p style="font-size:11px;color:rgba(255,255,255,.55)">Dr. Anita Shrestha · Jun 25</p>
+          <span style="background:rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700">Read →</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="cw a3" style="display:flex;gap:11px">
+          <div style="background:#FFF7ED;border-radius:10px;width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+          <div><p style="font-size:13px;font-weight:700;color:#191C1E">Understanding Your Heart Health</p><p style="font-size:11px;color:#64748B;margin-top:3px;line-height:1.4">What your BP &amp; heart rate numbers mean for daily life…</p><p style="font-size:10px;color:#94A3B8;margin-top:5px">Cardiology · 3 min read</p></div>
+        </div>
+        <div class="cw a4" style="display:flex;gap:11px">
+          <div style="background:#F0FDF4;border-radius:10px;width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+          <div><p style="font-size:13px;font-weight:700;color:#191C1E">Managing Diabetes with Local Foods</p><p style="font-size:11px;color:#64748B;margin-top:3px;line-height:1.4">Affordable Nepali foods for blood sugar control…</p><p style="font-size:10px;color:#94A3B8;margin-top:5px">Nutrition · 5 min read</p></div>
+        </div>
+        <div class="cw a5" style="display:flex;gap:11px">
+          <div style="background:#F5F3FF;border-radius:10px;width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></div>
+          <div><p style="font-size:13px;font-weight:700;color:#191C1E">Simple Mental Wellness Practices</p><p style="font-size:11px;color:#64748B;margin-top:3px;line-height:1.4">Breathing exercises and mindfulness for communities…</p><p style="font-size:10px;color:#94A3B8;margin-top:5px">Mental Health · 4 min read</p></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 7 · EMERGENCY (Row 3)
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:80px;top:2040px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">7 · Emergency — Ambulance</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div style="padding:3px 22px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;font-size:12px;font-weight:700;color:#fff;background:#BA1A1A">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="white"/></svg></div>
+    <div style="background:#BA1A1A;padding:18px 18px 20px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg><p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9)">Life-threatening emergency?</p></div>
+      <div style="background:rgba(255,255,255,.14);border-radius:14px;padding:16px;text-align:center;cursor:pointer" class="ep">
+        <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:5px">📞 CALL IMMEDIATELY</p>
+        <p style="font-size:40px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1">102</p>
+        <p style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">National Ambulance · Free 24/7</p>
+      </div>
+    </div>
+    <div class="sv" style="background:#F8FAFC">
+      <p style="font-size:14px;font-weight:700;color:#191C1E;margin-bottom:14px" class="a2">Or Request Ambulance</p>
+      <div style="display:flex;flex-direction:column;gap:12px" class="a3">
+        <div><p class="lbl">PATIENT NAME</p><div class="inp" style="background:#fff;margin-bottom:0"><span style="color:#191C1E">Sarah Green</span></div></div>
+        <div><p class="lbl">CONTACT NUMBER</p><div class="inp" style="background:#fff;margin-bottom:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 13 19.79 19.79 0 0 1 1.27 4.4 2 2 0 0 1 3.22 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l.88-.88a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.7z"/></svg><span>+977 98XXXXXXXX</span></div></div>
+        <div><p class="lbl">PICKUP LOCATION</p><div class="inp" style="background:#fff;margin-bottom:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>Current location</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div></div>
+        <div><p class="lbl">EMERGENCY TYPE</p><div class="inp" style="background:#fff;justify-content:space-between;margin-bottom:0"><span>Select emergency type</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div></div>
+      </div>
+      <div style="background:#BA1A1A;color:#fff;border-radius:12px;padding:16px;text-align:center;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px" class="a4">🚑 Request Ambulance Now</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 8 · PHARMACY
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:556px;top:2040px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">8 · Pharmacy</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div class="sv">
+      <p class="hdg a1">Pharmacy</p>
+      <!-- Nearby pharmacies -->
+      <div class="a2" style="margin-bottom:16px">
+        <div class="sec"><span class="st">Nearby Pharmacies</span><span class="sa">See all</span></div>
+        <div style="display:flex;gap:11px;overflow-x:auto;padding-bottom:4px">
+          <div style="min-width:165px;background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);flex-shrink:0;border:2px solid #004AC6">
+            <p style="font-size:13px;font-weight:700;color:#191C1E">City Pharmacy</p>
+            <p style="font-size:11px;color:#64748B;margin-top:2px">0.3 km · Open now</p>
+            <div style="display:flex;gap:1px;margin-top:5px"><span style="font-size:12px;color:#F59E0B">★★★★</span><span style="font-size:12px;color:#E2E8F0">★</span></div>
+            <div style="background:#004AC6;border-radius:7px;padding:7px;text-align:center;margin-top:10px"><span style="font-size:11px;font-weight:700;color:#fff">Order Here</span></div>
+          </div>
+          <div style="min-width:165px;background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);flex-shrink:0">
+            <p style="font-size:13px;font-weight:700;color:#191C1E">Health Corner</p>
+            <p style="font-size:11px;color:#64748B;margin-top:2px">0.8 km · Open now</p>
+            <div style="display:flex;gap:1px;margin-top:5px"><span style="font-size:12px;color:#F59E0B">★★★★★</span></div>
+            <div style="background:#F1F5F9;border-radius:7px;padding:7px;text-align:center;margin-top:10px"><span style="font-size:11px;font-weight:600;color:#191C1E">Select</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Active prescriptions -->
+      <div class="a3" style="margin-bottom:16px">
+        <div class="sec"><span class="st">Active Prescriptions</span></div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="cw">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px"><div><p style="font-size:13px;font-weight:700;color:#191C1E">Metformin 500mg</p><p style="font-size:11px;color:#64748B;margin-top:2px">Twice daily · 90 days left · Dr. Kumar</p></div><span class="bs">Active</span></div>
+            <div style="background:#004AC6;border-radius:8px;padding:9px;text-align:center"><span style="font-size:12px;font-weight:700;color:#fff">Order Refill →</span></div>
+          </div>
+          <div class="cw">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px"><div><p style="font-size:13px;font-weight:700;color:#191C1E">Amlodipine 5mg</p><p style="font-size:11px;color:#D97706;margin-top:2px;font-weight:600">⚠ Only 7 days left — Refill soon</p></div><span class="bw">Low</span></div>
+            <div style="background:#004AC6;border-radius:8px;padding:9px;text-align:center"><span style="font-size:12px;font-weight:700;color:#fff">Order Refill →</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="a4">
+        <div class="sec"><span class="st">Order History</span><span class="sa">See all</span></div>
+        <div class="cw" style="opacity:.7">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div><p style="font-size:13px;font-weight:600;color:#191C1E">2 items · City Pharmacy</p><p style="font-size:11px;color:#64748B;margin-top:2px">Jun 18 · NPR 240</p></div><span class="bs">Delivered</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="bn">
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nm">Home</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="nm">Appts</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg><span class="nm">Records</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg><span class="no">Pharmacy</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nm">Profile</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     SCREEN 9 · PROFILE & SETTINGS
+╚══════════════════════════════════════════════════════════════╝ -->
+<div style="position:absolute;left:1032px;top:2040px;width:412px">
+  <div data-drags-parent="1" style="position:absolute;top:-22px;font:600 11px system-ui;color:rgba(0,0,0,.45)">9 · Profile &amp; Settings</div>
+  <div class="ph"><div class="sc">
+    <div class="di"><div class="dp"></div></div>
+    <div class="sb">9:41<svg width="24" height="11" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#191C1E" stroke-width="1.2" fill="none"/><rect x="1" y="2" width="17" height="8" rx="2" fill="#191C1E"/><path d="M23 4.5v3c.8-.4 1.3-1 1.3-1.5S23.8 4.9 23 4.5z" fill="#191C1E"/></svg></div>
+    <div class="sv">
+      <div style="text-align:center;padding:14px 0 22px" class="a1">
+        <div style="position:relative;display:inline-block" class="fl">
+          <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,rgba(0,74,198,.12),rgba(37,99,235,.2));display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="font-size:22px;font-weight:800;color:#004AC6">SG</span></div>
+          <div style="position:absolute;right:2px;bottom:2px;width:16px;height:16px;background:#16A34A;border-radius:50%;border:2.5px solid #F8FAFC"></div>
+        </div>
+        <p style="font-size:20px;font-weight:800;color:#191C1E;letter-spacing:-.3px;margin-top:12px">Sarah Green</p>
+        <p style="font-size:13px;color:#64748B;margin-top:3px">sarah@example.com</p>
+        <div style="background:#F1F5F9;border-radius:8px;padding:5px 12px;display:inline-block;margin-top:7px"><span style="font-size:11px;font-weight:700;color:#191C1E;letter-spacing:.5px">HID-2024-001</span></div>
+      </div>
+      <!-- Cloud Sync -->
+      <div class="cw a2" style="margin-bottom:10px">
+        <p style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Cloud Sync</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div><p style="font-size:13px;font-weight:600;color:#191C1E">Enable Sync</p><p style="font-size:11px;color:#64748B;margin-top:1px">Last synced: 5 min ago</p></div>
+          <div style="width:44px;height:26px;background:#16A34A;border-radius:13px;padding:3px;display:flex;justify-content:flex-end"><div style="width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>
+        </div>
+        <div style="background:#F0FDF4;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#16A34A;font-weight:600">Pending: 0 items</span><span style="font-size:12px;font-weight:700;color:#004AC6">Sync Now</span></div>
+      </div>
+      <!-- Notifications -->
+      <div class="cw a3" style="margin-bottom:10px">
+        <p style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Notifications</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F1F5F9"><p style="font-size:13px;color:#191C1E">Appointment Reminders</p><div style="width:44px;height:26px;background:#16A34A;border-radius:13px;padding:3px;display:flex;justify-content:flex-end"><div style="width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F1F5F9"><p style="font-size:13px;color:#191C1E">Lab Results</p><div style="width:44px;height:26px;background:#16A34A;border-radius:13px;padding:3px;display:flex;justify-content:flex-end"><div style="width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0"><p style="font-size:13px;color:#191C1E">Health Alerts</p><div style="width:44px;height:26px;background:#E2E8F0;border-radius:13px;padding:3px;display:flex;justify-content:flex-start"><div style="width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
+      </div>
+      <!-- About -->
+      <div class="cw a4" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F1F5F9"><p style="font-size:13px;color:#64748B">App Version</p><p style="font-size:13px;color:#191C1E;font-weight:600">v1.0.52</p></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F1F5F9"><p style="font-size:13px;color:#64748B">FHIR Version</p><p style="font-size:13px;color:#004AC6;font-weight:700">R4</p></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><p style="font-size:13px;color:#64748B">Platform</p><p style="font-size:13px;color:#191C1E;font-weight:600">Nepal Health 🇳🇵</p></div>
+      </div>
+      <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:10px;padding:14px;text-align:center;cursor:pointer;margin-bottom:20px" class="a4"><span style="font-size:14px;font-weight:700;color:#BA1A1A">Sign Out</span></div>
+    </div>
+    <div class="bn">
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nm">Home</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="nm">Appts</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg><span class="nm">Records</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg><span class="nm">Pharmacy</span></div>
+      <div class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="no">Profile</span></div>
+    </div>
+  </div></div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

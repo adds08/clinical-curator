@@ -9,6 +9,7 @@ export 'network/api_exceptions.dart';
 export 'network/api_interceptors.dart';
 export 'network/fhir_api_service.dart';
 export 'providers/admin_analytics_provider.dart';
+export 'providers/emr_providers.dart';
 export 'providers/health_tip_provider.dart';
 export 'providers/organization_provider.dart';
 export 'providers/practitioner_data_provider.dart';
